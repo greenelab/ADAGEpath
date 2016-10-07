@@ -7,8 +7,8 @@
 \format{A data frame with 5549 rows and 3 variables:
 \describe{
  \item{geneID}{P.a. PAO1 gene identifiers}
- \item{max_express}{The gene's maximum expression value across the compendium}
- \item{min_express}{The gene's minimum expression value across the compendium}
+ \item{max_express}{Each gene's maximum expression value across the compendium}
+ \item{min_express}{Each gene's minimum expression value across the compendium}
 }}
 \usage{
 expressionrange
