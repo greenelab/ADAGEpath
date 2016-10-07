@@ -1,10 +1,3 @@
-load_compendium <- function(compendium_file, normed = TRUE) {
-
-}
-
-load_model <- function(model_file, geneID_file){
-
-}
 
 convert_geneID <- function(IDmap_file, key){
 
@@ -12,9 +5,6 @@ convert_geneID <- function(IDmap_file, key){
 
 load_dataset <- function(dataset_folder, selected_samples, phenotypes,
                          quantile_ref, output_file){
-  qnormed <- normalize_celfiles(dataset_folder, quantile_ref)
-  qnormed_PAonly <- remove_nonPAIDs(qnormed)
-  qnormed_PAonly_01normed <- zeroone_norm(qnormed_PAonly)
 
 }
 
@@ -57,10 +47,6 @@ normalize_celfiles <- function(cel_folder, quantile_ref){
 
 }
 
-
-remove_nonPAIDs <- function() {
-
-}
 
 zeroone_norm <- function() {
 
