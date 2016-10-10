@@ -1,19 +1,23 @@
 
-convert_geneID <- function(IDmap_file, key){
-
-}
-
-load_dataset <- function(dataset_folder, selected_samples, phenotypes,
-                         quantile_ref, output_file){
-
+load_dataset <- function(input){
+  if (endsWith(input, ".zip")) {
+    # unzip files
+    unzip(input, exdir = dirname(input))
+    cel_folder <- file.path(dirname(input), gsub(".zip", "", basename(cel_zip)))
+  } else if (R.utils::isDirectory(input)) {
+    cel_folder <- input
+  }
+  qnormed <- normalize_celfiles(cel_folder = cel_folder,
+                                quantile_ref = probedistribution)
+  geneIDs <- sapply(qnormed$geneID, function(x) to_LocusTag(x))
+  qnormed_IDmapped <- qnormed[match(eADAGEmodel$geneID, geneIDs), ]
+  qnormed_IDmapped$geneID <- eADAGEmodel$geneID
+  return(qnormed_IDmapped)
 }
 
 
 #' @importFrom readr read_delim
-normalize_celfiles <- function(cel_folder, quantile_ref){
-  # read in the reference quantile distribution
-  quantile_ref <- read_delim(quantile_ref, col_names = FALSE, delim = " ")
-  quantile_ref <- quantile_ref[[1]]
+normalize_celfiles <- function(cel_folder, quantile_ref = probedistribution){
 
   # read in all cel files in the folder
   celfiles <- affy::list.celfiles(cel_folder)
@@ -41,13 +45,39 @@ normalize_celfiles <- function(cel_folder, quantile_ref){
 
   # build the final gene expression matrix
   colnames(PMmat_sumed) <- celfiles
-  PMmat_sumed <- cbind(gene = rownames(PMmat_sumed), PMmat_sumed)
+  PMmat_sumed <- data.frame(geneID = rownames(PMmat_sumed), PMmat_sumed,
+                            stringsAsFactors = FALSE)
 
   return(PMmat_sumed)
 
 }
 
+to_LocusTag <- function(input_ID) {
+  if (startsWith(input_ID, "ig") | startsWith(input_ID, "Pae") |
+      startsWith(input_ID, "AFFY")) {
+    output_ID <- "control"
+  } else if (endsWith(input_ID, "_at")) {
+    output_ID <- unlist(strsplit(input_ID, "_"))[1]
+  } else if (input_ID %in% geneinfo$Symbol) {
+    output_ID <- geneinfo$LocusTag[geneinfo$Symbol == input_ID]
+  } else if (input_ID %in% geneinfo$LocusTag) {
+    output_ID <- input_ID
+  } else if (input_ID %in% PAO1orthologs$`Locus Tag (Hit)`) {
+    output_ID <- PAO1orthologs$`Locus Tag (Query)`[
+      PAO1orthologs$`Locus Tag (Hit)` == input_ID]
+  } else {
+    warning("Gene ID not found!")
+    output_ID <- NA
+  }
+  return(output_ID)
+}
 
-zeroone_norm <- function() {
+TDM_RNAseq <- function(){
 
 }
+
+zeroone_norm <- function( ) {
+
+}
+
+

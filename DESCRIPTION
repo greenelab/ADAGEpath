@@ -13,5 +13,7 @@ Imports:
     readr,
     affy,
     affyio,
-    preprocessCore
+    preprocessCore,
+    R.utils
 RoxygenNote: 5.0.1
+Suggests: testthat
