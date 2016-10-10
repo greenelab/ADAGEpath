@@ -3,7 +3,7 @@
 \docType{data}
 \name{geneinfo}
 \alias{geneinfo}
-\title{gene information}
+\title{Gene information}
 \format{A data frame with 5698 rows and 15 variables:
 \describe{
  \item{#taxid}{Taxonomic id of P. aeruginosa}

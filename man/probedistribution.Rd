@@ -3,7 +3,7 @@
 \docType{data}
 \name{probedistribution}
 \alias{probedistribution}
-\title{probe distribution}
+\title{Probe distribution}
 \format{A numeric vector:}
 \usage{
 probedistribution

@@ -12,7 +12,7 @@
 #' @source \url{http://biorxiv.org/content/early/2016/10/03/078659}
 "eADAGEmodel"
 
-#' probe distribution
+#' Probe distribution
 #'
 #' The quantile distribution of microarray probes used in building the
 #' P. aeruginosa compendium. It will be used as a reference distribution to
@@ -21,7 +21,7 @@
 #' @format A numeric vector:
 "probedistribution"
 
-#' gene expression range
+#' Gene expression range
 #'
 #' The expression range of each gene in the P. aeruginosa compendium.
 #'
@@ -33,7 +33,7 @@
 #' }
 "expressionrange"
 
-#' gene information
+#' Gene information
 #'
 #' Pseudomonas aeruginosa gene information curated by NCBI. It is used for
 #' mapping PA numbers (LocusTag) to gene Symbol.
@@ -48,3 +48,24 @@
 #' }
 #' @source \url{ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Archaea_Bacteria/Pseudomonas_aeruginosa_PAO1.gene_info.gz}
 "geneinfo"
+
+#' Pseudomonas aeruginosa PAO1 strain orthologs
+#'
+#' Pseudomonas aeruginosa PAO1 strain ortholog predictions obtained from
+#' http://pseudomonas.com
+#'
+#' @format A data frame with 392139 rows and 8 variables:
+#' \describe{
+#'  \item{Strain (Query)}{Pseudomonas aeruginosa PAO1 (Reference)}
+#'  \item{Locus Tag (Query)}{Locus tag for PAO1}
+#'  \item{Description (Query)}{Description of the PAO1 gene}
+#'  \item{Strain (Hit)}{Ortholog hit strain}
+#'  \item{Locus Tag (Hit)}{Locus tag of the hit ortholog}
+#'  \item{Description (Hit)}{Description of the hit ortholog}
+#'  \item{Percent Identity}{Percentage of sequence identity}
+#'  \item{Alignment Length}{Alignment length}
+#'  ...
+#' }
+#' @source \url{http://pseudomonas.com/downloads/pseudomonas/pgd_r_16_1/Pseudomonas_aeruginosa_PAO1_107/Pseudomonas_aeruginosa_PAO1_107_orthologs.txt}
+"PAO1orthologs"
+

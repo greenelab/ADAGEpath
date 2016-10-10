@@ -3,7 +3,7 @@
 \docType{data}
 \name{expressionrange}
 \alias{expressionrange}
-\title{gene expression range}
+\title{Gene expression range}
 \format{A data frame with 5549 rows and 3 variables:
 \describe{
  \item{geneID}{P.a. PAO1 gene identifiers}
