@@ -73,21 +73,23 @@ normalize_celfiles <- function(cel_folder, quantile_ref = probedistribution){
 to_LocusTag <- function(input_ID) {
   if (startsWith(input_ID, "ig") | startsWith(input_ID, "Pae") |
       startsWith(input_ID, "AFFY")) {
-    output_ID <- "control"
+    return("control")
   } else if (endsWith(input_ID, "_at")) {
-    output_ID <- unlist(strsplit(input_ID, "_"))[1]
+    return(unlist(strsplit(input_ID, "_"))[1])
   } else if (input_ID %in% geneinfo$Symbol) {
     output_ID <- geneinfo$LocusTag[geneinfo$Symbol == input_ID]
-  } else if (input_ID %in% geneinfo$LocusTag) {
-    output_ID <- input_ID
+    return(output_ID)
+  } else if (input_ID %in% eADAGEmodel$geneID) {
+    return(input_ID)
   } else if (input_ID %in% PAO1orthologs$`Locus Tag (Hit)`) {
     output_ID <- PAO1orthologs$`Locus Tag (Query)`[
       PAO1orthologs$`Locus Tag (Hit)` == input_ID]
+    return(output_ID)
   } else {
-    warning("Gene ID not found!")
-    output_ID <- NA
+    warning(paste(input_ID, "from the input file is not found in the gene
+                  database and cannot be converted to a ADAGE gene feature!"))
+    return(NA)
   }
-  return(output_ID)
 }
 
 match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
@@ -97,7 +99,8 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
   na_index <- which(is.na(match_index))
   if (length(na_index) > 0){
     na_geneID <- ref_IDs[na_index]
-    warning(paste(paste(na_geneID, collapse = ","), "are not found in the input!",
+    warning(paste("ADAGE gene features", paste(na_geneID, collapse = ","),
+                  "are not found in the input!",
                   "Their expression values will be set to 0."))
   }
 
@@ -115,12 +118,24 @@ TDM_RNAseq <- function(input_data, ref_data = compendium){
   devtools::install_github("greenelab/TDM")
   library(TDM)
 
+  # TDM require the first column to be named as "gene" and use data.table
+  # data structure
+  colnames(input_data)[1] <- "gene"
+  colnames(ref_data)[1] <- "gene"
   input_data <- data.table::data.table(input_data)
-  data.table::setkey(input_data, geneID)
+  data.table::setkey(input_data, gene)
   ref_data <- data.table::data.table(ref_data)
-  data.table::setkey(ref_data, geneID)
+  data.table::setkey(ref_data, gene)
 
+  # perform TDM
   data_tdm <- tdm_transform(input_data, ref_data)
+
+  # convert data.table back to data.frame
+  data.table::setDF(data_tdm)
+  colnames(data_tdm)[1] <- "geneID"
+  data_tdm$geneID <- as.character(data_tdm$geneID)
+  data_tdm[, -1] <- as.numeric(as.matrix(data_tdm[, -1]))
+
   return(data_tdm)
 
 }
@@ -129,7 +144,8 @@ zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = compendium) {
 
   # make sure each row in the input data and reference data represents the
   # same gene
-  if (input_data[, 1] != ref_data[, 1]) {
+  if (!(nrow(input_data) == nrow(ref_data)) |
+      !all(input_data[, 1] == ref_data[, 1])) {
     stop("The gene identifiers from the input data and reference data should be
          the same!")
   }
