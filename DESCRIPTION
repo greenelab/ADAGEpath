@@ -14,6 +14,8 @@ Imports:
     affy,
     affyio,
     preprocessCore,
-    R.utils
+    R.utils,
+    devtools,
+    data.table
 RoxygenNote: 5.0.1
 Suggests: testthat

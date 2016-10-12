@@ -12,6 +12,24 @@
 #' @source \url{http://biorxiv.org/content/early/2016/10/03/078659}
 "eADAGEmodel"
 
+
+#' Pseudomonas aeruginosa gene expression compendium
+#'
+#' The compendium contains all P.a. microarray datasets measured on GPL84
+#' platform from the ArrayExpress database as of 31 July 2015. The expression
+#' values in the compendium have been background corrected and quantile
+#' normalized.
+#'
+#' @format A data frame with 5549 rows and 1052 variables. The first column
+#' specifies gene identifiers and samples start from the second column.:
+#' \describe{
+#'   \item{geneID}{P.a. PAO1 gene identifiers}
+#'   ...
+#' }
+#' @source \url{http://biorxiv.org/content/early/2016/10/03/078659}
+"compendium"
+
+
 #' Probe distribution
 #'
 #' The quantile distribution of microarray probes used in building the
@@ -21,17 +39,6 @@
 #' @format A numeric vector:
 "probedistribution"
 
-#' Gene expression range
-#'
-#' The expression range of each gene in the P. aeruginosa compendium.
-#'
-#' @format A data frame with 5549 rows and 3 variables:
-#' \describe{
-#'  \item{geneID}{P.a. PAO1 gene identifiers}
-#'  \item{max_express}{Each gene's maximum expression value across the compendium}
-#'  \item{min_express}{Each gene's minimum expression value across the compendium}
-#' }
-"expressionrange"
 
 #' Gene information
 #'
@@ -48,6 +55,7 @@
 #' }
 #' @source \url{ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Archaea_Bacteria/Pseudomonas_aeruginosa_PAO1.gene_info.gz}
 "geneinfo"
+
 
 #' Pseudomonas aeruginosa PAO1 strain orthologs
 #'
