@@ -16,6 +16,8 @@ Imports:
     preprocessCore,
     R.utils,
     devtools,
-    data.table
+    data.table,
+    TDM
+Remotes: Greenelab/TDM
 RoxygenNote: 5.0.1
 Suggests: testthat
