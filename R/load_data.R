@@ -270,7 +270,7 @@ TDM_RNAseq <- function(input_data, ref_data = compendium){
 
 #' Zero-one normalization
 #'
-#'Normalize the input gene expression values to be between 0 and 1.
+#'Normalizes the input gene expression values to be between 0 and 1.
 #'Normalization is done per gene (row) through
 #'substracting its minimun from each value and then being divided by its range.
 #'If using reference, the normalization is done using the gene's expression
