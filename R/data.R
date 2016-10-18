@@ -42,7 +42,8 @@
 
 #' Gene information
 #'
-#' Pseudomonas aeruginosa gene information curated by NCBI. It is used for
+#' Pseudomonas aeruginosa gene information curated by NCBI.
+#' It was downloaded from NCBI ftp on Oct. 7 2016. It is used for
 #' mapping PA numbers (LocusTag) to gene Symbol.
 #'
 #' @format A data frame with 5698 rows and 15 variables:
@@ -60,7 +61,9 @@
 #' Pseudomonas aeruginosa PAO1 strain orthologs
 #'
 #' Pseudomonas aeruginosa PAO1 strain ortholog predictions obtained from
-#' http://pseudomonas.com
+#' http://pseudomonas.com on Oct. 10 2016.
+#' It uses genes in PAO1 strain as query and finds
+#' orthologs hit in other P.a. strains.
 #'
 #' @format A data frame with 392139 rows and 8 variables:
 #' \describe{

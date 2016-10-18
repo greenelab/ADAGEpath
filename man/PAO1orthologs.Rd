@@ -24,7 +24,9 @@ PAO1orthologs
 }
 \description{
 Pseudomonas aeruginosa PAO1 strain ortholog predictions obtained from
-http://pseudomonas.com
+http://pseudomonas.com on Oct. 10 2016.
+It uses genes in PAO1 strain as query and finds
+orthologs hit in other P.a. strains.
 }
 \keyword{datasets}
 

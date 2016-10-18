@@ -23,7 +23,7 @@ A data frame storing zero-one normalized gene expression values from
 the input data.
 }
 \description{
-Normalize the input gene expression values to be between 0 and 1.
+Normalizes the input gene expression values to be between 0 and 1.
 Normalization is done per gene (row) through
 substracting its minimun from each value and then being divided by its range.
 If using reference, the normalization is done using the gene's expression
