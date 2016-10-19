@@ -1,0 +1,23 @@
+Package: ADAGEpath
+Type: Package
+Title: ADAGE-based Pathway Analysis
+Version: 0.1.0
+Authors@R: person("Jie", "Tan", email = "jie.tan.gr@dartmouth.edu",
+  role = c("aut", "cre"))
+Description: This package provides functions to perform ADAGE-based pathway
+    analysis on a gene expression dataset.
+License: BSD 3 Clause license
+LazyData: TRUE
+Imports:
+    dplyr,
+    readr,
+    affy,
+    affyio,
+    preprocessCore,
+    R.utils,
+    devtools,
+    data.table,
+    TDM
+Remotes: Greenelab/TDM
+RoxygenNote: 5.0.1
+Suggests: testthat
