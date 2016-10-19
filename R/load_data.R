@@ -16,7 +16,6 @@
 #' for ADAGE analysis.
 #' @examples
 #' load_data(filepath, isProcessed = FALSE, isRNAseq = FALSE)
-#' @importFrom readr read_tsv
 load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE){
 
   # quantile normalize probes if the input is raw CEL formot, directly load data
@@ -42,7 +41,7 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE){
   } else {
 
     # read in the processed data
-    data <- read_tsv(input)
+    data <- readr::read_tsv(input)
     colnames(data)[1] <- "geneID"
 
   }
@@ -331,13 +330,13 @@ zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = compendium) {
   } else {
 
     # perform zero-one normalization per gene directly on the input data
-    zeroone_normed <- apply(input_data[, -1], 1,
-                            function(x) (x - min(x)) / diff(range(x)))
+    zeroone_normed <- t(apply(input_data[, -1], 1,
+                              function(x) (x - min(x)) / diff(range(x))))
 
   }
 
   # build the output data frame
-  zeroone_normed <- data.frame(geneID = input_data$geneID, zeroone_normed,
+  zeroone_normed <- data.frame(geneID = compendium$geneID, zeroone_normed,
                                stringsAsFactors = FALSE)
 
   return(zeroone_normed)
@@ -346,8 +345,8 @@ zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = compendium) {
 
 #' Input format check
 #'
-#' Checks whether the input is a data.frame with its first column being
-#' character and the rest columns being numeric.
+#' Checks whether the input is a data.frame (or a tibble) with its first
+#' column being character and the rest columns being numeric.
 #'
 #' @param input_data A data frame.
 #' @return TRUE if the input data frame meets the requirements, otherwise FALSE.
@@ -355,7 +354,16 @@ check_input <- function(input_data){
 
   # check whether the first column is character and the rest columns
   # are numeric.
-  if (is.data.frame(input_data)) {
+  #
+  if (tibble::is_tibble(input_data)) {
+
+    if (is.character(input_data[[1]]) &&
+        all(sapply(input_data[, -1], is.numeric))) {
+
+      return(TRUE)
+
+    }
+  } else if (is.data.frame(input_data)) {
 
     if (is.character(input_data[, 1]) &
         all(sapply(input_data[, -1], is.numeric))) {
