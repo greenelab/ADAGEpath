@@ -19,7 +19,8 @@
 geneinfo
 }
 \description{
-Pseudomonas aeruginosa gene information curated by NCBI. It is used for
+Pseudomonas aeruginosa gene information curated by NCBI.
+It was downloaded from NCBI ftp on Oct. 7 2016. It is used for
 mapping PA numbers (LocusTag) to gene Symbol.
 }
 \keyword{datasets}

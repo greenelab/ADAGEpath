@@ -159,7 +159,7 @@ to_LocusTag <- function(input_ID) {
   } else if (endsWith(input_ID, "_at")) {
 
     # gene IDs that end with "_at" but are not controls are AFFY IDs in the
-    # format "PAXXXX_symbol", only the first part before "_" will be perserved
+    # format "PAXXXX_symbol", only the first part before "_" will be preserved
     return(unlist(strsplit(input_ID, "_"))[1])
 
   } else if (input_ID %in% geneinfo$Symbol) {
@@ -200,6 +200,12 @@ to_LocusTag <- function(input_ID) {
 #'@return A data frame containing the input_data's expression values after
 #'converting gene IDs, sorting gene orders, and filling in missing genes.
 match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
+
+  if (!check_input(input_data)){
+    stop("The input data should be a data frame with first column storing
+         geneIDs in character and the rest columns storing expression values
+         for each sample in numeric.")
+  }
 
   # convert the gene IDs used in the input data to PAO1 locus tags
   converted_geneIDs <- sapply(input_data$geneID, function(x) to_LocusTag(x))
@@ -245,6 +251,12 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 #'@seealso \url{https://github.com/greenelab/TDM}
 TDM_RNAseq <- function(input_data, ref_data = compendium){
 
+  if (!check_input(input_data)){
+    stop("The input data should be a data frame with first column storing
+         geneIDs in character and the rest columns storing expression values
+         for each sample in numeric.")
+  }
+
   # TDM require the first column to be named as "gene" and use data.table
   # data structure
   colnames(input_data)[1] <- "gene"
@@ -288,6 +300,12 @@ TDM_RNAseq <- function(input_data, ref_data = compendium){
 #'the input data.
 zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = compendium) {
 
+  if (!check_input(input_data)){
+    stop("The input data should be a data frame with first column storing
+         geneIDs in character and the rest columns storing expression values
+         for each sample in numeric.")
+  }
+
   # make sure each row in the input data and reference data represents the
   # same gene (the first columns are the same)
   if (!(nrow(input_data) == nrow(ref_data)) |
@@ -325,3 +343,28 @@ zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = compendium) {
   return(zeroone_normed)
 }
 
+
+#' Input format check
+#'
+#' Checks whether the input is a data.frame with its first column being
+#' character and the rest columns being numeric.
+#'
+#' @param input_data A data frame.
+#' @return TRUE if the input data frame meets the requirements, otherwise FALSE.
+check_input <- function(input_data){
+
+  # check whether the first column is character and the rest columns
+  # are numeric.
+  if (is.data.frame(input_data)) {
+
+    if (is.character(input_data[, 1]) &
+        all(sapply(input_data[, -1], is.numeric))) {
+
+      return(TRUE)
+
+    }
+  }
+
+  return(FALSE)
+
+}
