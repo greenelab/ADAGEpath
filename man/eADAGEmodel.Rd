@@ -4,7 +4,7 @@
 \name{eADAGEmodel}
 \alias{eADAGEmodel}
 \title{eADAGE model}
-\format{A data frame with 5549 rows and 301 variables:
+\format{A data frame (tibble) with 5549 rows and 301 variables:
 \describe{
   \item{geneID}{P.a. PAO1 gene identifiers}
   \item{Node1}{Each gene's weight to Node1}

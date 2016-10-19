@@ -4,7 +4,9 @@
 \alias{load_dataset}
 \title{Data loading and preprocessing}
 \usage{
-load_dataset(input, isProcessed = FALSE, isRNAseq = FALSE)
+load_dataset(input, isProcessed = FALSE, isRNAseq = FALSE,
+  model = eADAGEmodel, compendium = PAcompendium,
+  quantile_ref = probedistribution)
 }
 \arguments{
 \item{input}{file path to the input file or folder.}
@@ -15,9 +17,20 @@ already been processed (default: FALSE).}
 \item{isRNAseq}{a logical value indicating whether the input data is RNAseq
 data. It determines whether TDM is applied to normalize the expression
 values (default: FALSE).}
+
+\item{model}{the ADAGE model used to analyze the input data
+(default: the 300-node eADAGE model of P.a. pre-loaded within the pacakge).}
+
+\item{compendium}{the gene expression compendium of an organism
+(default: the P. aeruginosa expression compendium pre-loaded within
+the package).}
+
+\item{quantile_ref}{a vector storing the reference quantile distribution
+(default: the quantile distribution of probes used in
+normalzing the P.a. gene expression compendium).}
 }
 \value{
-A data frame containing the processed gene expression values ready
+a data frame containing the processed gene expression values ready
 for ADAGE analysis.
 }
 \description{

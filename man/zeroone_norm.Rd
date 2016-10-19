@@ -4,7 +4,7 @@
 \alias{zeroone_norm}
 \title{Zero-one normalization}
 \usage{
-zeroone_norm(input_data, use_ref = FALSE, ref_data = compendium)
+zeroone_norm(input_data, use_ref = FALSE, ref_data = PAcompendium)
 }
 \arguments{
 \item{input_data}{A data frame with gene IDs in the first column and

@@ -4,7 +4,7 @@
 \alias{TDM_RNAseq}
 \title{RNAseq data normalization with TDM}
 \usage{
-TDM_RNAseq(input_data, ref_data = compendium)
+TDM_RNAseq(input_data, ref_data = PAcompendium)
 }
 \arguments{
 \item{input_data}{A data frame with gene IDs in the first column and

@@ -12,11 +12,33 @@
 #' @param isRNAseq a logical value indicating whether the input data is RNAseq
 #' data. It determines whether TDM is applied to normalize the expression
 #' values (default: FALSE).
-#' @return A data frame containing the processed gene expression values ready
+#' @param model the ADAGE model used to analyze the input data
+#' (default: the 300-node eADAGE model of P.a. pre-loaded within the pacakge).
+#' @param compendium the gene expression compendium of an organism
+#' (default: the P. aeruginosa expression compendium pre-loaded within
+#' the package).
+#' @param quantile_ref a vector storing the reference quantile distribution
+#' (default: the quantile distribution of probes used in
+#' normalzing the P.a. gene expression compendium).
+#' @return a data frame containing the processed gene expression values ready
 #' for ADAGE analysis.
 #' @examples
 #' load_data(filepath, isProcessed = FALSE, isRNAseq = FALSE)
-load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE){
+load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
+                         model = eADAGEmodel, compendium = PAcompendium,
+                         quantile_ref = probedistribution){
+
+  if (!check_input(model)) {
+    stop("The model should be a data frame with first column being gene IDs
+         in character and the rest columns storing numeric weight values for
+         each node per column.")
+  }
+
+  if (!check_input(compendium)) {
+    stop("The compendium should be a data frame with first column being gene IDs
+         in character and the rest columns storing numeric gene expression
+         values for each sample per column.")
+  }
 
   # quantile normalize probes if the input is raw CEL formot, directly load data
   # if the input is processed microarray or RNAseq data
@@ -36,7 +58,7 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE){
 
     # normalize each probe
     data <- process_celfiles(cel_folder = cel_folder, use_ref = TRUE,
-                             quantile_ref = probedistribution)
+                             quantile_ref = quantile_ref)
 
   } else {
 
@@ -47,7 +69,7 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE){
   }
 
   # transform gene features in the input data to gene features used in ADAGE model
-  data <- match_IDs(input_data = data, ref_IDs = eADAGEmodel$geneID)
+  data <- match_IDs(input_data = data, ref_IDs = as.data.frame(model)[, 1])
 
   # perform TDM transformation if the input is RNAseq data
   if (isRNAseq) {
@@ -140,13 +162,15 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
 #' recognized as one of above.
 #'
 #' @param input_ID the input gene ID (character).
+#' @param ref_IDs a vector storing reference gene IDs that do not need
+#' conversion (default: gene IDs used in the pre-loaded P.a. ADAGE model).
 #' @return the corresponding PAO1 locus tag ("PAXXXX") for the input gene or NA
 #' if the input gene is not recognized.
-to_LocusTag <- function(input_ID) {
+to_LocusTag <- function(input_ID, ref_IDs = eADAGEmodel$geneID) {
 
-  if (input_ID %in% eADAGEmodel$geneID) {
+  if (input_ID %in% ref_IDs) {
 
-    # do nothing if the input ID is already used in eADAGE model
+    # do nothing if the input ID is already in the ref_IDs
     return(input_ID)
 
   } else if (startsWith(input_ID, "ig") | startsWith(input_ID, "Pae") |
@@ -207,7 +231,8 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
   }
 
   # convert the gene IDs used in the input data to PAO1 locus tags
-  converted_geneIDs <- sapply(input_data$geneID, function(x) to_LocusTag(x))
+  converted_geneIDs <- sapply(as.data.frame(input_data)[, 1],
+                              function(x) to_LocusTag(x))
 
   # create a match index between input IDs and reference IDs
   match_index <- match(ref_IDs, converted_geneIDs)
@@ -224,11 +249,11 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
   }
 
   # re-order the input data
-  IDmapped <- input_data[match_index, ]
+  IDmapped <- input_data[match_index, -1]
   # set NA to 0
   IDmapped[is.na(IDmapped)] <- 0
   # assign reference ID to the input data
-  IDmapped$geneID <- ref_IDs
+  IDmapped <- data.frame(geneID = ref_IDs, IDmapped, stringsAsFactors = FALSE)
 
   return(IDmapped)
 }
@@ -248,7 +273,7 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 #'@return A data frame storing TDM normalized gene expression values from the
 #'input data.
 #'@seealso \url{https://github.com/greenelab/TDM}
-TDM_RNAseq <- function(input_data, ref_data = compendium){
+TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 
   if (!check_input(input_data)){
     stop("The input data should be a data frame with first column storing
@@ -297,7 +322,7 @@ TDM_RNAseq <- function(input_data, ref_data = compendium){
 #'specify gene IDs should be exactly the same.
 #'@return A data frame storing zero-one normalized gene expression values from
 #'the input data.
-zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = compendium) {
+zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
 
   if (!check_input(input_data)){
     stop("The input data should be a data frame with first column storing
@@ -336,8 +361,8 @@ zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = compendium) {
   }
 
   # build the output data frame
-  zeroone_normed <- data.frame(geneID = compendium$geneID, zeroone_normed,
-                               stringsAsFactors = FALSE)
+  zeroone_normed <- data.frame(geneID = as.data.frame(ref_data)[, 1],
+                               zeroone_normed, stringsAsFactors = FALSE)
 
   return(zeroone_normed)
 }
@@ -354,18 +379,11 @@ check_input <- function(input_data){
 
   # check whether the first column is character and the rest columns
   # are numeric.
-  #
-  if (tibble::is_tibble(input_data)) {
 
-    if (is.character(input_data[[1]]) &&
-        all(sapply(input_data[, -1], is.numeric))) {
+  if (is.data.frame(input_data)) {
 
-      return(TRUE)
-
-    }
-  } else if (is.data.frame(input_data)) {
-
-    if (is.character(input_data[, 1]) &
+    # use as.data.frame if input_data is a tibble
+    if (is.character(as.data.frame(input_data)[, 1]) &
         all(sapply(input_data[, -1], is.numeric))) {
 
       return(TRUE)

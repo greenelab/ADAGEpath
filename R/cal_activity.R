@@ -4,13 +4,13 @@
 #' Calculates activities for each signature in an ADAGE model
 #' specified by the weight matrix for each sample in the input data
 #'
-#' @param input_data A data frame with gene IDs in the first column and
+#' @param input_data a data frame with gene IDs in the first column and
 #' expression values from the second column.
-#' @param model: The ADAGE model to be used for calculating signature activity
+#' @param model the ADAGE model to be used for calculating signature activity
 #' (default: the 300-node eADAGE model preloaded in the pacakge).
-#' @param HW_cutoff: number of standard deviations from mean in a node's weight
+#' @param HW_cutoff number of standard deviations from mean in a node's weight
 #' distribution to be considered as high-weight (default to 2.5).
-#' @return A named matrix storing activities per signature per sample
+#' @return a named matrix storing activities per signature per sample
 cal_activity <- function(input_data, model = eADAGEmodel, HW_cutoff = 2.5) {
 
   if (!check_input(input_data)){
