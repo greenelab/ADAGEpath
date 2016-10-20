@@ -1,7 +1,7 @@
 library("readr")
 
 compendium_file <- "data-raw/all-pseudomonas-gene.pcl"
-compendium <- readr::read_tsv(compendium_file)
-colnames(compendium)[1] <- "geneID"
+PAcompendium <- readr::read_tsv(compendium_file)
+colnames(PAcompendium)[1] <- "geneID"
 
-devtools::use_data(compendium, overwrite = TRUE, compress = "bzip2")
+devtools::use_data(PAcompendium, overwrite = TRUE, compress = "bzip2")
