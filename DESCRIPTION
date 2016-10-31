@@ -17,7 +17,8 @@ Imports:
     R.utils,
     devtools,
     data.table,
-    TDM
+    TDM,
+    tibble
 Remotes: Greenelab/TDM
 RoxygenNote: 5.0.1
 Suggests: testthat

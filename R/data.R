@@ -3,7 +3,7 @@
 #' A 300-node eADAGE model built for biological pathway analysis for
 #' P. aeruginosa
 #'
-#' @format A data frame with 5549 rows and 301 variables:
+#' @format A data frame (tibble) with 5549 rows and 301 variables:
 #' \describe{
 #'   \item{geneID}{P.a. PAO1 gene identifiers}
 #'   \item{Node1}{Each gene's weight to Node1}
@@ -20,14 +20,14 @@
 #' values in the compendium have been background corrected and quantile
 #' normalized.
 #'
-#' @format A data frame with 5549 rows and 1052 variables. The first column
+#' @format A data frame (tibble) with 5549 rows and 1052 variables. The first column
 #' specifies gene identifiers and samples start from the second column.:
 #' \describe{
 #'   \item{geneID}{P.a. PAO1 gene identifiers}
 #'   ...
 #' }
 #' @source \url{http://biorxiv.org/content/early/2016/10/03/078659}
-"compendium"
+"PAcompendium"
 
 
 #' Probe distribution
@@ -46,7 +46,7 @@
 #' It was downloaded from NCBI ftp on Oct. 7 2016. It is used for
 #' mapping PA numbers (LocusTag) to gene Symbol.
 #'
-#' @format A data frame with 5698 rows and 15 variables:
+#' @format A data frame (tibble) with 5698 rows and 15 variables:
 #' \describe{
 #'  \item{#taxid}{Taxonomic id of P. aeruginosa}
 #'  \item{GeneID}{Unique gene identifiers}
@@ -65,7 +65,7 @@
 #' It uses genes in PAO1 strain as query and finds
 #' orthologs hit in other P.a. strains.
 #'
-#' @format A data frame with 392139 rows and 8 variables:
+#' @format A data frame (tibble) with 392139 rows and 8 variables:
 #' \describe{
 #'  \item{Strain (Query)}{Pseudomonas aeruginosa PAO1 (Reference)}
 #'  \item{Locus Tag (Query)}{Locus tag for PAO1}

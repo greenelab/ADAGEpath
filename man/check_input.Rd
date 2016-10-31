@@ -13,7 +13,7 @@ check_input(input_data)
 TRUE if the input data frame meets the requirements, otherwise FALSE.
 }
 \description{
-Checks whether the input is a data.frame with its first column being
-character and the rest columns being numeric.
+Checks whether the input is a data.frame (or a tibble) with its first
+column being character and the rest columns being numeric.
 }
 
