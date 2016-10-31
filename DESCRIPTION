@@ -18,7 +18,8 @@ Imports:
     devtools,
     data.table,
     TDM,
-    tibble
+    tibble,
+    limma
 Remotes: Greenelab/TDM
 RoxygenNote: 5.0.1
 Suggests: testthat
