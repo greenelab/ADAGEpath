@@ -208,6 +208,18 @@ to_LocusTag <- function(input_ID, ref_IDs = eADAGEmodel$geneID) {
 }
 
 
+to_symbol <- function(input_ID){
+  if (input_ID %in% geneinfo$Symbol){
+    return(input_ID)
+  } else if (input_ID %in% geneinfo$LocusTag){
+    return(geneinfo$Symbol[geneinfo$LocusTag == input_ID])
+  } else {
+    warning(paste(input_ID, "not recognized.",
+                  "It is kept unchanged."))
+    return(input_ID)
+  }
+}
+
 #'Gene IDs matching
 #'
 #'Makes sure the input data having the same gene IDs in the same order as

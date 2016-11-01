@@ -85,3 +85,55 @@ one_signature_activity <- function(weight_matrix, express_matrix, node, side,
 
   return(node_activity)
 }
+
+
+get_signatures <- function(model = eADAGEmodel, HW_cutoff = 2.5,
+                           use_symbol = FALSE){
+
+  geneID <- as.data.frame(model)[, 1]
+  if (use_symbol) {
+    geneID <- sapply(geneID, function(x) to_symbol(x))
+  }
+
+  weight_matrix <- as.matrix(model[, -1])
+  model_size <- ncol(weight_matrix)
+
+  pos_signatures <- lapply(1:model_size, function(x)
+    one_signature(weight_matrix[, x], geneID, "pos", HW_cutoff))
+  neg_signatures <- lapply(1:model_size, function(x)
+    one_signature(weight_matrix[, x], geneID, "neg", HW_cutoff))
+
+  signature_list <- c(pos_signatures, neg_signatures)
+  names(signature_list) <- c(paste0("Node", seq(1, model_size), "pos"),
+                             paste0("Node", seq(1, model_size), "neg"))
+
+  return(signature_list)
+}
+
+
+one_signature <- function(node_weight, geneID, side, HW_cutoff = 2.5){
+
+  if (side == "pos") {
+
+    pos_cutoff <- mean(node_weight) + HW_cutoff * sd(node_weight)
+    # order positive HW genes from high to low weight
+    HW_order <- order(node_weight, decreasing = TRUE)
+    ordered_node_weight <- node_weight[HW_order]
+    ordered_geneID <- geneID[HW_order]
+    HWG <- ordered_geneID[ordered_node_weight >= pos_cutoff]
+
+  } else if (side == "neg") {
+
+    neg_cutoff <- mean(node_weight) - HW_cutoff * sd(node_weight)
+    # order negative HW genes from low to high weight
+    HW_order <- order(node_weight, decreasing = FALSE)
+    ordered_node_weight <- node_weight[HW_order]
+    ordered_geneID <- geneID[HW_order]
+    HWG <- ordered_geneID[ordered_node_weight <= neg_cutoff]
+
+  } else {
+    stop("side can only be pos or neg.")
+  }
+
+  return(HWG)
+}
