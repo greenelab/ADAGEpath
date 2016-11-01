@@ -44,7 +44,7 @@ calculate_activity <- function(input_data, model = eADAGEmodel,
   colnames(HWactivity_perGene) <- c(paste0("Node", seq(1, model_size), "pos"),
                                     paste0("Node", seq(1, model_size), "neg"))
 
-  return(HWactivity_perGene)
+  return(t(HWactivity_perGene))
 
 }
 
@@ -137,3 +137,5 @@ one_signature <- function(node_weight, geneID, side, HW_cutoff = 2.5){
 
   return(HWG)
 }
+
+

@@ -11,23 +11,24 @@ run_limma <- function(activity, sample_indices = NULL, pheno_groups){
   colnames(design) <- levels(pheno_groups)
 
   # use limma to find differentially active signatures between two conditions
-  fit <- limma::lmFit(t(activity), design)
+  fit <- limma::lmFit(activity, design)
   fit <- limma::eBayes(fit)
   # TODO: other function than topTable
-  result <- limma::topTable(fit, coef = 2, number = ncol(activity),
+  result <- limma::topTable(fit, coef = 2, number = nrow(activity),
                             adjust.method = "BH", sort.by = "none")
-
+  result$Bon.p <- p.adjust(result$P.Value, method = "bonferroni")
   # build a data frame for pareto front analysis on fold change and p value
   sig_FC_pvalue <- tibble::data_frame(signature = rownames(result),
                                       logFC = result$logFC,
-                                      neglog10qvalue = -log10(result$adj.P.Val))
+                                      neglog10qvalue = -log10(result$Bon.p))
   return(sig_FC_pvalue)
 }
 
 
 get_active_signatures <- function(limma_result, method = "pareto",
                                   two_side = TRUE, top_signatures = 10,
-                                  pareto_layers = 5) {
+                                  pareto_layers = 5,
+                                  neglog10qvalue_cutoff = -log10(0.05)) {
 
   if (!method %in% c("pvalue", "FC", "pareto")){
     stop("Method not recognized! It should be \"pvalue\", \"FC\", or \"pareto\".")
@@ -38,8 +39,8 @@ get_active_signatures <- function(limma_result, method = "pareto",
   }
 
   if (method == "pvalue") {
-    active_signatures <- limma_result$signature[order(
-      limma_result$neglog10qvalue, decreasing = TRUE)][1:top_signatures]
+    active_signatures <- limma_result$signature[
+      limma_result$neglog10qvalue > neglog10qvalue_cutoff]
   } else if (method == "FC") {
     active_signatures <- limma_result$signature[order(
       limma_result$logFC, decreasing = TRUE)][1:top_signatures]
@@ -98,12 +99,14 @@ get_paretofront <- function(input_data, N_layers) {
 }
 
 
-plot_volcano <- function(limma_result, active_signatures){
+plot_volcano <- function(limma_result, active_signatures = NULL){
   plot(limma_result$logFC, limma_result$neglog10qvalue, type = "n")
   text(limma_result$logFC, limma_result$neglog10qvalue,
        labels = limma_result$signature, cex = 0.4, pos = 1, offset = 0.3)
-  points(limma_result$logFC[limma_result$signature %in% active_signatures],
-         limma_result$neglog10qvalue[limma_result$signature %in% active_signatures],
-         pch = 20, col = "red")
+  if (!is.null(active_signatures)) {
+    points(limma_result$logFC[limma_result$signature %in% active_signatures],
+           limma_result$neglog10qvalue[limma_result$signature %in% active_signatures],
+           pch = 20, col = "red")
+  }
   abline(h = -log10(0.05), col = 'red')
 }
