@@ -87,8 +87,20 @@ one_signature_activity <- function(weight_matrix, express_matrix, node, side,
 }
 
 
-get_signatures <- function(model = eADAGEmodel, HW_cutoff = 2.5,
-                           use_symbol = FALSE){
+#' Signature extraction
+#'
+#' Extracts all gene signatures from an ADAGE model.
+#'
+#' @param model the ADAGE model to be used for extracting gene signatures
+#' (default: the 300-node eADAGE model preloaded in the pacakge).
+#' @param HW_cutoff number of standard deviations from mean in a node's weight
+#' distribution to be considered as high-weight (default to 2.5). Only
+#' high-weight genes are included in gene signatures.
+#' @param use_symbol logical, whether the returned signatures use gene symbol
+#' as gene identifiers.
+#' @return a named list with each element being a gene signature
+extract_signatures <- function(model = eADAGEmodel, HW_cutoff = 2.5,
+                               use_symbol = FALSE){
 
   geneID <- as.data.frame(model)[, 1]
   if (use_symbol) {
@@ -111,6 +123,17 @@ get_signatures <- function(model = eADAGEmodel, HW_cutoff = 2.5,
 }
 
 
+#' One signature extraction
+#'
+#' Extracts a single gene signature from an ADAGE model.
+#'
+#' @param node_weight a vector storing weight values of each gene to a node
+#' @param geneID gene identifiers correspond to the weight vector
+#' @param side character, "pos" or "neg"
+#' @param HW_cutoff number of standard deviations from mean in a node's weight
+#' distribution to be considered as high-weight (default to 2.5).
+#' @return a character vector storing genes in the signature defined by the
+#' weight vector and the side.
 one_signature <- function(node_weight, geneID, side, HW_cutoff = 2.5){
 
   if (side == "pos") {
@@ -139,3 +162,56 @@ one_signature <- function(node_weight, geneID, side, HW_cutoff = 2.5){
 }
 
 
+enrich_test <- function(set1, set2, set_all){
+
+  high_in <- length(intersect(set1, set2))
+  low_in <- length(set1) - high_in
+  high_out <- length(set2) - high_in
+  low_out <- length(set_all) - high_in - high_out - low_in
+  contingency_table <- matrix(c(high_in, low_in, high_out, low_out), nrow = 2)
+  pvalue <- fisher.test(contingency_table, alternative='greater')$p.value
+
+  return(pvalue)
+}
+
+calculate_signature_similarity <- function(signature_list){
+  comb_sig <- combn(signature_list, 2)
+  all_HWGs <- unique(unlist(signature_list))
+  # TODO: use parellel version of mapply
+  pvalue_list <- mapply(enrich_test, comb_sig[1, ], comb_sig[2, ],
+                        MoreArgs = list(set_all = all_HWGs))
+  qvalue_list <- p.adjust(pvalue_list, method = "fdr")
+
+  return(qvalue_list)
+
+}
+
+
+build_signature_similarity_matrix <- function(signature_list, overlap_qvalues){
+  overlapQ_matrix = matrix(, nrow = length(signature_list),
+                           ncol = length(signature_list))
+  overlapQ_matrix[lower.tri(overlapQ_matrix, diag = FALSE)] <- overlap_qvalues
+  overlapQ_matrix[upper.tri(overlapQ_matrix)] <-
+    t(overlapQ_matrix)[upper.tri(overlapQ_matrix)]
+  diag(overlapQ_matrix) <- min(overlapQ_matrix, na.rm = TRUE)
+  rownames(overlapQ_matrix) <- names(signature_list)
+  colnames(overlapQ_matrix) <- names(signature_list)
+
+  return(overlapQ_matrix)
+}
+
+
+plot_signature_similarity <- function(overlapQ_matrix, signatures = NULL){
+  if (!is.null(signatures)){
+    if (signatures %in% rownames(overlapQ_matrix)){
+      overlapQ_matrix <- overlapQ_matrix[signatures, signatures]
+    } else {
+      stop("Given signatures are not in the overlap matrix!")
+    }
+
+  }
+
+  overlapQ_matrix <- -log10(overlapQ_matrix)
+  corrplot::corrplot(overlapQ_matrix, is.corr = FALSE, method = 'square',
+                     order = 'hclust', diag = FALSE)
+}

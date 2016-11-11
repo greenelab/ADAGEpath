@@ -19,7 +19,8 @@ Imports:
     data.table,
     TDM,
     tibble,
-    limma
+    limma,
+    corrplot
 Remotes: Greenelab/TDM
 RoxygenNote: 5.0.1
 Suggests: testthat
