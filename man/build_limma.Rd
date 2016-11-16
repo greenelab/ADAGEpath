@@ -8,7 +8,7 @@ build_limma(activity, phenotypes, sample_indices = NULL)
 }
 \arguments{
 \item{activity}{a data.frame that stores the signature activities for each
-sample in the input dataset.}
+sample in a dataset.}
 
 \item{phenotypes}{a factor obtained from the set_phenotype() function.}
 

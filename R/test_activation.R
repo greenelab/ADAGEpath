@@ -18,7 +18,7 @@ set_phenotype <- function(phenotypes){
 #' activations. Only two-group comparison is implemented for now.
 #'
 #' @param activity a data.frame that stores the signature activities for each
-#' sample in the input dataset.
+#' sample in a dataset.
 #' @param phenotypes a factor obtained from the set_phenotype() function.
 #' @param sample_indices a int vector to specify which samples to include
 #' in the linear model.
