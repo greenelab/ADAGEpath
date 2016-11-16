@@ -2,7 +2,7 @@
 % Please edit documentation in R/load_data.R
 \name{to_LocusTag}
 \alias{to_LocusTag}
-\title{Gene ID convertion}
+\title{Converting gene ID to locus tag}
 \usage{
 to_LocusTag(input_ID, ref_IDs = eADAGEmodel$geneID)
 }
