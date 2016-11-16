@@ -89,3 +89,8 @@ one_signature_activity <- function(weight_matrix, express_matrix, node, side,
 
   return(node_activity)
 }
+
+
+plot_activity_heatmap <- function(){
+
+}
