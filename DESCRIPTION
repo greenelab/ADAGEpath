@@ -21,7 +21,10 @@ Imports:
     tibble,
     limma,
     corrplot,
-    gplots
+    gplots,
+    jsonlite,
+    httr,
+    reshape2
 Remotes: Greenelab/TDM
 RoxygenNote: 5.0.1
 Suggests: testthat
