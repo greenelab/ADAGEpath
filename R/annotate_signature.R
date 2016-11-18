@@ -17,9 +17,9 @@ fetch_geneset <- function(type = "KEGG", max_size = 100, min_size = 5){
     stop("type can only be either GO or KEGG.")
   }
 
-  # to prevent overload the TRIBE webserver, we limit the download size
+  # to prevent overloading the TRIBE webserver, we limit the download size
   # to 2000 gene sets at one time and make multiple downloads through changing
-  # the offset untill all gene sets have been downloaded.
+  # the offset until all gene sets have been downloaded.
   request_limit <- 2000
   request_time <- 1
   gene_sets_df_list <- list()
