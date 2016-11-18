@@ -95,6 +95,7 @@ get_active_signatures <- function(limma_result, method = "pareto",
   test_result <- limma_result$test_result
   phenotypes <- limma_result$phenotypes
 
+<<<<<<< HEAD
   if (pheno_group == "both") {
     test_result$diff <- abs(test_result$diff)
   } else if (pheno_group == levels(phenotypes)[1]) {
@@ -106,6 +107,17 @@ get_active_signatures <- function(limma_result, method = "pareto",
     stop("pheno_group can only be \"both\" or one of the two phenotypes used
          in the run_limma function!")
   }
+=======
+  if (pheno_group == levels(phenotypes)[1]) {
+    test_result <- test_result[test_result$diff <= 0, ]
+  } else if (pheno_group == levels(phenotypes)[2]) {
+    test_result <- test_result[test_result$diff >= 0, ]
+  } else if (!pheno_group == "both") {
+    stop("pheno_group can only be \"both\" or one of the two phenotypes used
+         in the run_limma function!")
+  }
+  test_result$diff <- abs(test_result$diff)
+>>>>>>> greenelab/master
 
   if (method == "pvalue") {
     active_signatures <- test_result$signature[
