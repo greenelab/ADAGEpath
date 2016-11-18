@@ -17,11 +17,17 @@ fetch_geneset <- function(type = "KEGG", max_size = 100, min_size = 5){
     stop("type can only be either GO or KEGG.")
   }
 
-  request_limit <- 2000  # fetch 2000 gene sets at a time
+  # to prevent overload the TRIBE webserver, we limit the download size
+  # to 2000 gene sets at one time and make multiple downloads through changing
+  # the offset untill all gene sets have been downloaded.
+  request_limit <- 2000
   request_time <- 1
   gene_sets_df_list <- list()
   while (TRUE) {
+    # set request offset to the number of request limits that have already
+    # been reached
     request_offset <- (request_time - 1) * request_limit
+
     tribe_req <- httr::GET("http://tribe.greenelab.com/api/v1/geneset/",
                            query = list(title__startswith = type,
                                         show_tip = "true",
@@ -40,19 +46,23 @@ fetch_geneset <- function(type = "KEGG", max_size = 100, min_size = 5){
 
     # the actual number of returned gene sets
     returned_size <- nrow(gene_sets_df)
-    # repeatly request if number of returned gene sets reaches the upper
-    # limit of request size, otherwise, break the request loop.
+    # If the return_size reaches the request limit, it indicates that we haven't
+    # downloaded all gene sets yet. We will make a new request repeatly until
+    # the number of returned gene sets is smaller than the request limit.
     if (returned_size < request_limit) {
       break
     } else {
       request_time <- request_time + 1
     }
   }
+  # combine gene sets downloaded in all requests
   gene_sets_df <- dplyr::bind_rows(gene_sets_df_list)
 
   # subset gene sets using max_size and min_size
   gene_sets_df <- gene_sets_df[gene_sets_df$count >= min_size &
                                  gene_sets_df$count <= max_size, ]
+
+  # extract gene sets list and name each gene set
   gene_sets_list <- gene_sets_df$genes
   names(gene_sets_list) <- gene_sets_df$title
 
