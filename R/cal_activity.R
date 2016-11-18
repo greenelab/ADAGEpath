@@ -89,3 +89,57 @@ one_signature_activity <- function(weight_matrix, express_matrix, node, side,
 
   return(node_activity)
 }
+
+
+#' Signature activity heatmap
+#'
+#' Plots a heatmap showing signature activities in a dataset.
+#'
+#' @param activity a data.frame that stores the signature activities for each
+#' sample in a dataset.
+#' @param signatures a character vector specifying which signatures to include
+#' in the heatmap
+#' @param fix_color_range logical. If TRUE, fix the heatmap color
+#' range to the maximum activity range of all signatures. If FALSE, heatmap
+#' color range is determined by the activity ranges of the selected signatures.
+#' @export
+plot_activity_heatmap <- function(activity, signatures = NULL,
+                                  fix_color_range = TRUE){
+
+  # keep a record of maximum activity range of all signatures
+  max.activity.range <- max(apply(activity, 1, function(x) diff(range(x))))
+
+  # subset the activity data.frame to only contain the input signatures
+  if (!is.null(signatures)) {
+    # make sure all input signatures can be found in the overlap matrix
+    if (all(signatures %in% rownames(activity))) {
+      activity <- activity[signatures, ]
+    } else {
+      stop("Given signatures are not found in the rownames of the
+           activity data.frame!")
+    }
+  }
+
+  # get the minimum value of each signature activity
+  min_val <- apply(activity, 1, min)
+
+  # transform each signature's activity values by substracting its minimum
+  activity_scaled <- t(scale(t(activity), center = min_val, scale = FALSE))
+
+  # activity heatmap color panel
+  activity.color <- gplots::colorpanel(255, rgb(0/255, 176/255, 240/255),
+                                       rgb(230/255, 230/255, 230/255),
+                                       rgb(255/255, 255/255, 0/255))
+  if (fix_color_range) {
+    # use the maximum activity range of all signatures
+    color.range <- seq(0, max.activity.range, length = 256)
+  } else {
+    # use the maximum activity range of the selected signatures
+    color.range <- seq(0, max(activity_scaled), length = 256)
+  }
+
+  # plot activity heatmap
+  suppressWarnings(gplots::heatmap.2(activity_scaled, Rowv = TRUE, Colv = FALSE,
+                    trace = "none", margins = c(10, 10), cexRow = 1, cexCol = 1,
+                    col = activity.color, breaks = color.range))
+}
