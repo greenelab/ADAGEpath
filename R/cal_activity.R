@@ -120,10 +120,10 @@ plot_activity_heatmap <- function(activity, signatures = NULL,
     }
   }
 
-  # get the minimun value of each signature activity
+  # get the minimum value of each signature activity
   min_val <- apply(activity, 1, min)
 
-  # transform each signiature's activity values by substracting it minimun
+  # transform each signature's activity values by substracting its minimum
   activity_scaled <- t(scale(t(activity), center = min_val, scale = FALSE))
 
   # activity heatmap color panel
