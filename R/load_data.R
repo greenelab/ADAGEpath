@@ -24,6 +24,7 @@
 #' for ADAGE analysis.
 #' @examples
 #' load_data(filepath, isProcessed = FALSE, isRNAseq = FALSE)
+#' @export
 load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
                          model = eADAGEmodel, compendium = PAcompendium,
                          quantile_ref = probedistribution){
@@ -154,7 +155,7 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
 }
 
 
-#' Gene ID convertion
+#' Converting gene ID to locus tag
 #'
 #' Converts the input gene ID to PAO1 locus tag that are used in ADAGE model.
 #' It currently can convert gene IDs on AFFY chip, PAO1 gene symbols, and
@@ -166,6 +167,7 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
 #' conversion (default: gene IDs used in the pre-loaded P.a. ADAGE model).
 #' @return the corresponding PAO1 locus tag ("PAXXXX") for the input gene or NA
 #' if the input gene is not recognized.
+#' @export
 to_LocusTag <- function(input_ID, ref_IDs = eADAGEmodel$geneID) {
 
   if (input_ID %in% ref_IDs) {
@@ -207,6 +209,29 @@ to_LocusTag <- function(input_ID, ref_IDs = eADAGEmodel$geneID) {
   }
 }
 
+
+#' Converting locus tag to symbol
+#'
+#' Converts PAO1 gene locus tag to gene symbol. The input ID should be a
+#' PAO1 locus tag. If it is not found in the PAO1 geneinfo database,
+#' it will not be converted and the return value will be the same as the input.
+#'
+#' @param input_ID character, a PAO1 gene locus tag, such as "PA0001".
+#' @return the converted gene symbol for the input locus tag.
+#' @export
+to_symbol <- function(input_ID){
+
+  if (input_ID %in% geneinfo$Symbol){
+    return(input_ID)
+  } else if (input_ID %in% geneinfo$LocusTag){
+    return(geneinfo$Symbol[geneinfo$LocusTag == input_ID])
+  } else {
+    warning(paste(input_ID, "not recognized as PAO1 locus tag.",
+                  "It is kept unchanged."))
+    return(input_ID)
+  }
+
+}
 
 #'Gene IDs matching
 #'

@@ -10,6 +10,7 @@
 #' @param HW_cutoff number of standard deviations from mean in a node's weight
 #' distribution to be considered as high-weight (default to 2.5).
 #' @return a named matrix storing activities per signature per sample
+#' @export
 calculate_activity <- function(input_data, model = eADAGEmodel,
                                HW_cutoff = 2.5) {
 
@@ -44,7 +45,10 @@ calculate_activity <- function(input_data, model = eADAGEmodel,
   colnames(HWactivity_perGene) <- c(paste0("Node", seq(1, model_size), "pos"),
                                     paste0("Node", seq(1, model_size), "neg"))
 
-  return(HWactivity_perGene)
+  # omit positive and negative signs
+  HWactivity_perGene <- abs(HWactivity_perGene)
+
+  return(t(HWactivity_perGene))
 
 }
 
