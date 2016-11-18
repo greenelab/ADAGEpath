@@ -173,9 +173,15 @@ build_signature_overlap_matrix <- function(signature_list, overlap_qvalues){
 #' @export
 plot_signature_overlap <- function(overlap_matrix, signatures = NULL){
 
+<<<<<<< HEAD
   if (!is.null(signatures)) {
     # make sure all input signatures can be found in the overlap matrix
     if (all(signatures %in% rownames(overlap_matrix))) {
+=======
+  if (!is.null(signatures)){
+    # make sure all input signatures can be found in the overlap matrix
+    if (all(signatures %in% rownames(overlap_matrix))){
+>>>>>>> greenelab/master
       overlap_matrix <- overlap_matrix[signatures, signatures]
     } else {
       stop("Given signatures are not found in the overlap matrix!")
