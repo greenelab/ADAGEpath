@@ -14,10 +14,14 @@ enrich_test(set1, set2, set_all)
 \item{set_all}{character vector storing all possible genes}
 }
 \value{
-pvalue in the fisher exact test
+value returned by fisher.test() function, which is a list with
+class "htest" containing p.value, conf.int, estimate, and so on.
 }
 \description{
 Performs a one-side fisher exact test to determine whether two sets of genes
 have significant overlap.
+}
+\seealso{
+\code{\link[stats]{fisher.test}}
 }
 

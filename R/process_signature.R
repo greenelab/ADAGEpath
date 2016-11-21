@@ -3,7 +3,7 @@
 #' Extracts all gene signatures from an ADAGE model.
 #'
 #' @param model the ADAGE model to be used for extracting gene signatures
-#' (default: the 300-node eADAGE model preloaded in the pacakge).
+#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param HW_cutoff number of standard deviations from mean in a node's weight
 #' distribution to be considered as high-weight (default to 2.5). Only
 #' high-weight genes are included in gene signatures.
@@ -82,7 +82,10 @@ one_signature <- function(node_weight, geneID, side, HW_cutoff = 2.5){
 #' @param set1 character vector storing genes in the first gene set
 #' @param set2 character vector storing genes in the second gene set
 #' @param set_all character vector storing all possible genes
-#' @return pvalue in the fisher exact test
+#' @return value returned by fisher.test() function, which is a list with
+#' class "htest" containing p.value, conf.int, estimate, and so on.
+#' @seealso \code{\link[stats]{fisher.test}}
+#' @export
 enrich_test <- function(set1, set2, set_all){
 
   set_overlap <- length(intersect(set1, set2))
@@ -91,68 +94,84 @@ enrich_test <- function(set1, set2, set_all){
   others <- length(set_all) - set_overlap - set2_only - set1_only
   contingency_table <- matrix(c(set_overlap, set1_only, set2_only, others),
                               nrow = 2)
-  pvalue <- fisher.test(contingency_table, alternative='greater')$p.value
+  fisher_result <- fisher.test(contingency_table, alternative='greater')
 
-  return(pvalue)
+  return(fisher_result)
 }
 
 
 #' Signature overlap calculation
 #'
-#' Tests how significant all possible pairs of signatures in the input list
-#' overlap with each other.
+#' Tests how significant all possible pairs of input signatures
+#' overlap with each other in term of their gene compositions.
 #'
-#' @param signature_list a list of signatures extracted from an ADAGE model.
-#' @return a named list storing adjusted p values for all signature overlap.
-#' tests
+#' @param selected_signatures a vector storing names of signatures selected
+#' to be tested.
+#' @param model an ADAGE model to extract signatures from
+#' (default: the 300-node eADAGE model preloaded in the package).
+#' @return a named list storing odds ratios for all pairs of signature overlap
+#' tests.
 #' @export
-test_signature_overlap <- function(signature_list){
+test_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
 
-  # generate all possible combinations
-  comb_sig <- combn(signature_list, 2)
-  comb_name <- combn(names(signature_list), 2)
+  # extract all signatures' gene lists
+  signatures_genes <- extract_signatures(model)
+  # get the gene lists of only the selected signatures
+  selected_signatures_genes <- signatures_genes[selected_signatures]
+
+  # generate all possible combinations of both signatures' gene lists and names
+  comb_sig <- combn(selected_signatures_genes, 2)
+  comb_name <- combn(names(selected_signatures_genes), 2)
 
   # get unique genes in all signatures
-  all_HWGs <- unique(unlist(signature_list))
+  all_HWGs <- unique(unlist(signatures_genes))
 
   # test the significance of overlap between every two signature combinations
-  # TODO: use parellel version of mapply
-  pvalue_list <- mapply(enrich_test, comb_sig[1, ], comb_sig[2, ],
+  result_table <- mapply(enrich_test, comb_sig[1, ], comb_sig[2, ],
                         MoreArgs = list(set_all = all_HWGs))
 
-  # multiple hypothesis correction
-  qvalue_list <- p.adjust(pvalue_list, method = "fdr")
   # name each element with its signature combination
-  names(qvalue_list) <- sapply(1: ncol(comb_name),function(x)
+  colnames(result_table) <- sapply(1: ncol(comb_name),function(x)
     paste(comb_name[, x], collapse = "_"))
 
-  return(qvalue_list)
+  # extract odds ratio from the enrichment results
+  odds_ratios <- result_table["estimate", ]
+
+  return(odds_ratios)
 
 }
 
 
 #' Signature overlap matrix construction
 #'
-#' Converts the list of adjusted p values in the signature overlap tests into
+#' Converts the list of odds ratios in the signature overlap tests into
 #' a symmetric matrix.
 #'
-#' @param signature_list a list of signatures extracted from an ADAGE model.
-#' @param overlap_qvalues a list of adjusted p values obtained from the function
+#' @param selected_signatures a vector storing names of selected signatures.
+#' @param odds_ratios a list of odds ratios obtained from the function
 #' test_signature_overlap()
-#' @return a symmetric matrix storing the adjusted p values in the signature
-#' overlap tests between every possible signature pair. The diagnol is set to
-#' 0 because a signature always has perfect overlap with itself.
-#' @export
-build_signature_overlap_matrix <- function(signature_list, overlap_qvalues){
+#' @return a symmetric matrix storing the odds ratios in the signature
+#' overlap tests between every possible signature pair. The diagonal is set to
+#' Inf because a signature always has perfect overlap with itself.
+build_signature_overlap_matrix <- function(selected_signatures, odds_ratios){
 
-  overlap_matrix = matrix(, nrow = length(signature_list),
-                          ncol = length(signature_list))
-  overlap_matrix[lower.tri(overlap_matrix, diag = FALSE)] <- overlap_qvalues
+  # initialize the matrix
+  overlap_matrix = matrix(, nrow = length(selected_signatures),
+                          ncol = length(selected_signatures))
+
+  # assign odds ratios to the lower triangle
+  overlap_matrix[lower.tri(overlap_matrix, diag = FALSE)] <- unlist(odds_ratios)
+
+  # copy the lower triangle to the upper triangle
   overlap_matrix[upper.tri(overlap_matrix)] <-
     t(overlap_matrix)[upper.tri(overlap_matrix)]
-  diag(overlap_matrix) <- 0
-  rownames(overlap_matrix) <- names(signature_list)
-  colnames(overlap_matrix) <- names(signature_list)
+
+  # add row and column names
+  rownames(overlap_matrix) <- selected_signatures
+  colnames(overlap_matrix) <- selected_signatures
+
+  # set diagnal to infinity
+  diag(overlap_matrix) <- Inf
 
   return(overlap_matrix)
 }
@@ -160,34 +179,33 @@ build_signature_overlap_matrix <- function(signature_list, overlap_qvalues){
 
 #' Signature overlap plot
 #'
-#' Plots the overlap significance between signature pairs using heatmap. Values
-#' in the heatmap represent -log10(qvalue). A higher value indicates a more
-#' significant overlap. The diagnol is set to the highest value in the selected
-#' signature pairs for visualization purpose. The plot will be difficult to
-#' see if including more than 50 signatures.
+#' Plots the overlap significance between signature pairs using a heatmap.
+#' Values in the heatmap represent the odds ratio in fisher exact test.
+#' A higher odds ratio indicates a more significant overlap between genes
+#' in two signatures. The diagonal is set to the highest odds ratio in the
+#' selected signature pairs just for visualization purpose. The plot will be
+#' difficult to see if including more than 50 signatures.
 #'
-#' @param overlap_matrix a symmetric matrix storing adjusted p values between
-#' each signature pair in the overlap test
-#' @param signatures a character vector specifying which signatures to include
+#' @param selected_signatures a vector storing names of signatures to include
 #' in the plot
+#' @param model an ADAGE model to extract signatures from
+#' (default: the 300-node eADAGE model preloaded in the package).
 #' @export
-plot_signature_overlap <- function(overlap_matrix, signatures = NULL){
+plot_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
 
-  if (!is.null(signatures)) {
-    # make sure all input signatures can be found in the overlap matrix
-    if (all(signatures %in% rownames(overlap_matrix))) {
-      overlap_matrix <- overlap_matrix[signatures, signatures]
-    } else {
-      stop("Given signatures are not found in the overlap matrix!")
-    }
+  # test how sigfinicant each signature pair overlaps
+  odds_ratios <- test_signature_overlap(selected_signatures, model)
 
-  }
+  # convert the resulting odds ratio list into a symmetric matrix
+  overlap_matrix <- build_signature_overlap_matrix(selected_signatures,
+                                                   odds_ratios)
 
-  # set the diagnol to the minimum q value other than 0 in the matrix
-  diag(overlap_matrix) <- min(overlap_matrix[overlap_matrix!= 0], na.rm = TRUE)
-  # convert the q values into -log10 scale
-  overlap_matrix <- -log10(overlap_matrix)
+  # for visualization purpose, set the diagonal of the matrix to the maximum odds
+  # ratio in the matrix
+  diag(overlap_matrix) <- max(overlap_matrix[overlap_matrix != Inf],
+                              na.rm = TRUE)
 
+  # plot the odds ratio heatmap using corrplot
   corrplot::corrplot(overlap_matrix, is.corr = FALSE, method = 'square',
                      order = 'hclust')
 }

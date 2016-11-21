@@ -4,20 +4,21 @@
 \alias{plot_signature_overlap}
 \title{Signature overlap plot}
 \usage{
-plot_signature_overlap(overlap_matrix, signatures = NULL)
+plot_signature_overlap(selected_signatures, model = eADAGEmodel)
 }
 \arguments{
-\item{overlap_matrix}{a symmetric matrix storing adjusted p values between
-each signature pair in the overlap test}
-
-\item{signatures}{a character vector specifying which signatures to include
+\item{selected_signatures}{a vector storing names of signatures to include
 in the plot}
+
+\item{model}{an ADAGE model to extract signatures from
+(default: the 300-node eADAGE model preloaded in the pacakge).}
 }
 \description{
-Plots the overlap significance between signature pairs using heatmap. Values
-in the heatmap represent -log10(qvalue). A higher value indicates a more
-significant overlap. The diagnol is set to the highest value in the selected
-signature pairs for visualization purpose. The plot will be difficult to
-see if including more than 50 signatures.
+Plots the overlap significance between signature pairs using a heatmap.
+Values in the heatmap represent the odds ratio in fisher exact test.
+A higher odds ratio indicates a more significant overlap between genes
+in two signatures. The diagnol is set to the highest odds ratio in the
+selected signature pairs just for visualization purpose. The plot will be
+difficult to see if including more than 50 signatures.
 }
 

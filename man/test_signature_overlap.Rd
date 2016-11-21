@@ -4,17 +4,21 @@
 \alias{test_signature_overlap}
 \title{Signature overlap calculation}
 \usage{
-test_signature_overlap(signature_list)
+test_signature_overlap(selected_signatures, model = eADAGEmodel)
 }
 \arguments{
-\item{signature_list}{a list of signatures extracted from an ADAGE model.}
+\item{selected_signatures}{a vector storing names of signatures selected
+to be tested.}
+
+\item{model}{an ADAGE model to extract signatures from
+(default: the 300-node eADAGE model preloaded in the pacakge).}
 }
 \value{
-a named list storing adjusted p values for all signature overlap.
-tests
+a named list storing odds ratios for all pairs of signature overlap
+tests.
 }
 \description{
-Tests how significant all possible pairs of signatures in the input list
-overlap with each other.
+Tests how significant all possible pairs of input signatures
+overlap with each other in term of their gene compositions.
 }
 
