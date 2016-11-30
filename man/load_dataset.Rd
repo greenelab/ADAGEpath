@@ -6,7 +6,7 @@
 \usage{
 load_dataset(input, isProcessed = FALSE, isRNAseq = FALSE,
   model = eADAGEmodel, compendium = PAcompendium,
-  quantile_ref = probedistribution)
+  quantile_ref = probedistribution, norm01 = TRUE)
 }
 \arguments{
 \item{input}{file path to the input file or folder.}
@@ -28,6 +28,9 @@ the package).}
 \item{quantile_ref}{a vector storing the reference quantile distribution
 (default: the quantile distribution of probes used in
 normalzing the P.a. gene expression compendium).}
+
+\item{norm01}{a logical value indicating whether the output should be
+zero-one normalized (default: TRUE)}
 }
 \value{
 a data frame containing the processed gene expression values ready

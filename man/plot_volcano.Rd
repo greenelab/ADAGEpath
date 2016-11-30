@@ -4,16 +4,17 @@
 \alias{plot_volcano}
 \title{Signature volcano plot}
 \usage{
-plot_volcano(limma_result, active_signatures = NULL)
+plot_volcano(limma_result, highlight_signatures = NULL)
 }
 \arguments{
-\item{limma_result}{list, returned by the build_limma() function.}
+\item{limma_result}{a data.frame that stores the limma result table
+returned by the build_limma() function.}
 
-\item{active_signatures}{a character, if provided, signatures in it will
-be labeled and colored in red in the plot (default to NULL).}
+\item{highlight_signatures}{a character, if provided, signatures in it will
+be labeled and colored in red in the volcano plot (default to NULL).}
 }
 \description{
-Makes a volcano plot showing the activity difference and significance of
-each signature after testing them with limma.
+Makes a volcano plot that shows the activity difference and significance of
+each signature after testing them with build_limma().
 }
 
