@@ -20,6 +20,8 @@
 #' @param quantile_ref a vector storing the reference quantile distribution
 #' (default: the quantile distribution of probes used in
 #' normalzing the P.a. gene expression compendium).
+#' @param norm01 a logical value indicating whether the output should be
+#' zero-one normalized (default: TRUE)
 #' @return a data frame containing the processed gene expression values ready
 #' for ADAGE analysis.
 #' @examples
@@ -27,7 +29,8 @@
 #' @export
 load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
                          model = eADAGEmodel, compendium = PAcompendium,
-                         quantile_ref = probedistribution){
+                         quantile_ref = probedistribution,
+                         norm01 = TRUE){
 
   if (!check_input(model)) {
     stop("The model should be a data frame with first column being gene IDs
@@ -77,8 +80,13 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
     data <- TDM_RNAseq(input_data = data, ref_data = compendium)
   }
 
-  # zero-one normalization
-  data <- zeroone_norm(input_data = data, use_ref = TRUE, ref_data = compendium)
+  if (norm01) {
+    # perform zero-one normalization
+    data <- zeroone_norm(input_data = data, use_ref = TRUE, ref_data = compendium)
+  }
+
+  # rownames are not needed as geneID is stored in the first column
+  rownames(data) <- NULL
 
   return(data)
 }
