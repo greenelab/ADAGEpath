@@ -15,4 +15,4 @@ export(set_phenotype)
 export(test_signature_overlap)
 export(to_LocusTag)
 export(to_symbol)
-
+importFrom(magrittr,"%>%")
