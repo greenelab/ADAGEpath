@@ -74,6 +74,7 @@ visualize_gene_networks <- function(selected_signatures, model = eADAGEmodel,
                                                  multiple = TRUE),
                                highlightNearest = TRUE,
                                nodesIdSelection = TRUE) %>%
+        visNetwork::visInteraction(navigationButtons = TRUE) %>%
         visNetwork::visLayout(randomSeed = 123)
 
   return(final_network)
