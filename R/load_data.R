@@ -355,6 +355,7 @@ TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 #'specify gene IDs should be exactly the same.
 #'@return A data frame storing zero-one normalized gene expression values from
 #'the input data.
+#'@export
 zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
 
   if (!check_input(input_data)){
