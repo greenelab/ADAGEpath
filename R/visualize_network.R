@@ -27,7 +27,7 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
   signatures_genes <- extract_signatures(model)
 
   # make sure the input selected_signatures can be found in the model
-  if (all(selected_signatures %in% names(signatures_genes))){
+  if (!all(selected_signatures %in% names(signatures_genes))){
     stop("Names of the selected signatures are not in the specified ADAGE model.")
   }
 
@@ -64,10 +64,10 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
 
   # annotate network node to include a column indicating which signatures a
   # gene is in
-  gene_signature_df <- gene_signature_map(selected_signatures_genes)
+  gene_signature_df <- annotate_gene_signatures(selected_signatures_genes)
   gene_network$nodes <- suppressWarnings(dplyr::left_join(gene_network$nodes,
                                                           gene_signature_df,
-                                                          by = c("id" = "gene")))
+                                                          by = c("id" = "geneID")))
 
   if (!is.null(gene_logFC)) {
     # set network node color to reflect gene fold change
@@ -106,7 +106,7 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
 
   # annotate network edge to include a column indicating which signatures two
   # genes share with each other
-  gene_network$edges$shared_signatures <- two_genes_signature_map(
+  gene_network$edges <- annotate_shared_signatures(
     gene_network$edges, selected_signatures_genes)
 
   # set network edge title that will be displayed when mouse is above the edge
@@ -132,6 +132,17 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
 }
 
 
+#' Mapping logFC to HEX color
+#'
+#' Maps the continuous logFC values to HEX color values. The positive values
+#' are mapped to the "Reds" palette from Color Brewer 2
+#' \url{http://colorbrewer2.org/#type=sequential&scheme=Reds&n=3},
+#' and the negative values
+#' are oppsitely mapped to the "Blues" palette from the Color Brewer 2
+#' \url{http://colorbrewer2.org/#type=sequential&scheme=Blues&n=3}.
+#'
+#' @param logFC a numeric vector storing logFC values
+#' @return a character vector storing the HEX color values
 create_logFC_colors <- function(logFC){
   col <- logFC
   pos_pal <- leaflet::colorNumeric(palette = "Reds",
@@ -145,38 +156,77 @@ create_logFC_colors <- function(logFC){
 }
 
 
-gene_signature_map <- function(signatures_genes){
-  gene_signature_df <- data.frame(gene = unique(unlist(signatures_genes)),
+#' Gene-signature relationship
+#'
+#' Annotates genes with the signatures they are in.
+#'
+#' @param signatures_genes a named list with each element storing genes in one
+#' signature.
+#' @return a data.frame with the first column specifying geneID and the second
+#' column specifying signatures that a gene is in.
+annotate_gene_signatures <- function(signatures_genes){
+
+  # initialize a gene-signature data.frame with a geneID column containing all
+  # unique genes in the input signatures and a signature column set to NA
+  gene_signature_df <- data.frame(geneID = unique(unlist(signatures_genes)),
                                   signature = NA)
+
+  # loop through each gene in each signature
   for (sig in names(signatures_genes)) {
     for (gene in signatures_genes[[sig]]) {
-      if (is.na(gene_signature_df[gene_signature_df$gene == gene, "signature"])){
-        gene_signature_df[gene_signature_df$gene == gene, "signature"] <- sig
+      if (is.na(gene_signature_df[gene_signature_df$geneID == gene, "signature"])){
+        # if NA, this is the first gene-signature relationship found for this
+        # gene, replace NA with the signature name
+        gene_signature_df[gene_signature_df$geneID == gene, "signature"] <- sig
       }
       else{
-        gene_signature_df[gene_signature_df$gene == gene, "signature"] <-
-          paste(gene_signature_df[gene_signature_df$gene == gene, "signature"],
+        # this gene is already in some other signatures, simply append this
+        # signature's name to existing signature names
+        gene_signature_df[gene_signature_df$geneID == gene, "signature"] <-
+          paste(gene_signature_df[gene_signature_df$geneID == gene, "signature"],
                 sig, sep = ",")
       }
     }
   }
 
   return(gene_signature_df)
-
 }
 
 
+#' Shared signature annotation
+#'
+#' Annotates shared signatures for gene pairs in the input gene_network_edge
+#' data.frame.
+#'
+#' @param gene_network_edge a data.frame specifying gene-gene connections
+#' in a gene-gene network. The first two columns are "to" and "from" geneIDs.
+#' It is an intermediate product from the visualize_gene_network() function.
+#' @param signatures_genes a named list with each element storing genes in one
+#' signature.
+#' @return the data.frame gene_network_edge with one more column
+#' shared_signatures that specifies the shared signatures of the from and to
+#' genes.
+annotate_shared_signatures <- function(gene_network_edge, signatures_genes){
 
-two_genes_signature_map <- function(gene_network_edge, signatures_genes){
+  # initialize the shared signature vector with NA
   two_gene_sigs <- rep(NA, nrow(gene_network_edge))
+
+  # loop through each row of gene_network_edge that stores one from-to
+  # gene pair
   for (i in 1:nrow(gene_network_edge)) {
+
+    # find out all the signatures that both have "from" gene and "to" gene
     have_sig_flag <- sapply(signatures_genes, function(x)
       all(gene_network_edge[i, c("from", "to")] %in% x))
+
     if (any(have_sig_flag)) {
+      # if there is one or more such signatures, paste their names and update
+      # to return vector
       two_gene_sigs[i] <- paste(names(signatures_genes)[have_sig_flag],
                                 collapse = ",")
     }
   }
+  gene_network_edge$shared_signatures <- two_gene_sigs
 
-  return(two_gene_sigs)
+  return(gene_network_edge)
 }
