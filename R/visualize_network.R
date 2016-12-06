@@ -12,18 +12,19 @@
 #' @param selected_signatures a vector storing names of signatures whose genes
 #' to include in the gene-gene network
 #' @param model an ADAGE model to build gene-gene network from
-#' (default: the 300-node eADAGE model preloaded in the pacakge).
+#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param cor_cutoff numeric, the correlation cutoff to decide whether an edge
 #' between two genes exists in the network (default: 0.5).
 #' @param gene_logFC a data.frame with two columns, one is geneID, the other is
-#' logFC (optional, defautl:NULL). If not provided, the node color in the
+#' logFC (optional, default:NULL). If not provided, the node color in the
 #' gene-gene network is uniform.
 #' @importFrom magrittr "%>%"
 #' @export
 visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
                                     cor_cutoff = 0.5, gene_logFC = NULL) {
 
-  # extract all signatures and their genes from the model
+  # extract all signatures and their genes from the model using the custom
+  # function extract_signatures()
   signatures_genes <- extract_signatures(model)
 
   # make sure the input selected_signatures can be found in the model
@@ -55,7 +56,8 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
   # convert igraph structure to visNetwork structure
   gene_network <- visNetwork::toVisNetworkData(graph)
 
-  # convert PAO1 locus tag to gene symbol and assign to network node label
+  # convert PAO1 locus tag to gene symbol using the custom function to_symbol()
+  # and assign gene symbol to network node label
   gene_network$nodes$label <- sapply(gene_network$nodes$label,
                                      function(x) suppressWarnings(to_symbol(x)))
 
@@ -63,7 +65,7 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
   gene_network$nodes$size <- 15
 
   # annotate network node to include a column indicating which signatures a
-  # gene is in
+  # gene is in using the custom function annotate_gene_signatures()
   gene_signature_df <- annotate_gene_signatures(selected_signatures_genes)
   gene_network$nodes <- suppressWarnings(dplyr::left_join(gene_network$nodes,
                                                           gene_signature_df,

@@ -1,6 +1,6 @@
 #' Defining sample phenotypes
 #'
-#' Defines the pehnotype of each sample in a dataset.
+#' Defines the phenotype of each sample in a dataset.
 #'
 #' @param phenotypes a character with phenotypes separated by comma,
 #' e.g. "wt,wt,wt,mt,mt,mt"
@@ -16,7 +16,7 @@ set_phenotype <- function(phenotypes){
 #' Building a linear regression model for differential analysis
 #'
 #' Uses limma to build a linear model to test the differential expression or
-#' differential activaiton of either gene features or signature features.
+#' differential activation of either gene features or signature features.
 #' Only two-group comparison is implemented for now.
 #'
 #' @param input_data a data.frame that stores either the signature activities or
@@ -137,7 +137,7 @@ get_active_signatures <- function(limma_result, phenotypes, method = "pareto",
 #' solution's name and second and third columns storing values of its two
 #' objectives.
 #' @param N_fronts int, number of pareto fronts
-#' @return a charactor storing solutions made into the top N_fronts.
+#' @return a character storing solutions made into the top N_fronts.
 get_paretofront <- function(input_data, N_fronts) {
 
   # convert to data.frame in case the input_data is a tibble
@@ -195,9 +195,9 @@ plot_volcano <- function(limma_result, highlight_signatures = NULL){
 
   # build the test_result data.frame with only difference in mean and the adjusted
   # p value after -log10 transform
-  test_result <-   tibble::data_frame(signature = rownames(limma_result),
-                                      diff = limma_result$logFC,
-                                      neglog10qvalue = -log10(limma_result$adj.P.Val))
+  test_result <- tibble::data_frame(signature = rownames(limma_result),
+                                    diff = limma_result$logFC,
+                                    neglog10qvalue = -log10(limma_result$adj.P.Val))
 
   plot(test_result$diff, test_result$neglog10qvalue, col = "grey",
        xlab = "activity difference", ylab = "significance (-log10qvalue)")

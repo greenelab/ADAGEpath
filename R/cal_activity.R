@@ -6,7 +6,7 @@
 #' @param input_data a data frame with gene IDs in the first column and
 #' expression values from the second column.
 #' @param model the ADAGE model to be used for calculating signature activity
-#' (default: the 300-node eADAGE model preloaded in the pacakge).
+#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param HW_cutoff number of standard deviations from mean in a node's weight
 #' distribution to be considered as high-weight (default to 2.5).
 #' @return a named matrix storing activities per signature per sample
@@ -133,7 +133,7 @@ plot_activity_heatmap <- function(activity, signatures = NULL,
   # get the minimum value of each signature activity
   min_val <- apply(activity, 1, min)
 
-  # transform each signature's activity values by substracting its minimum
+  # transform each signature's activity values by subtracting its minimum
   activity_scaled <- t(scale(t(activity), center = min_val, scale = FALSE))
 
   # activity heatmap color panel
