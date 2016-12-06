@@ -11,7 +11,7 @@ test_signature_overlap(selected_signatures, model = eADAGEmodel)
 to be tested.}
 
 \item{model}{an ADAGE model to extract signatures from
-(default: the 300-node eADAGE model preloaded in the pacakge).}
+(default: the 300-node eADAGE model preloaded in the package).}
 }
 \value{
 a named list storing odds ratios for all pairs of signature overlap

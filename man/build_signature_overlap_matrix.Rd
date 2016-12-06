@@ -14,7 +14,7 @@ test_signature_overlap()}
 }
 \value{
 a symmetric matrix storing the odds ratios in the signature
-overlap tests between every possible signature pair. The diagnol is set to
+overlap tests between every possible signature pair. The diagonal is set to
 Inf because a signature always has perfect overlap with itself.
 }
 \description{

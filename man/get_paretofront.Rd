@@ -14,7 +14,7 @@ objectives.}
 \item{N_fronts}{int, number of pareto fronts}
 }
 \value{
-a charactor storing solutions made into the top N_fronts.
+a character storing solutions made into the top N_fronts.
 }
 \description{
 Returns solutions in the top N layers of pareto fronts with the goal to

@@ -24,7 +24,7 @@ includes logFC, adj.P.Val, and other statistics for each feature.
 }
 \description{
 Uses limma to build a linear model to test the differential expression or
-differential activaiton of either gene features or signature features.
+differential activation of either gene features or signature features.
 Only two-group comparison is implemented for now.
 }
 \seealso{
