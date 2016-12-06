@@ -9,6 +9,7 @@ Description: This package provides functions to perform ADAGE-based pathway
 License: BSD 3 Clause license
 LazyData: TRUE
 Imports:
+    magrittr,
     dplyr,
     readr,
     affy,
@@ -24,7 +25,10 @@ Imports:
     gplots,
     jsonlite,
     httr,
-    reshape2
+    reshape2,
+    igraph,
+    visNetwork,
+    leaflet
 Remotes: Greenelab/TDM
 RoxygenNote: 5.0.1
 Suggests: testthat

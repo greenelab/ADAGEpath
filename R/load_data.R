@@ -13,13 +13,15 @@
 #' data. It determines whether TDM is applied to normalize the expression
 #' values (default: FALSE).
 #' @param model the ADAGE model used to analyze the input data
-#' (default: the 300-node eADAGE model of P.a. pre-loaded within the pacakge).
+#' (default: the 300-node eADAGE model of P.a. pre-loaded within the package).
 #' @param compendium the gene expression compendium of an organism
 #' (default: the P. aeruginosa expression compendium pre-loaded within
 #' the package).
 #' @param quantile_ref a vector storing the reference quantile distribution
 #' (default: the quantile distribution of probes used in
-#' normalzing the P.a. gene expression compendium).
+#' normalizing the P.a. gene expression compendium).
+#' @param norm01 a logical value indicating whether the output should be
+#' zero-one normalized (default: TRUE)
 #' @return a data frame containing the processed gene expression values ready
 #' for ADAGE analysis.
 #' @examples
@@ -27,7 +29,8 @@
 #' @export
 load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
                          model = eADAGEmodel, compendium = PAcompendium,
-                         quantile_ref = probedistribution){
+                         quantile_ref = probedistribution,
+                         norm01 = TRUE){
 
   if (!check_input(model)) {
     stop("The model should be a data frame with first column being gene IDs
@@ -41,7 +44,7 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
          values for each sample per column.")
   }
 
-  # quantile normalize probes if the input is raw CEL formot, directly load data
+  # quantile normalize probes if the input is raw CEL format, directly load data
   # if the input is processed microarray or RNAseq data
   if (!isProcessed) {
     # if the input is a zip file, unzip into the same folder and use cel files
@@ -77,8 +80,13 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
     data <- TDM_RNAseq(input_data = data, ref_data = compendium)
   }
 
-  # zero-one normalization
-  data <- zeroone_norm(input_data = data, use_ref = TRUE, ref_data = compendium)
+  if (norm01) {
+    # perform zero-one normalization
+    data <- zeroone_norm(input_data = data, use_ref = TRUE, ref_data = compendium)
+  }
+
+  # rownames are not needed as geneID is stored in the first column
+  rownames(data) <- NULL
 
   return(data)
 }
@@ -96,8 +104,8 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
 #' should be done using a reference quantile distribution (default: TRUE).
 #' @param quantile_ref a vector storing the reference quantile distribution
 #' (default: the quantile distribution of probes used in
-#' normalzing the P.a. gene expression compendium) Since the input microarray
-#' data need to be normalzied to the processed compendium, the default
+#' normalizing the P.a. gene expression compendium) Since the input microarray
+#' data need to be normalized to the processed compendium, the default
 #' should not be changed in most cases.
 #' @return a data frame containing normalized gene expression values with geneID
 #' in the first column and then each cel file in one column.
@@ -333,9 +341,9 @@ TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 #'
 #'Normalizes the input gene expression values to be between 0 and 1.
 #'Normalization is done per gene (row) through
-#'substracting its minimun from each value and then being divided by its range.
+#'subtracting its minimum from each value and then being divided by its range.
 #'If using reference, the normalization is done using the gene's expression
-#'mininum and range in the reference data.
+#'minimum and range in the reference data.
 #'
 #'@param input_data A data frame with gene IDs in the first column and
 #'expression values from the second column.
@@ -347,6 +355,7 @@ TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 #'specify gene IDs should be exactly the same.
 #'@return A data frame storing zero-one normalized gene expression values from
 #'the input data.
+#'@export
 zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
 
   if (!check_input(input_data)){

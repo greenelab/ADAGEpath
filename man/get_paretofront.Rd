@@ -4,18 +4,20 @@
 \alias{get_paretofront}
 \title{Pareto fronts calculation}
 \usage{
-get_paretofront(test_result, N_fronts)
+get_paretofront(input_data, N_fronts)
 }
 \arguments{
-\item{test_result}{a data.frame included in the list returned from
-the build_limma() function.}
+\item{input_data}{a data.frame with the first column storing a
+solution's name and second and third columns storing values of its two
+objectives.}
 
 \item{N_fronts}{int, number of pareto fronts}
 }
 \value{
-a charactor storing all signatures made into the top N_fronts.
+a charactor storing solutions made into the top N_fronts.
 }
 \description{
-Pareto fronts calculation
+Returns solutions in the top N layers of pareto fronts with the goal to
+maximize two objectives.
 }
 

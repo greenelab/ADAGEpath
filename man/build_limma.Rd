@@ -2,27 +2,32 @@
 % Please edit documentation in R/test_activation.R
 \name{build_limma}
 \alias{build_limma}
-\title{Linear model for activation detection}
+\title{Building a linear regression model for differential analysis}
 \usage{
-build_limma(activity, phenotypes, sample_indices = NULL)
+build_limma(input_data, phenotypes, use.bonferroni = FALSE)
 }
 \arguments{
-\item{activity}{a data.frame that stores the signature activities for each
-sample in a dataset.}
+\item{input_data}{a data.frame that stores either the signature activities or
+gene expression values. The first column specifies feature names (genes or
+signatures).}
 
 \item{phenotypes}{a factor obtained from the set_phenotype() function.}
 
-\item{sample_indices}{a int vector to specify which samples to include
-in the linear model.}
+\item{use.bonferroni}{a logical value indicating whether to use the more
+conservative "bonferroni" method in the p value adjustment.
+This is recommended when there are too many significant features when
+using the default "BH" method. (default: FALSE)}
 }
 \value{
-a list including test_result and phenotypes: test_result is a
-data.frame that stores the activation differences and significance;
-phenotypes is a factor after subseting the input phenotypes with
-the sample_indices.
+a data.frame that stores the result table returned by limma. It
+includes logFC, adj.P.Val, and other statistics for each feature.
 }
 \description{
-Uses limma to build a linear model of signature activities and test their
-activations. Only two-group comparison is implemented for now.
+Uses limma to build a linear model to test the differential expression or
+differential activaiton of either gene features or signature features.
+Only two-group comparison is implemented for now.
+}
+\seealso{
+\url{https://bioconductor.org/packages/release/bioc/html/limma.html}
 }
 

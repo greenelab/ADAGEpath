@@ -6,7 +6,7 @@
 #' @param input_data a data frame with gene IDs in the first column and
 #' expression values from the second column.
 #' @param model the ADAGE model to be used for calculating signature activity
-#' (default: the 300-node eADAGE model preloaded in the pacakge).
+#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param HW_cutoff number of standard deviations from mean in a node's weight
 #' distribution to be considered as high-weight (default to 2.5).
 #' @return a named matrix storing activities per signature per sample
@@ -41,15 +41,22 @@ calculate_activity <- function(input_data, model = eADAGEmodel,
   # combine positive and negative sides
   HWactivity_perGene <- dplyr::bind_cols(data.frame(HWactivity_perGene_pos),
                                          data.frame(HWactivity_perGene_neg))
-  rownames(HWactivity_perGene) <- colnames(value_only)
-  colnames(HWactivity_perGene) <- c(paste0("Node", seq(1, model_size), "pos"),
-                                    paste0("Node", seq(1, model_size), "neg"))
 
-  # omit positive and negative signs
+  # transpose to have signatures in rows
+  HWactivity_perGene <- dplyr::as_data_frame(t(HWactivity_perGene))
+
+  # omit positive and negative signs of activities
   HWactivity_perGene <- abs(HWactivity_perGene)
 
-  return(t(HWactivity_perGene))
+  colnames(HWactivity_perGene) <- colnames(value_only)
 
+  # add the signature name column in the front
+  HWactivity_perGene <- cbind(
+    signature = c(paste0("Node", seq(1, model_size), "pos"),
+                  paste0("Node", seq(1, model_size), "neg")),
+    HWactivity_perGene)
+
+  return(HWactivity_perGene)
 }
 
 
@@ -106,6 +113,9 @@ one_signature_activity <- function(weight_matrix, express_matrix, node, side,
 plot_activity_heatmap <- function(activity, signatures = NULL,
                                   fix_color_range = TRUE){
 
+  # convert the signature name column to rowname to make it easy to plot heatmap
+  activity <- tibble::column_to_rownames(activity, var = "signature")
+
   # keep a record of maximum activity range of all signatures
   max.activity.range <- max(apply(activity, 1, function(x) diff(range(x))))
 
@@ -123,7 +133,7 @@ plot_activity_heatmap <- function(activity, signatures = NULL,
   # get the minimum value of each signature activity
   min_val <- apply(activity, 1, min)
 
-  # transform each signature's activity values by substracting its minimum
+  # transform each signature's activity values by subtracting its minimum
   activity_scaled <- t(scale(t(activity), center = min_val, scale = FALSE))
 
   # activity heatmap color panel

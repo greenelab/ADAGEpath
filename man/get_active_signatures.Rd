@@ -4,11 +4,16 @@
 \alias{get_active_signatures}
 \title{Most active signature retrieval}
 \usage{
-get_active_signatures(limma_result, method = "pareto", pheno_group = "both",
-  N_signatures = 10, N_fronts = 5, significance_cutoff = -log10(0.05))
+get_active_signatures(limma_result, phenotypes, method = "pareto",
+  pheno_group = "both", N_signatures = 10, N_fronts = 5,
+  significance_cutoff = -log10(0.05))
 }
 \arguments{
-\item{limma_result}{list, returned by the build_limma() function.}
+\item{limma_result}{a data.frame that stores the limma result table
+returned by the build_limma() function.}
+
+\item{phenotypes}{a factor obtained from the set_phenotype() function, should
+be the same as the phenotypes provided to build_limma() function.}
 
 \item{method}{character, can be "diff", "pvalue", or "pareto"(default)}
 
@@ -30,9 +35,10 @@ to use in the "pvalue" method}
 a vector storing active signatures
 }
 \description{
-Returns the signatures that are most active in the limma test result. We
-provide three methods to define "most" active: sort by the activity
+Returns the signatures that are most differentially active in the limma result.
+We provide three methods to define "most" active: sort by the activity
 difference (diff), significance (pvalue), and consider both difference and
-significance using pareto fronts (pareto).
+significance using pareto fronts (pareto). This function should be run
+after build_limma() function.
 }
 
