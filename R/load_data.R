@@ -64,20 +64,33 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
     data <- process_celfiles(cel_folder = cel_folder, use_ref = TRUE,
                              quantile_ref = quantile_ref)
 
+    # transform gene features in the input data to gene features used in ADAGE model
+    data <- match_IDs(input_data = data, ref_IDs = as.data.frame(model)[, 1])
+
   } else {
 
     # read in the processed data
     data <- readr::read_tsv(input)
     colnames(data)[1] <- "geneID"
 
-  }
+    # transform gene features in the input data to gene features used in ADAGE model
+    data <- match_IDs(input_data = data, ref_IDs = as.data.frame(model)[, 1])
 
-  # transform gene features in the input data to gene features used in ADAGE model
-  data <- match_IDs(input_data = data, ref_IDs = as.data.frame(model)[, 1])
+    # impute missing values if exist
+    if (any(is.na(data))) {
+      data <- impute_miss_values(input_data = data, ref_data = compendium)
+    }
 
-  # perform TDM transformation if the input is RNAseq data
-  if (isRNAseq) {
-    data <- TDM_RNAseq(input_data = data, ref_data = compendium)
+    if (isRNAseq) {
+
+      # perform TDM transformation if the input is RNAseq data
+      data <- TDM_RNAseq(input_data = data, ref_data = compendium)
+    } else {
+
+      # perform quantile normalization if the input is microarray data
+      data <- quantile_norm(input_data = data, use_ref = TRUE,
+                            ref_data = compendium)
+    }
   }
 
   if (norm01) {
@@ -127,7 +140,7 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
   affybatch <- affy::ReadAffy(filenames = pfiles)
 
 
-  if (use_ref){
+  if (use_ref) {
 
     # return perfect match probes
     PMmat <- affy::pm(affybatch, NULL)
@@ -156,7 +169,7 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
   # build the final gene expression data frame
   colnames(expression) <- celfiles
   expression <- data.frame(geneID = rownames(expression), expression,
-                           stringsAsFactors = FALSE)
+                           stringsAsFactors = FALSE, check.names = FALSE)
 
   return(expression)
 
@@ -229,9 +242,9 @@ to_LocusTag <- function(input_ID, ref_IDs = eADAGEmodel$geneID) {
 #' @export
 to_symbol <- function(input_ID){
 
-  if (input_ID %in% geneinfo$Symbol){
+  if (input_ID %in% geneinfo$Symbol) {
     return(input_ID)
-  } else if (input_ID %in% geneinfo$LocusTag){
+  } else if (input_ID %in% geneinfo$LocusTag) {
     return(geneinfo$Symbol[geneinfo$LocusTag == input_ID])
   } else {
     warning(paste(input_ID, "not recognized as PAO1 locus tag.",
@@ -257,7 +270,7 @@ to_symbol <- function(input_ID){
 #'converting gene IDs, sorting gene orders, and filling in missing genes.
 match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 
-  if (!check_input(input_data)){
+  if (!check_input(input_data)) {
     stop("The input data should be a data frame with first column storing
          geneIDs in character and the rest columns storing expression values
          for each sample in numeric.")
@@ -274,7 +287,7 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
   na_index <- which(is.na(match_index))
 
   # print a warning if some IDs are missed in the input
-  if (length(na_index) > 0){
+  if (length(na_index) > 0) {
     na_geneID <- ref_IDs[na_index]
     warning(paste("ADAGE gene features", paste(na_geneID, collapse = ","),
                   "are not found in the input!",
@@ -283,12 +296,124 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 
   # re-order the input data
   IDmapped <- input_data[match_index, -1]
-  # set NA to 0
-  IDmapped[is.na(IDmapped)] <- 0
+  # # set NA to 0
+  # IDmapped[is.na(IDmapped)] <- 0
   # assign reference ID to the input data
-  IDmapped <- data.frame(geneID = ref_IDs, IDmapped, stringsAsFactors = FALSE)
+  IDmapped <- data.frame(geneID = ref_IDs, IDmapped, stringsAsFactors = FALSE,
+                         check.names = FALSE)
 
   return(IDmapped)
+}
+
+
+#' Missing value imputation
+#'
+#' Imputes and fills missing values using k-nearest neighbor method. The 10
+#' nearest neighbors of missing genes are mainly calculated using the reference
+#' data and then are used to fill in missing values in the input data. It uses
+#' the impute.knn function from the impute bioconductor package.
+#'
+#' @param input_data A data frame with gene IDs in the first column and
+#' expression values from the second column.
+#' @param ref_data A data frame storing gene expression values to be used
+#' as a reference dataset for calculating nearest neighbors. Should have more
+#' samples than the input data. The first columns of input_data and ref_data that
+#' specify gene IDs should exactly be the same. (default: the P.a. gene
+#' expression compendium).
+#' @return the input data frame with missing values being filled
+#' @seealso \code{\link[impute]{impute.knn}}
+impute_miss_values <- function(input_data, ref_data = PAcompendium){
+
+  if (!check_input(input_data)) {
+    stop("The input data should be a data frame with first column storing
+         geneIDs in character and the rest columns storing expression values
+         for each sample in numeric.")
+  }
+
+  if (!check_input(ref_data)) {
+    stop("The reference data should be a data frame with first column storing
+         geneIDs in character and the rest columns storing expression values
+         for each sample in numeric.")
+  }
+
+  # make sure each row in the input data and reference data represents the
+  # same gene (the first columns are the same)
+  if (!(nrow(input_data) == nrow(ref_data)) |
+      !all(input_data[, 1] == ref_data[, 1])) {
+    stop("The gene identifiers from the input data and reference data should be
+         the same!")
+  }
+
+  # combine the input data and the reference data
+  combined_data <- as.matrix(cbind(input_data[, -1], ref_data[, -1]))
+  # perform knn imputation using the reference data to find nearest neighbors
+  impute_result <- impute::impute.knn(combined_data)
+  # extract the imputed input data
+  imputed_data <- impute_result$data[, 1:ncol(input_data[, -1])]
+  # add geneID column in front
+  imputed_data <- data.frame(geneID = input_data[, 1], imputed_data,
+                             stringsAsFactors = FALSE, check.names = FALSE)
+  return(imputed_data)
+}
+
+
+#' Quantile normalization
+#'
+#' Performs quantile normalization on the input data. If using reference,
+#' quantile normalization is done using the quantile distribution derived
+#' from the reference data.
+#'
+#' @param input_data A data frame with gene IDs in the first column and
+#' expression values from the second column.
+#' @param use_ref A logical value indicating whether the normalization should
+#'be done based on the reference data (default: FALSE).
+#' @param ref_data A data frame storing gene expression values to be used
+#' as a reference dataset for quantile normalization. The first columns of
+#' input_data and ref_data that specify gene IDs should exactly be the same.
+#' (default: the P.a. gene expression compendium).
+#' @return The input data frame after quantile normalization.
+#' @seealso \code{\link[preprocessCore]{normalize.quantiles}},
+#' \code{\link[preprocessCore]{normalize.quantiles.use.target}},
+#' \code{\link[preprocessCore]{normalize.quantiles.determine.target}}
+quantile_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium){
+
+  if (!check_input(input_data)) {
+    stop("The input data should be a data frame with first column storing
+         geneIDs in character and the rest columns storing expression values
+         for each sample in numeric.")
+  }
+
+  if (!check_input(ref_data)) {
+    stop("The reference data should be a data frame with first column storing
+         geneIDs in character and the rest columns storing expression values
+         for each sample in numeric.")
+  }
+
+  # make sure each row in the input data and reference data represents the
+  # same gene (the first columns are the same)
+  if (!(nrow(input_data) == nrow(ref_data)) |
+      !all(input_data[, 1] == ref_data[, 1])) {
+    stop("The gene identifiers from the input data and reference data should be
+         the same!")
+  }
+
+  if (use_ref) {
+    # determine quantile distribution using the reference data
+    ref_dist <- preprocessCore::normalize.quantiles.determine.target(
+      as.matrix(ref_data[, -1]))
+    # normalize the input data with the derived quantile distribution
+    normed_data <- preprocessCore::normalize.quantiles.use.target(
+      as.matrix(input_data[, -1]), ref_dist)
+  } else {
+    # directly normalize the input data
+    normed_data <- preprocessCore::normalize.quantiles(
+      as.matrix(input_data[, -1]))
+  }
+
+  # add geneID column in front
+  normed_data <- data.frame(geneID = input_data[, 1], normed_data,
+                            stringsAsFactors = FALSE, check.names = FALSE)
+  return(normed_data)
 }
 
 
@@ -308,10 +433,24 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 #'@seealso \url{https://github.com/greenelab/TDM}
 TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 
-  if (!check_input(input_data)){
+  if (!check_input(input_data)) {
     stop("The input data should be a data frame with first column storing
          geneIDs in character and the rest columns storing expression values
          for each sample in numeric.")
+  }
+
+  if (!check_input(ref_data)) {
+    stop("The reference data should be a data frame with first column storing
+         geneIDs in character and the rest columns storing expression values
+         for each sample in numeric.")
+  }
+
+  # make sure each row in the input data and reference data represents the
+  # same gene (the first columns are the same)
+  if (!(nrow(input_data) == nrow(ref_data)) |
+      !all(input_data[, 1] == ref_data[, 1])) {
+    stop("The gene identifiers from the input data and reference data should be
+         the same!")
   }
 
   # TDM require the first column to be named as "gene" and use data.table
@@ -348,7 +487,7 @@ TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 #'@param input_data A data frame with gene IDs in the first column and
 #'expression values from the second column.
 #'@param use_ref A logical value indicating whether the normalization should
-#'be done based on the reference data.
+#'be done based on the reference data (default: FALSE).
 #'@param ref_data A data frame storing gene expression values to be used
 #'as a reference dataset for zero-one normalization (default: the P.a. gene
 #'expression compendium). The first columns in input_data and ref_data that
@@ -358,10 +497,24 @@ TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 #'@export
 zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
 
-  if (!check_input(input_data)){
+  if (!check_input(input_data)) {
     stop("The input data should be a data frame with first column storing
          geneIDs in character and the rest columns storing expression values
          for each sample in numeric.")
+  }
+
+  if (!check_input(ref_data)) {
+    stop("The reference data should be a data frame with first column storing
+         geneIDs in character and the rest columns storing expression values
+         for each sample in numeric.")
+  }
+
+  # make sure each row in the input data and reference data represents the
+  # same gene (the first columns are the same)
+  if (!(nrow(input_data) == nrow(ref_data)) |
+      !all(input_data[, 1] == ref_data[, 1])) {
+    stop("The gene identifiers from the input data and reference data should be
+         the same!")
   }
 
   # make sure each row in the input data and reference data represents the
@@ -396,7 +549,8 @@ zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
 
   # build the output data frame
   zeroone_normed <- data.frame(geneID = as.data.frame(ref_data)[, 1],
-                               zeroone_normed, stringsAsFactors = FALSE)
+                               zeroone_normed, stringsAsFactors = FALSE,
+                               check.names = FALSE)
 
   return(zeroone_normed)
 }
