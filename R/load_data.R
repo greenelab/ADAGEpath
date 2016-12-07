@@ -1,17 +1,22 @@
 #' Data loading and preprocessing
 #'
 #' Currently supports three types of inputs:
-#' a zip file containing microarray CEL files in a dataset;
-#' a folder containing microarray CEL files in a dataset;
+#' a zip file containing microarray CEL files in a dataset (isProcessed=FALSE,
+#' isRNAseq=FALSE);
+#' a folder containing microarray CEL files in a dataset (isProcessed=FALSE,
+#' isRNAseq=FALSE);
 #' a tab-delimited txt file storing processed gene expression values in a
-#' dataset (gene identifiers in the first column and then one sample per column).
+#' dataset (gene identifiers in the first column and then one sample per column)
+#' (isProcessed=TRUE, isRNAseq=TRUE/FALSE).
 #'
 #' @param input file path to the input file or folder.
 #' @param isProcessed a logical value indicating whether the input data has
-#' already been processed (default: FALSE).
-#' @param isRNAseq a logical value indicating whether the input data is RNAseq
-#' data. It determines whether TDM is applied to normalize the expression
-#' values (default: FALSE).
+#' already been processed into a tab-delimited txt file (default: FALSE).
+#' @param isRNAseq a logical value indicating whether the processed input data
+#' is RNAseq data. If true, the processed RNAseq data will be normalized to
+#' a comparable range with the microarray-based compendium using TDM. If false,
+#' the processed input data will be quantile normalized to be comparable
+#' to the compendium. (default: FALSE)
 #' @param model the ADAGE model used to analyze the input data
 #' (default: the 300-node eADAGE model of P.a. pre-loaded within the package).
 #' @param compendium the gene expression compendium of an organism
@@ -95,7 +100,8 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
 
   if (norm01) {
     # perform zero-one normalization
-    data <- zeroone_norm(input_data = data, use_ref = TRUE, ref_data = compendium)
+    data <- zeroone_norm(input_data = data, use_ref = TRUE,
+                         ref_data = compendium)
   }
 
   # rownames are not needed as geneID is stored in the first column
@@ -291,7 +297,7 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
     na_geneID <- ref_IDs[na_index]
     warning(paste("ADAGE gene features", paste(na_geneID, collapse = ","),
                   "are not found in the input!",
-                  "Their expression values will be set to 0."))
+                  "Their expression values will be imputed."))
   }
 
   # re-order the input data
@@ -308,7 +314,7 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 
 #' Missing value imputation
 #'
-#' Imputes and fills missing values using k-nearest neighbor method. The 10
+#' Imputes and fills missing values using k-nearest neighbor method. The 5
 #' nearest neighbors of missing genes are mainly calculated using the reference
 #' data and then are used to fill in missing values in the input data. It uses
 #' the impute.knn function from the impute bioconductor package.
@@ -347,7 +353,7 @@ impute_miss_values <- function(input_data, ref_data = PAcompendium){
   # combine the input data and the reference data
   combined_data <- as.matrix(cbind(input_data[, -1], ref_data[, -1]))
   # perform knn imputation using the reference data to find nearest neighbors
-  impute_result <- impute::impute.knn(combined_data)
+  impute_result <- impute::impute.knn(combined_data, k = 5)
   # extract the imputed input data
   imputed_data <- impute_result$data[, 1:ncol(input_data[, -1])]
   # add geneID column in front
@@ -413,6 +419,8 @@ quantile_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium){
   # add geneID column in front
   normed_data <- data.frame(geneID = input_data[, 1], normed_data,
                             stringsAsFactors = FALSE, check.names = FALSE)
+  colnames(normed_data) <- colnames(input_data)
+
   return(normed_data)
 }
 
@@ -507,14 +515,6 @@ zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
     stop("The reference data should be a data frame with first column storing
          geneIDs in character and the rest columns storing expression values
          for each sample in numeric.")
-  }
-
-  # make sure each row in the input data and reference data represents the
-  # same gene (the first columns are the same)
-  if (!(nrow(input_data) == nrow(ref_data)) |
-      !all(input_data[, 1] == ref_data[, 1])) {
-    stop("The gene identifiers from the input data and reference data should be
-         the same!")
   }
 
   # make sure each row in the input data and reference data represents the
