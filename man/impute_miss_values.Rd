@@ -20,7 +20,7 @@ expression compendium).}
 the input data frame with missing values being filled
 }
 \description{
-Imputes and fills missing values using k-nearest neighbor method. The 10
+Imputes and fills missing values using k-nearest neighbor method. The 5
 nearest neighbors of missing genes are mainly calculated using the reference
 data and then are used to fill in missing values in the input data. It uses
 the impute.knn function from the impute bioconductor package.

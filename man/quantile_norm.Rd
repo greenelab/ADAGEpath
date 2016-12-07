@@ -11,7 +11,7 @@ quantile_norm(input_data, use_ref = FALSE, ref_data = PAcompendium)
 expression values from the second column.}
 
 \item{use_ref}{A logical value indicating whether the normalization should
-be done based on the reference data.}
+be done based on the reference data (default: FALSE).}
 
 \item{ref_data}{A data frame storing gene expression values to be used
 as a reference dataset for quantile normalization. The first columns of

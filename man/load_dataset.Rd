@@ -12,11 +12,13 @@ load_dataset(input, isProcessed = FALSE, isRNAseq = FALSE,
 \item{input}{file path to the input file or folder.}
 
 \item{isProcessed}{a logical value indicating whether the input data has
-already been processed (default: FALSE).}
+already been processed into a tab-delimited txt file (default: FALSE).}
 
-\item{isRNAseq}{a logical value indicating whether the input data is RNAseq
-data. It determines whether TDM is applied to normalize the expression
-values (default: FALSE).}
+\item{isRNAseq}{a logical value indicating whether the processed input data
+is RNAseq data. If true, the processed RNAseq data will be normalized to
+a comparable range with the microarray-based compendium using TDM. If false,
+the processed input data will be quantile normalized to be comparable
+to the compendium. (default: FALSE)}
 
 \item{model}{the ADAGE model used to analyze the input data
 (default: the 300-node eADAGE model of P.a. pre-loaded within the package).}
@@ -38,10 +40,13 @@ for ADAGE analysis.
 }
 \description{
 Currently supports three types of inputs:
-a zip file containing microarray CEL files in a dataset;
-a folder containing microarray CEL files in a dataset;
+a zip file containing microarray CEL files in a dataset (isProcessed=FALSE,
+isRNAseq=FALSE);
+a folder containing microarray CEL files in a dataset (isProcessed=FALSE,
+isRNAseq=FALSE);
 a tab-delimited txt file storing processed gene expression values in a
-dataset (gene identifiers in the first column and then one sample per column).
+dataset (gene identifiers in the first column and then one sample per column)
+(isProcessed=TRUE, isRNAseq=TRUE/FALSE).
 }
 \examples{
 load_data(filepath, isProcessed = FALSE, isRNAseq = FALSE)
