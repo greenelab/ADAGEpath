@@ -15,8 +15,8 @@ should be done using a reference quantile distribution (default: TRUE).}
 
 \item{quantile_ref}{a vector storing the reference quantile distribution
 (default: the quantile distribution of probes used in
-normalzing the P.a. gene expression compendium) Since the input microarray
-data need to be normalzied to the processed compendium, the default
+normalizing the P.a. gene expression compendium) Since the input microarray
+data need to be normalized to the processed compendium, the default
 should not be changed in most cases.}
 }
 \value{

@@ -12,13 +12,13 @@ visualize_gene_network(selected_signatures, model = eADAGEmodel,
 to include in the gene-gene network}
 
 \item{model}{an ADAGE model to build gene-gene network from
-(default: the 300-node eADAGE model preloaded in the pacakge).}
+(default: the 300-node eADAGE model preloaded in the package).}
 
 \item{cor_cutoff}{numeric, the correlation cutoff to decide whether an edge
 between two genes exists in the network (default: 0.5).}
 
 \item{gene_logFC}{a data.frame with two columns, one is geneID, the other is
-logFC (optional, defautl:NULL). If not provided, the node color in the
+logFC (optional, default:NULL). If not provided, the node color in the
 gene-gene network is uniform.}
 }
 \description{

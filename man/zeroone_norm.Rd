@@ -25,8 +25,8 @@ the input data.
 \description{
 Normalizes the input gene expression values to be between 0 and 1.
 Normalization is done per gene (row) through
-substracting its minimun from each value and then being divided by its range.
+subtracting its minimum from each value and then being divided by its range.
 If using reference, the normalization is done using the gene's expression
-mininum and range in the reference data.
+minimum and range in the reference data.
 }
 

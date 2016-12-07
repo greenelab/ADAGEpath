@@ -14,6 +14,6 @@ e.g. "wt,wt,wt,mt,mt,mt"}
 a factor storing the input phenotypes
 }
 \description{
-Defines the pehnotype of each sample in a dataset.
+Defines the phenotype of each sample in a dataset.
 }
 

@@ -19,7 +19,7 @@ data. It determines whether TDM is applied to normalize the expression
 values (default: FALSE).}
 
 \item{model}{the ADAGE model used to analyze the input data
-(default: the 300-node eADAGE model of P.a. pre-loaded within the pacakge).}
+(default: the 300-node eADAGE model of P.a. pre-loaded within the package).}
 
 \item{compendium}{the gene expression compendium of an organism
 (default: the P. aeruginosa expression compendium pre-loaded within
@@ -27,7 +27,7 @@ the package).}
 
 \item{quantile_ref}{a vector storing the reference quantile distribution
 (default: the quantile distribution of probes used in
-normalzing the P.a. gene expression compendium).}
+normalizing the P.a. gene expression compendium).}
 
 \item{norm01}{a logical value indicating whether the output should be
 zero-one normalized (default: TRUE)}

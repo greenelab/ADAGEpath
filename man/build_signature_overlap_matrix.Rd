@@ -4,21 +4,21 @@
 \alias{build_signature_overlap_matrix}
 \title{Signature overlap matrix construction}
 \usage{
-build_signature_overlap_matrix(signature_list, overlap_qvalues)
+build_signature_overlap_matrix(selected_signatures, odds_ratios)
 }
 \arguments{
-\item{signature_list}{a list of signatures extracted from an ADAGE model.}
+\item{selected_signatures}{a vector storing names of selected signatures.}
 
-\item{overlap_qvalues}{a list of adjusted p values obtained from the function
+\item{odds_ratios}{a list of odds ratios obtained from the function
 test_signature_overlap()}
 }
 \value{
-a symmetric matrix storing the adjusted p values in the signature
-overlap tests between every possible signature pair. The diagnol is set to
-0 because a signature always has perfect overlap with itself.
+a symmetric matrix storing the odds ratios in the signature
+overlap tests between every possible signature pair. The diagonal is set to
+Inf because a signature always has perfect overlap with itself.
 }
 \description{
-Converts the list of adjusted p values in the signature overlap tests into
+Converts the list of odds ratios in the signature overlap tests into
 a symmetric matrix.
 }
 

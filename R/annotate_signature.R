@@ -92,7 +92,7 @@ annotate_signatures <- function(signatures, annotation_terms, all_genes,
 
   # enrichment test between every signature - term pair
   pvalue_matrix <- sapply(signatures, function(y)
-    sapply(annotation_terms, function(x) enrich_test(x, y, all_genes)))
+    sapply(annotation_terms, function(x) enrich_test(x, y, all_genes)$p.value))
   colnames(pvalue_matrix) <- names(signatures)
   rownames(pvalue_matrix) <- names(annotation_terms)
 
