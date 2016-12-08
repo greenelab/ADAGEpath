@@ -297,7 +297,7 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
     na_geneID <- ref_IDs[na_index]
     warning(paste("ADAGE gene features", paste(na_geneID, collapse = ","),
                   "are not found in the input!",
-                  "Their expression values will be imputed."))
+                  "Their expression values are imputed."))
   }
 
   # re-order the input data
