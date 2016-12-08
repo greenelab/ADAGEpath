@@ -80,3 +80,16 @@
 #' @source \url{http://pseudomonas.com/downloads/pseudomonas/pgd_r_16_1/Pseudomonas_aeruginosa_PAO1_107/Pseudomonas_aeruginosa_PAO1_107_orthologs.txt}
 "PAO1orthologs"
 
+
+#' Experiments and samples in Pseudomonas aeruginosa gene expression compendium
+#'
+#' ArrayExpress experiment assession numbers and their associated sample IDs.
+#' There are duplicates in sample IDs because one sample can be included in
+#' multiple experiments.
+#' @format A data frame with 1118 rows and 2 variables:
+#' \describe{
+#'  \item{Experiment}{ArrayExpress experiment assession numbers, only contain
+#'  experiments in the Pseudomonas aeruginosa gene expression compendium.}
+#'  \item{Sample}{Sample IDs in "xxx.CEL" format}
+#' }
+"experimentID"
