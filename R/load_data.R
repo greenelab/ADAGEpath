@@ -296,14 +296,12 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
   if (length(na_index) > 0) {
     na_geneID <- ref_IDs[na_index]
     warning(paste("ADAGE gene features", paste(na_geneID, collapse = ","),
-                  "are not found in the input!",
-                  "Their expression values are imputed."))
+                  "are not found in the input!"))
   }
 
   # re-order the input data
   IDmapped <- input_data[match_index, -1]
-  # # set NA to 0
-  # IDmapped[is.na(IDmapped)] <- 0
+
   # assign reference ID to the input data
   IDmapped <- data.frame(geneID = ref_IDs, IDmapped, stringsAsFactors = FALSE,
                          check.names = FALSE)
