@@ -35,6 +35,7 @@
 load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
                          model = eADAGEmodel, compendium = PAcompendium,
                          quantile_ref = probedistribution,
+                         save_cel = FALSE, download_folder = "./",
                          norm01 = TRUE){
 
   if (!check_input(model)) {
@@ -54,7 +55,8 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
   if (!isProcessed) {
     # if the input is a zip file, unzip into the same folder and use cel files
     # in the folder. If the input is a folder, directly use cel files in the
-    # folder
+    # folder. If the input is ArrayExpress accession number, download its raw
+    # data zip, upzip it, and use its cel files.
 
     if (endsWith(input, ".zip")) {
       # unzip files
@@ -63,6 +65,22 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
 
     } else if (R.utils::isDirectory(input)) {
       cel_folder <- input
+
+    } else if (grepl("E-\\w{4}-\\d+", input)) {
+      # check whether the accession number exists on ArrayExpress and the
+      # associated experiment is measured on A-AFFY-30 platform
+      if (!check_accession(input)) {
+        stop()
+      } else{
+        raw_zip <- download_raw(input, download_folder = download_folder)
+        cel_folder <- file.path(dirname(raw_zip), gsub(".zip", "",
+                                                       basename(raw_zip)))
+        unzip(raw_zip, exdir = cel_folder)
+      }
+
+    } else {
+      stop("Input is not a zip file, nor a folder, nor a valid ArrayExpress
+           accession number.")
     }
 
     # normalize each probe
