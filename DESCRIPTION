@@ -15,6 +15,7 @@ Imports:
     affy,
     affyio,
     preprocessCore,
+    impute,
     R.utils,
     devtools,
     data.table,
@@ -29,6 +30,11 @@ Imports:
     igraph,
     visNetwork,
     leaflet
-Remotes: Greenelab/TDM
+Remotes: Greenelab/TDM,
+         bioc::release/impute,
+         bioc::release/preprocessCore,
+         bioc::release/affy,
+         bioc::release/affyio,
+         bioc::release/limma
 RoxygenNote: 5.0.1
 Suggests: testthat
