@@ -370,7 +370,7 @@ impute_miss_values <- function(input_data, ref_data = PAcompendium){
 #' @param input_data A data frame with gene IDs in the first column and
 #' expression values from the second column.
 #' @param use_ref A logical value indicating whether the normalization should
-#'be done based on the reference data (default: FALSE).
+#' be done based on the reference data (default: FALSE).
 #' @param ref_data A data frame storing gene expression values to be used
 #' as a reference dataset for quantile normalization. The first columns of
 #' input_data and ref_data that specify gene IDs should exactly be the same.
@@ -482,7 +482,7 @@ TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 }
 
 
-#' Zero-one normalization
+#'Zero-one normalization
 #'
 #'Normalizes the input gene expression values to be between 0 and 1.
 #'Normalization is done per gene (row) through
