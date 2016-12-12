@@ -200,10 +200,10 @@ plot_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
   overlap_matrix <- build_signature_overlap_matrix(selected_signatures,
                                                    odds_ratios)
 
-  # for visualization purpose, set the diagonal of the matrix to the maximum odds
+  # for visualization purpose, set the Inf to the maximum odds
   # ratio in the matrix
-  diag(overlap_matrix) <- max(overlap_matrix[overlap_matrix != Inf],
-                              na.rm = TRUE)
+  overlap_matrix[overlap_matrix == Inf] <-
+    max(overlap_matrix[overlap_matrix != Inf], na.rm = TRUE)
 
   # plot the odds ratio heatmap using corrplot
   corrplot::corrplot(overlap_matrix, is.corr = FALSE, method = 'square',

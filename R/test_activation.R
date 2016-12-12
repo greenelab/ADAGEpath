@@ -32,6 +32,8 @@ set_phenotype <- function(phenotypes){
 #' @seealso \url{https://bioconductor.org/packages/release/bioc/html/limma.html}
 #' @export
 build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
+  # rebuild the phenotypes factor
+  phenotypes <- factor(as.character(phenotypes))
 
   if (nlevels(phenotypes) > 2){
     stop("This function can only deal with two phenotype groups at this moment.")

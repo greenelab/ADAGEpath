@@ -1,15 +1,19 @@
 #' Data loading and preprocessing
 #'
-#' Currently supports three types of inputs:
+#' Currently supports four types of inputs:
 #' a zip file containing microarray CEL files in a dataset (isProcessed=FALSE,
 #' isRNAseq=FALSE);
 #' a folder containing microarray CEL files in a dataset (isProcessed=FALSE,
 #' isRNAseq=FALSE);
+#' an ArrayExpress experiment accession number in the format of "E-XXXX-n" (the
+#' experiment must be measured on the "A-AFFY-30" platform) (
+#' isProcessed=FALSE, isRNAseq=FALSE);
 #' a tab-delimited txt file storing processed gene expression values in a
 #' dataset (gene identifiers in the first column and then one sample per column)
 #' (isProcessed=TRUE, isRNAseq=TRUE/FALSE).
 #'
-#' @param input file path to the input file or folder.
+#' @param input file path to the input file or input folder or ArrayExpress
+#' accession number.
 #' @param isProcessed a logical value indicating whether the input data has
 #' already been processed into a tab-delimited txt file (default: FALSE).
 #' @param isRNAseq a logical value indicating whether the processed input data
@@ -25,17 +29,20 @@
 #' @param quantile_ref a vector storing the reference quantile distribution
 #' (default: the quantile distribution of probes used in
 #' normalizing the P.a. gene expression compendium).
+#' @param download_folder file path to save files downloaded from ArrayExpress
+#' when input is an ArrayExpress accession number.
 #' @param norm01 a logical value indicating whether the output should be
-#' zero-one normalized (default: TRUE)
+#' zero-one normalized (default: FALSE)
 #' @return a data frame containing the processed gene expression values ready
 #' for ADAGE analysis.
 #' @examples
-#' load_data(filepath, isProcessed = FALSE, isRNAseq = FALSE)
+#' load_data(input, isProcessed = FALSE, isRNAseq = FALSE)
 #' @export
 load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
                          model = eADAGEmodel, compendium = PAcompendium,
                          quantile_ref = probedistribution,
-                         norm01 = TRUE){
+                         download_folder = "./",
+                         norm01 = FALSE){
 
   if (!check_input(model)) {
     stop("The model should be a data frame with first column being gene IDs
@@ -54,15 +61,34 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
   if (!isProcessed) {
     # if the input is a zip file, unzip into the same folder and use cel files
     # in the folder. If the input is a folder, directly use cel files in the
-    # folder
+    # folder. If the input is ArrayExpress accession number, download its raw
+    # data zip, upzip it, and use its cel files.
 
     if (endsWith(input, ".zip")) {
       # unzip files
-      unzip(input, exdir = dirname(input))
       cel_folder <- file.path(dirname(input), gsub(".zip", "", basename(input)))
+      unzip(input, exdir = cel_folder)
+
 
     } else if (R.utils::isDirectory(input)) {
       cel_folder <- input
+
+    } else if (grepl("E-\\w{4}-\\d+", input)) {
+      # check whether the accession number exists on ArrayExpress and the
+      # associated experiment is measured on A-AFFY-30 platform
+      if (!check_accession(input)) {
+        stop()
+      } else{
+        raw_zip <- download_raw(input, download_folder = download_folder)
+        cel_folder <- file.path(dirname(raw_zip), gsub(".zip", "",
+                                                       basename(raw_zip)))
+        unzip(raw_zip, exdir = cel_folder)
+
+      }
+
+    } else {
+      stop("Input is not a zip file, nor a folder, nor a valid ArrayExpress
+           accession number.")
     }
 
     # normalize each probe

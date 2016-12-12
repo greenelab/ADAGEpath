@@ -6,10 +6,12 @@
 \usage{
 load_dataset(input, isProcessed = FALSE, isRNAseq = FALSE,
   model = eADAGEmodel, compendium = PAcompendium,
-  quantile_ref = probedistribution, norm01 = TRUE)
+  quantile_ref = probedistribution, download_folder = "./",
+  norm01 = FALSE)
 }
 \arguments{
-\item{input}{file path to the input file or folder.}
+\item{input}{file path to the input file or input folder or ArrayExpress
+accession number.}
 
 \item{isProcessed}{a logical value indicating whether the input data has
 already been processed into a tab-delimited txt file (default: FALSE).}
@@ -31,24 +33,30 @@ the package).}
 (default: the quantile distribution of probes used in
 normalizing the P.a. gene expression compendium).}
 
+\item{download_folder}{file path to save files downloaded from ArrayExpress
+when input is an ArrayExpress accession number.}
+
 \item{norm01}{a logical value indicating whether the output should be
-zero-one normalized (default: TRUE)}
+zero-one normalized (default: FALSE)}
 }
 \value{
 a data frame containing the processed gene expression values ready
 for ADAGE analysis.
 }
 \description{
-Currently supports three types of inputs:
+Currently supports four types of inputs:
 a zip file containing microarray CEL files in a dataset (isProcessed=FALSE,
 isRNAseq=FALSE);
 a folder containing microarray CEL files in a dataset (isProcessed=FALSE,
 isRNAseq=FALSE);
+an ArrayExpress experiment accession number in the format of "E-XXXX-n" (the
+experiment must be measured on the "A-AFFY-30" platform) (
+isProcessed=FALSE, isRNAseq=FALSE);
 a tab-delimited txt file storing processed gene expression values in a
 dataset (gene identifiers in the first column and then one sample per column)
 (isProcessed=TRUE, isRNAseq=TRUE/FALSE).
 }
 \examples{
-load_data(filepath, isProcessed = FALSE, isRNAseq = FALSE)
+load_data(input, isProcessed = FALSE, isRNAseq = FALSE)
 }
 
