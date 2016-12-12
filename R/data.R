@@ -93,3 +93,14 @@
 #'  \item{Sample}{Sample IDs in "xxx.CEL" format}
 #' }
 "experimentID"
+
+
+#' Pseudomonas aeruginosa PAO1 operons
+#'
+#' Pseudomonas aeruginosa PAO1 operon predictions obtained from the DOOR (
+#' Database of prOkaryotic OpeRons) database on Dec. 12 2016.
+#'
+#' @format A list with each element being a character vector that stores genes
+#' in one operon. Locus tag (PAXXXX) is used as gene ID.
+#' @source \url{http://csbl.bmb.uga.edu/DOOR/index.php}
+"operons"
