@@ -148,16 +148,14 @@ annotate_genes_in_signatures <- function(selected_signatures,
   # build a gene-signature map from the selected signatures
   gene_signature_map <- build_gene_signature_map(selected_signatures_genes)
 
-  # incorporate gene symbol and description
-  genes_df <- dplyr::right_join(geneinfo[, c("LocusTag", "Symbol", "description")],
-                                gene_signature_map, by = c("LocusTag" = "geneID"))
+  # build a gene-operon map
+  gene_operon_map <- build_gene_signature_map(operons)
+  colnames(gene_operon_map)[2] <- "operon"
 
-  # create a new column for each signature with logical values indicating
-  # whether a gene is in it or not
-  for (i in seq_along(selected_signatures_genes)){
-    genes_df[, names(selected_signatures_genes)[i]] <-
-      ifelse(genes_df$LocusTag %in% selected_signatures_genes[[i]], TRUE, FALSE)
-  }
+  # incorporate gene symbol, description, operon, and signature annotations
+  genes_df <- dplyr::right_join(gene_operon_map, gene_signature_map)
+  genes_df <- dplyr::right_join(geneinfo[, c("LocusTag", "Symbol", "description")],
+                                genes_df, by = c("LocusTag" = "geneID"))
 
   return(genes_df)
 
