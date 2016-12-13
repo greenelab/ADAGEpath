@@ -10,14 +10,14 @@ door_content <- suppressWarnings(httr::content(door_url, as = "text"))
 door_json <- jsonlite::fromJSON(door_content)
 
 # get the operons data.frame
-operons <- door_json$aaData
+operon_df <- door_json$aaData
 
 # remove operons that only have one gene
-operons <- operons[operons[,3] >1, ]
+operon_df <- operon_df[operon_df[,3] >1, ]
 
-# convert operons into a list with each element being a vector storing genes in
+# save operons as a list with each element being a vector storing genes in
 # that operon
-operons <- operons[, 4]
-operons <- lapply(operons, function(x) unlist(strsplit(x, "; ")))
+operons <- lapply(operon_df[, 4], function(x) unlist(strsplit(x, "; ")))
+names(operons) <- operon_df[, 4]
 
 devtools::use_data(operons, overwrite = TRUE, compress = "bzip2")
