@@ -60,13 +60,16 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
   # and assign gene symbol to network node label
   gene_network$nodes$label <- sapply(gene_network$nodes$label,
                                      function(x) suppressWarnings(to_symbol(x)))
+  # add gene description
+  gene_network$nodes$description <- geneinfo$description[
+    match(gene_network$nodes$id, geneinfo$LocusTag)]
 
   # set network node size
   gene_network$nodes$size <- 15
 
   # annotate network node to include a column indicating which signatures a
-  # gene is in using the custom function annotate_gene_signatures()
-  gene_signature_df <- annotate_gene_signatures(selected_signatures_genes)
+  # gene is in using the custom function build_gene_signature_map()
+  gene_signature_df <- build_gene_signature_map(selected_signatures_genes)
   gene_network$nodes <- suppressWarnings(dplyr::left_join(gene_network$nodes,
                                                           gene_signature_df,
                                                           by = c("id" = "geneID")))
@@ -82,6 +85,7 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
     # set network node title that will be displayed when mouse is above the node
     gene_network$nodes$title <- paste0("<p>locus tag:", gene_network$nodes$id,
                                        "<br>symbol:", gene_network$nodes$label,
+                                       "<br>description:", gene_network$nodes$description,
                                        "<br>logFC:", round(gene_network$nodes$logFC, 2),
                                        "<br>signatures:", gene_network$nodes$signature,
                                        "</p>")
@@ -90,6 +94,7 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
     # (without fold change)
     gene_network$nodes$title <- paste0("<p>locus tag:", gene_network$nodes$id,
                                        "<br>symbol:", gene_network$nodes$label,
+                                       "<br>description:", gene_network$nodes$description,
                                        "<br>signatures:", gene_network$nodes$signature,
                                        "</p>")
   }
@@ -158,15 +163,15 @@ create_logFC_colors <- function(logFC){
 }
 
 
-#' Gene-signature relationship
+#' Gene-signature map
 #'
-#' Annotates genes with the signatures they are in.
+#' Map genes to the signatures they are in.
 #'
 #' @param signatures_genes a named list with each element storing genes in one
 #' signature.
 #' @return a data.frame with the first column specifying geneID and the second
 #' column specifying signatures that a gene is in.
-annotate_gene_signatures <- function(signatures_genes){
+build_gene_signature_map <- function(signatures_genes){
 
   # initialize a gene-signature data.frame with a geneID column containing all
   # unique genes in the input signatures and a signature column set to NA
