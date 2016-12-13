@@ -70,40 +70,95 @@ fetch_geneset <- function(type = "KEGG", max_size = 100, min_size = 5){
 }
 
 
-#' Signature annotation
+#' Signatures annotation with gene sets
 #'
-#' Annotates signatures using GO or KEGG terms downloaded from Tribe. Annotation
-#' is done through a gene set enrichment test (fisher exact test) with FDR
-#' correction.
+#' Annotate signatures with known GO or KEGG gene sets downloaded from the Tribe
+#' webserver. Annotation is done through a gene set enrichment test (fisher
+#' exact test) with FDR correcting the number of gene sets tested for each
+#' signature.
 #'
-#' @param signatures a named list of signatures returned by the function
-#' extract_signatures().
-#' @param annotation_terms a named list of annotation terms returned by the
-#' function fetch_geneset().
-#' @param all_genes a vector storing all possible background genes in the
-#' enrichment test.
+#' @param selected_signatures a character vector storing names of signatures
+#' @param model an ADAGE model to extract signatures from
+#' (default: the 300-node eADAGE model preloaded in the package).
+#' @param genesets a named list of gene sets returned by the
+#' function fetch_geneset(), each element in the list is a character vector
+#' storing genes (PAO1 locus tag) in a gene set.
 #' @param significance_cutoff numeric, FDR significance cutoff used to filter
-#' the test result (default to 0.05).
-#' @return a data.frame storing significantly enriched annotation terms for all
-#' signatures.
+#' the result (default to 0.05).
+#' @return a data.frame storing significantly enriched gene sets for the
+#' input signatures.
 #' @export
-annotate_signatures <- function(signatures, annotation_terms, all_genes,
-                                significance_cutoff = 0.05){
+annotate_signatures_with_genesets <- function(selected_signatures,
+                                              model = eADAGEmodel, genesets,
+                                              significance_cutoff = 0.05){
+  # extract all signatures' gene lists
+  signatures_genes <- extract_signatures(model)
+  # get genes in all signatures
+  all_genes <- unique(unlist(signatures_genes))
+  # make sure the input selected_signatures can be found in the model
+  if (!all(selected_signatures %in% names(signatures_genes))){
+    stop("Selected signatures can not be found in the specified model.")
+  }
+  # get the gene lists of only the selected signatures
+  selected_signatures_genes <- signatures_genes[selected_signatures]
 
   # enrichment test between every signature - term pair
-  pvalue_matrix <- sapply(signatures, function(y)
-    sapply(annotation_terms, function(x) enrich_test(x, y, all_genes)$p.value))
-  colnames(pvalue_matrix) <- names(signatures)
-  rownames(pvalue_matrix) <- names(annotation_terms)
+  signature_geneset <- lapply(seq_along(selected_signatures_genes), function(y){
+    pvalue <- sapply(genesets, function(x)
+      enrich_test(x, selected_signatures_genes[[y]], all_genes)$p.value)
+    # correct by the number of gene sets tested
+    qvalue <- p.adjust(pvalue, method = "fdr")
+    # build a result table
+    result_tb <- data.frame(signature = names(selected_signatures_genes)[y],
+                            geneset = names(pvalue), pvalue = pvalue,
+                            qvalue = qvalue, row.names = NULL)
+    # filter by significance cutoff
+    result_tb[result_tb$qvalue <= significance_cutoff, ]
+  })
+  signature_geneset <- dplyr::bind_rows(signature_geneset)
 
-  pvalue_melted <- reshape2::melt(t(pvalue_matrix))
-  colnames(pvalue_melted) <- c("signature", "term", "pvalue")
+  return(signature_geneset)
+}
 
-  pvalue_melted$qvalue <- p.adjust(pvalue_melted$pvalue, method = "fdr")
-  pvalue_melted_sig <- pvalue_melted[pvalue_melted$qvalue <=
-                                       significance_cutoff, ]
 
-  pvalue_melted_sig <- pvalue_melted_sig[order(pvalue_melted_sig$signature), ]
+#' Annotating genes in signatures
+#'
+#' Annotates genes in the input signatures with their symbols, descriptions,
+#' associated signatures.
+#'
+#' @param selected_signatures a character vector storing names of signatures
+#' @param model an ADAGE model to extract signatures from
+#' (default: the 300-node eADAGE model preloaded in the package).
+#' @return a data.frame storing genes in the input signatures. Each gene is
+#' annotated by gene symbol, gene description, and signatures it is in.
+#' @export
+annotate_genes_in_signatures <- function(selected_signatures,
+                                         model = eADAGEmodel){
+  # extract all signatures' gene lists
+  signatures_genes <- extract_signatures(model)
 
-  return(pvalue_melted_sig)
+  # make sure the input selected_signatures can be found in the model
+  if (!all(selected_signatures %in% names(signatures_genes))){
+    stop("Selected signatures can not be found in the specified model.")
+  }
+
+  # get the gene lists of only the selected signatures
+  selected_signatures_genes <- signatures_genes[selected_signatures]
+
+  # build a gene-signature map from the selected signatures
+  gene_signature_map <- build_gene_signature_map(selected_signatures_genes)
+
+  # incorporate gene symbol and description
+  genes_df <- dplyr::right_join(geneinfo[, c("LocusTag", "Symbol", "description")],
+                                gene_signature_map, by = c("LocusTag" = "geneID"))
+
+  # create a new column for each signature with logical values indicating
+  # whether a gene is in it or not
+  for (i in seq_along(selected_signatures_genes)){
+    genes_df[, names(selected_signatures_genes)[i]] <-
+      ifelse(genes_df$LocusTag %in% selected_signatures_genes[[i]], TRUE, FALSE)
+  }
+
+  return(genes_df)
+
 }
