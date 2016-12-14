@@ -160,3 +160,40 @@ annotate_genes_in_signatures <- function(selected_signatures,
   return(genes_df)
 
 }
+
+
+#' Gene-signature map
+#'
+#' Map genes to the signatures they are in.
+#'
+#' @param signatures_genes a named list with each element storing genes in one
+#' signature.
+#' @return a data.frame with the first column specifying geneID and the second
+#' column specifying signatures that a gene is in.
+build_gene_signature_map <- function(signatures_genes){
+
+  # initialize a gene-signature data.frame with a geneID column containing all
+  # unique genes in the input signatures and a signature column set to NA
+  gene_signature_df <- data.frame(geneID = unique(unlist(signatures_genes)),
+                                  signature = NA)
+
+  # loop through each gene in each signature
+  for (sig in names(signatures_genes)) {
+    for (gene in signatures_genes[[sig]]) {
+      if (is.na(gene_signature_df[gene_signature_df$geneID == gene, "signature"])){
+        # if NA, this is the first gene-signature relationship found for this
+        # gene, replace NA with the signature name
+        gene_signature_df[gene_signature_df$geneID == gene, "signature"] <- sig
+      }
+      else{
+        # this gene is already in some other signatures, simply append this
+        # signature's name to existing signature names
+        gene_signature_df[gene_signature_df$geneID == gene, "signature"] <-
+          paste(gene_signature_df[gene_signature_df$geneID == gene, "signature"],
+                sig, sep = ",")
+      }
+    }
+  }
+
+  return(gene_signature_df)
+}

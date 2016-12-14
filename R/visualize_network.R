@@ -56,23 +56,16 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
   # convert igraph structure to visNetwork structure
   gene_network <- visNetwork::toVisNetworkData(graph)
 
-  # convert PAO1 locus tag to gene symbol using the custom function to_symbol()
-  # and assign gene symbol to network node label
-  gene_network$nodes$label <- sapply(gene_network$nodes$label,
-                                     function(x) suppressWarnings(to_symbol(x)))
-  # add gene description
-  gene_network$nodes$description <- geneinfo$description[
-    match(gene_network$nodes$id, geneinfo$LocusTag)]
+  # annotate genes in the selected signatures
+  gene_annotation <- annotate_genes_in_signatures(selected_signatures)
+  gene_network$nodes <- suppressWarnings(dplyr::left_join(gene_network$nodes,
+                                                          gene_annotation,
+                                                          by = c("id" = "LocusTag")))
+  gene_network$nodes <- gene_network$nodes %>% dplyr::select(-label) %>%
+    dplyr::rename(label = Symbol)
 
   # set network node size
   gene_network$nodes$size <- 15
-
-  # annotate network node to include a column indicating which signatures a
-  # gene is in using the custom function build_gene_signature_map()
-  gene_signature_df <- build_gene_signature_map(selected_signatures_genes)
-  gene_network$nodes <- suppressWarnings(dplyr::left_join(gene_network$nodes,
-                                                          gene_signature_df,
-                                                          by = c("id" = "geneID")))
 
   if (!is.null(gene_logFC)) {
     # set network node color to reflect gene fold change
@@ -85,6 +78,7 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
     # set network node title that will be displayed when mouse is above the node
     gene_network$nodes$title <- paste0("<p>locus tag:", gene_network$nodes$id,
                                        "<br>symbol:", gene_network$nodes$label,
+                                       "<br>operon:", gene_network$nodes$operon,
                                        "<br>description:", gene_network$nodes$description,
                                        "<br>logFC:", round(gene_network$nodes$logFC, 2),
                                        "<br>signatures:", gene_network$nodes$signature,
@@ -94,11 +88,11 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
     # (without fold change)
     gene_network$nodes$title <- paste0("<p>locus tag:", gene_network$nodes$id,
                                        "<br>symbol:", gene_network$nodes$label,
+                                       "<br>operon:", gene_network$nodes$operon,
                                        "<br>description:", gene_network$nodes$description,
                                        "<br>signatures:", gene_network$nodes$signature,
                                        "</p>")
   }
-
 
   # set network edge color to magenta if edge weight (correlation) is positive
   # and green if negative
@@ -160,43 +154,6 @@ create_logFC_colors <- function(logFC){
   col[logFC <= 0] <- neg_pal(abs(logFC[logFC <= 0]))
 
   return(col)
-}
-
-
-#' Gene-signature map
-#'
-#' Map genes to the signatures they are in.
-#'
-#' @param signatures_genes a named list with each element storing genes in one
-#' signature.
-#' @return a data.frame with the first column specifying geneID and the second
-#' column specifying signatures that a gene is in.
-build_gene_signature_map <- function(signatures_genes){
-
-  # initialize a gene-signature data.frame with a geneID column containing all
-  # unique genes in the input signatures and a signature column set to NA
-  gene_signature_df <- data.frame(geneID = unique(unlist(signatures_genes)),
-                                  signature = NA)
-
-  # loop through each gene in each signature
-  for (sig in names(signatures_genes)) {
-    for (gene in signatures_genes[[sig]]) {
-      if (is.na(gene_signature_df[gene_signature_df$geneID == gene, "signature"])){
-        # if NA, this is the first gene-signature relationship found for this
-        # gene, replace NA with the signature name
-        gene_signature_df[gene_signature_df$geneID == gene, "signature"] <- sig
-      }
-      else{
-        # this gene is already in some other signatures, simply append this
-        # signature's name to existing signature names
-        gene_signature_df[gene_signature_df$geneID == gene, "signature"] <-
-          paste(gene_signature_df[gene_signature_df$geneID == gene, "signature"],
-                sig, sep = ",")
-      }
-    }
-  }
-
-  return(gene_signature_df)
 }
 
 
