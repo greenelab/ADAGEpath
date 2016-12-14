@@ -153,9 +153,11 @@ annotate_genes_in_signatures <- function(selected_signatures,
   colnames(gene_operon_map)[2] <- "operon"
 
   # incorporate gene symbol, description, operon, and signature annotations
-  genes_df <- dplyr::right_join(gene_operon_map, gene_signature_map)
-  genes_df <- dplyr::right_join(geneinfo[, c("LocusTag", "Symbol", "description")],
-                                genes_df, by = c("LocusTag" = "geneID"))
+  genes_df <- suppressWarnings(dplyr::right_join(gene_operon_map,
+                                                 gene_signature_map))
+  genes_df <- suppressWarnings(
+    dplyr::right_join(geneinfo[, c("LocusTag", "Symbol", "description")],
+                                genes_df, by = c("LocusTag" = "geneID")))
 
   return(genes_df)
 
