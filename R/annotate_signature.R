@@ -147,6 +147,8 @@ annotate_genes_in_signatures <- function(selected_signatures,
 
   # build a gene-signature map from the selected signatures
   gene_signature_map <- build_gene_signature_map(selected_signatures_genes)
+  gene_signature_map$N_signatures <- sapply(gene_signature_map$signature,
+    function(x) length(unlist(strsplit(x,","))))
 
   # build a gene-operon map
   gene_operon_map <- build_gene_signature_map(operons)
