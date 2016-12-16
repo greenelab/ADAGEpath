@@ -90,6 +90,8 @@ download_raw <- function(accession, download_folder = "./"){
 
       # get the url of the raw data when it exists
       raw_url <- all_files$url[which(grepl("raw", all_files$name))]
+      # create the download folder
+      dir.create(download_folder)
       # specify the file path to save the downloaded the zip file
       raw_zip <- file.path(download_folder, basename(raw_url))
       # download it from the url

@@ -12,15 +12,16 @@ get_active_signatures(limma_result, phenotypes, method = "pareto",
 \item{limma_result}{a data.frame that stores the limma result table
 returned by the build_limma() function.}
 
-\item{phenotypes}{a factor obtained from the set_phenotype() function, should
-be the same as the phenotypes provided to build_limma() function.}
+\item{phenotypes}{a factor with two levels that describes the phenotype of
+each sample, should be the same as the phenotypes provided to the
+build_limma() function.}
 
 \item{method}{character, can be "diff", "pvalue", or "pareto"(default)}
 
 \item{pheno_group}{character, can be "both" (default) or one of the
-phenotype level used during build_limma(). If "both", signatures active
+phenotype level of the input phenotypes factor. If "both", signatures active
 in both phenotypes will be merged, sorted, and returned together. Otherwise,
-only signatures active in the input phenotype will be returned.}
+only signatures active in the specified phenotype will be returned.}
 
 \item{N_signatures}{int, number of top signatures to return in the "diff"
 method (default to 10)}

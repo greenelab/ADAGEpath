@@ -51,10 +51,10 @@ calculate_activity <- function(input_data, model = eADAGEmodel,
   colnames(HWactivity_perGene) <- colnames(value_only)
 
   # add the signature name column in the front
-  HWactivity_perGene <- cbind(
+  HWactivity_perGene <- data.frame(
     signature = c(paste0("Node", seq(1, model_size), "pos"),
                   paste0("Node", seq(1, model_size), "neg")),
-    HWactivity_perGene)
+    HWactivity_perGene, stringsAsFactors = FALSE)
 
   return(HWactivity_perGene)
 }

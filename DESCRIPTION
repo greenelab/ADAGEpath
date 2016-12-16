@@ -29,7 +29,8 @@ Imports:
     reshape2,
     igraph,
     visNetwork,
-    leaflet
+    leaflet,
+    plotly
 Remotes: Greenelab/TDM,
          bioc::release/impute,
          bioc::release/preprocessCore,
@@ -37,4 +38,7 @@ Remotes: Greenelab/TDM,
          bioc::release/affyio,
          bioc::release/limma
 RoxygenNote: 5.0.1
-Suggests: testthat
+Suggests: testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

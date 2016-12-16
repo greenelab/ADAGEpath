@@ -1,18 +1,3 @@
-#' Defining sample phenotypes
-#'
-#' Defines the phenotype of each sample in a dataset.
-#'
-#' @param phenotypes a character with phenotypes separated by comma,
-#' e.g. "wt,wt,wt,mt,mt,mt"
-#' @return a factor storing the input phenotypes
-#' @export
-set_phenotype <- function(phenotypes){
-
-  phenotypes <- factor(unlist(strsplit(phenotypes, ",")))
-  return(phenotypes)
-}
-
-
 #' Building a linear regression model for differential analysis
 #'
 #' Uses limma to build a linear model to test the differential expression or
@@ -22,7 +7,8 @@ set_phenotype <- function(phenotypes){
 #' @param input_data a data.frame that stores either the signature activities or
 #' gene expression values. The first column specifies feature names (genes or
 #' signatures).
-#' @param phenotypes a factor obtained from the set_phenotype() function.
+#' @param phenotypes a factor with two levels that describes the phenotype of
+#' each sample.
 #' @param use.bonferroni a logical value indicating whether to use the more
 #' conservative "bonferroni" method in the p value adjustment.
 #' This is recommended when there are too many significant features when
@@ -32,11 +18,12 @@ set_phenotype <- function(phenotypes){
 #' @seealso \url{https://bioconductor.org/packages/release/bioc/html/limma.html}
 #' @export
 build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
-  # rebuild the phenotypes factor
+  # rebuild the phenotypes factor if the input phenotypes is a subset of
+  # a factor with more than two levels or if it is a character
   phenotypes <- factor(as.character(phenotypes))
 
   if (nlevels(phenotypes) > 2){
-    stop("This function can only deal with two phenotype groups at this moment.")
+    stop("This function can only deal with two phenotype levels")
   }
 
   # preperation for limma analysis
@@ -74,13 +61,14 @@ build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
 #'
 #' @param limma_result a data.frame that stores the limma result table
 #' returned by the build_limma() function.
-#' @param phenotypes a factor obtained from the set_phenotype() function, should
-#' be the same as the phenotypes provided to build_limma() function.
+#' @param phenotypes  a factor with two levels that describes the phenotype of
+#' each sample, should be the same as the phenotypes provided to the
+#' build_limma() function.
 #' @param method character, can be "diff", "pvalue", or "pareto"(default)
 #' @param pheno_group character, can be "both" (default) or one of the
-#' phenotype level used during build_limma(). If "both", signatures active
+#' phenotype level of the input phenotypes factor. If "both", signatures active
 #' in both phenotypes will be merged, sorted, and returned together. Otherwise,
-#' only signatures active in the input phenotype will be returned.
+#' only signatures active in the specified phenotype will be returned.
 #' @param N_signatures int, number of top signatures to return in the "diff"
 #' method (default to 10)
 #' @param N_fronts int, number of pareto fronts to return in the "pareto" method
@@ -93,6 +81,13 @@ get_active_signatures <- function(limma_result, phenotypes, method = "pareto",
                                   pheno_group = "both", N_signatures = 10,
                                   N_fronts = 5,
                                   significance_cutoff = -log10(0.05)) {
+  # rebuild the phenotypes factor if the input phenotypes is a subset of
+  # a factor with more than two levels or if it is a character
+  phenotypes <- factor(as.character(phenotypes))
+
+  if (nlevels(phenotypes) > 2){
+    stop("This function can only deal with two phenotype levels")
+  }
 
   if (!method %in% c("pvalue", "diff", "pareto")){
     stop("Method not recognized! It should be \"pvalue\", \"FC\", or \"pareto\".")
@@ -193,8 +188,11 @@ get_paretofront <- function(input_data, N_fronts) {
 #' returned by the build_limma() function.
 #' @param highlight_signatures a character, if provided, signatures in it will
 #' be labeled and colored in red in the volcano plot (default to NULL).
+#' @param interactive logical, whether the volcano plot should be interactive.
+#' If TRUE, the plot is made using plotly.
 #' @export
-plot_volcano <- function(limma_result, highlight_signatures = NULL){
+plot_volcano <- function(limma_result, highlight_signatures = NULL,
+                         interactive = FALSE){
 
   # build the test_result data.frame with only difference in mean and the adjusted
   # p value after -log10 transform
@@ -202,30 +200,73 @@ plot_volcano <- function(limma_result, highlight_signatures = NULL){
                                     diff = limma_result$logFC,
                                     neglog10qvalue = -log10(limma_result$adj.P.Val))
 
-  plot(test_result$diff, test_result$neglog10qvalue, col = "grey",
-       xlab = "activity difference", ylab = "significance (-log10qvalue)")
+  if (interactive) {
+    # significance cutoff, used to plot a dotted line in the volcano plot
+    test_result$cutoff <- -log10(0.05)
 
-  if (!is.null(highlight_signatures)) {
+    if (!is.null(highlight_signatures)) {
+      # build a new column to indicate whether a signature belongs to the
+      # highlighted signatures. Used to assign colors in the volcano plot.
+      test_result$highlight <- ifelse(
+        test_result$signature %in% highlight_signatures,"active", "other")
+      pal <- c("red", "grey")
 
-    # only highlight the provided signatures in the plot
-    active_test_result <- test_result[
-      test_result$signature %in% highlight_signatures, ]
-    points(active_test_result$diff, active_test_result$neglog10qvalue,
-           pch = 20, col = "red")
-    text(active_test_result$diff, active_test_result$neglog10qvalue,
-         labels = active_test_result$signature,
-         cex = 0.4, pos = 1, offset = 0.3)
+      # extract results of the highlighted signatures and only annotate them
+      # in the volcano plot
+      active_test_result <- test_result[
+        test_result$signature %in% highlight_signatures, ]
+      highlight_annotation <- list(x = active_test_result$diff,
+                                   y = active_test_result$neglog10qvalue,
+                                   text = active_test_result$signature,
+                                   xref = "x", yref = "y", arrowhead = 0,
+                                   ax = 10, ay = -20)
 
+      plotly::plot_ly(data = test_result) %>%
+        plotly::add_trace(x = ~diff, y = ~neglog10qvalue,
+                          text = ~signature, color = ~highlight, colors = pal,
+                          mode = "markers") %>%
+        plotly::add_trace(x = ~diff, y = ~cutoff, type = "scatter",
+                          mode = "lines", name = "significance cutoff",
+                          line = list(color = "red", dash = "dash")) %>%
+        plotly::layout(annotations = highlight_annotation,
+                       xaxis = list(title = "activity difference"),
+                       yaxis = list(title = "significance (-log10qvalue)"))
+    } else {
+
+      plotly::plot_ly(data = test_result) %>%
+        plotly::add_trace(x = ~diff, y = ~neglog10qvalue, name = "signature",
+                          text = ~signature, mode = "markers") %>%
+        plotly::add_trace(x = ~diff, y = ~cutoff, type = "scatter",
+                          mode = "lines", name = "significance cutoff",
+                          line = list(color = "red", dash = "dash")) %>%
+        plotly::layout(xaxis = list(title = "activity difference"),
+                       yaxis = list(title = "significance (-log10qvalue)"))
+    }
   } else {
 
-    # label all signatures
-    text(test_result$diff, test_result$neglog10qvalue,
-         labels = test_result$signature,
-         cex = 0.3, pos = 1, offset = 0.3)
+    plot(test_result$diff, test_result$neglog10qvalue, col = "grey",
+         xlab = "activity difference", ylab = "significance (-log10qvalue)",)
 
+    if (!is.null(highlight_signatures)) {
+
+      # only highlight the provided signatures in the plot
+      active_test_result <- test_result[
+        test_result$signature %in% highlight_signatures, ]
+      points(active_test_result$diff, active_test_result$neglog10qvalue,
+             pch = 20, col = "red")
+      text(active_test_result$diff, active_test_result$neglog10qvalue,
+           labels = active_test_result$signature,
+           cex = 0.4, pos = 1, offset = 0.3)
+
+    } else {
+
+      # label all signatures
+      text(test_result$diff, test_result$neglog10qvalue,
+           labels = test_result$signature,
+           cex = 0.3, pos = 1, offset = 0.3)
+    }
+
+    # add a line to indicate 0.05 significance level
+    abline(h = -log10(0.05), col = 'red')
   }
-
-  # add a line to indicate 0.05 significance level
-  abline(h = -log10(0.05), col = 'red')
-
 }

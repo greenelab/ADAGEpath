@@ -1,0 +1,159 @@
+---
+title: "Time-course example"
+author: "Jie Tan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, cache = TRUE)
+```
+
+Here is an example for analyzing a time-course experiment using the ADAGEpath R
+package.
+
+# Data preperation
+Load in required pacakges
+```{r}
+library(ADAGEpath)
+library(DT)
+library(splines)
+library(limma)
+```
+We first load in the dataset "E-GEOD-52445". It is a high resolution
+time-serious data of Pseudomonas aeruginosa PAO1
+```{r loading in data}
+# provide the accession number
+accession <- "E-GEOD-52445"
+# specify the ADAGE model and the data compendium to use
+model <- eADAGEmodel
+compendium <- PAcompendium
+probe_dist <- probedistribution
+# load in the dataset from ArrayExpress database
+data_raw <- load_dataset(input = accession, isProcessed = FALSE,
+                         isRNAseq = FALSE, model = model,
+                         compendium = compendium,
+                         quantile_ref = probe_dist,
+                         download_folder = "./download", norm01 = FALSE)
+# 0-1 normalize expression values using the Pa compendium as reference
+data_normed <- zeroone_norm(input_data = data_raw, use_ref = TRUE,
+                            ref_data = compendium)
+```
+To better understand the dataset, we query its sample information from
+ArrayExpress. Later we define sample phenotypes based on this query result.
+```{r specifying phenotype}
+# query sample information from ArrayExpress
+pheno_table <- get_sample_info(accession)
+# reorder samples in the pheno_table to be the same as sample order in the
+# expression data
+pheno_table <- pheno_table[match(pheno_table$`Array Data File`,
+                           colnames(data_raw)[-1]), ]
+# print the pheno_table
+DT::datatable(pheno_table[, 1:10], class = 'cell-border stripe')
+```
+
+# ADAGE signature analysis
+## Signature activity calculation
+We calculate the activity of each signature for each sample in the dataset.
+```{r}
+# calculate signature activities
+data_activity <- calculate_activity(input_data = data_normed,
+                                    model = model, HW_cutoff = 2.5)
+# the returned data_activity is a data.frame with signature name in the first
+# column and activity values starting from the second column.
+```
+## Large-range signatures
+For datasets with complex experimental design, it is helpful to first look
+at signatures that have the most dramatic activity changes across samples.
+```{r}
+# calculate range of each signature's activity
+activity_range <- apply(data_activity[, -1], 1, function(x) diff(range(x)))
+activity_range <- data.frame(signature = data_activity[, 1], activity_range,
+                             stringsAsFactors = FALSE)
+# first look at the top 15 signatures with largest range
+large_range_sigs <- activity_range[order(activity_range$activity_range,
+                                         decreasing = TRUE), "signature"][1:15]
+```
+Signatures that show dramatic changes across samples are:
+```{r}
+paste(large_range_sigs, collapse = ",")
+```
+View these signatures' activity changes in a heatmap.
+```{r large range heatmap, fig.height=7, fig.width=7}
+plot_activity_heatmap(activity = data_activity, signatures = large_range_sigs,
+                      fix_color_range = TRUE)
+```
+
+As we can see in the heatmap, Node50pos, Node41pos, Node1neg, Node34pos, and
+Node28neg become more active when oxygen is depleted, indicating these signatures
+are related to anaerobic adaptation. On the contrary, Node31pos,
+Node107pos, Node33neg, Node75pos, Node269pos become less active when oxygen is
+depleted, indicating that they capture biological processes that depend on
+oxygen. Node100pos, Node12neg, and Node69pos show an interesting activity
+pattern. Their activities increase with time. Node5pos and Node112pos do not
+show a clear pattern.
+
+## KEGG annotation
+We can annotate these signatures to known KEGG pathways to better understand
+them.
+```{r KEGG}
+# KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
+# pathway_result <- annotate_signatures_with_genesets(
+#   selected_signatures = large_range_sigs, model = model, genesets = KEGG)
+# DT::datatable(pathway_result)
+```
+# Genes in a signature
+To further understand a signature of interest(e.g. Node34pos), we can list all
+the genes in it.
+```{r genes}
+# gene_annotation <- annotate_genes_in_signatures("Node34pos")
+# DT::datatable(gene_annotation)
+```
+## Gene-gene network
+We can also see how these genes cluster in the ADAGE gene-gene network.
+```{r gene-gene network, fig.height=7, fig.width=7}
+visualize_gene_network(selected_signatures = "Node34pos",
+                       model = model, cor_cutoff = 0.5)
+```
+Simply replace one signature with a vector of signatures to check out a
+group of signatures.
+
+## Differential temporal pattern detection using limma
+We can also use limma to help us detect signatures with general differences in
+their temporal trends between the oxygen depletion and oxygen addition processes.
+```{r limma test}
+# build a time phenotype vector
+time_pheno <- as.numeric(gsub("\\D", "", pheno_table$`FactorValue [TIME]`))
+# build a treatment phenotype factor
+treat_pheno <- factor(pheno_table$`FactorValue [TREATMENT]`)
+levels(treat_pheno) <- c("LowToHigh", "HighToLow")
+# represent a time course with a cubic spline curve 
+X <- ns(time_pheno, df = 3)
+# build a design matrix for limma
+design <- model.matrix(~treat_pheno*X)
+# fit a limma model
+fit <- lmFit(data_activity[, -1], design)
+fit <- eBayes(fit)
+# extract the fit result
+limma_result <- topTable(fit, number = nrow(data_activity),
+                         sort.by = "none")
+limma_result$signature <- data_activity$signature
+active_sigs <- limma_result[order(limma_result$F, decreasing = TRUE),
+                            "signature"][1:15]
+
+```
+Signatures that show differences in temporal trends between oxygen depletion
+and oxygen addition are:
+```{r}
+paste(active_sigs, collapse = ",")
+```
+View these signatures' activity changes in a heatmap.
+```{r limma heatmap, fig.height=7, fig.width=7}
+plot_activity_heatmap(activity = data_activity, signatures = active_sigs,
+                      fix_color_range = TRUE)
+```
+
