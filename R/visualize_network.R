@@ -70,13 +70,6 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
   # set network node size
   gene_network$nodes$size <- 15
 
-  # annotate network node to include a column indicating which signatures a
-  # gene is in using the custom function annotate_gene_signatures()
-  gene_signature_df <- annotate_gene_signatures(selected_signatures_genes)
-  gene_network$nodes <- suppressWarnings(dplyr::left_join(gene_network$nodes,
-                                                          gene_signature_df,
-                                                          by = c("id" = "geneID")))
-
   if (!is.null(gene_color_value)) {
     # set network node color to reflect gene fold change
     gene_color_value <- gene_color_value[gene_color_value$geneID %in%
