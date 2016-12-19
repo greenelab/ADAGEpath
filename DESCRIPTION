@@ -38,7 +38,7 @@ Remotes: Greenelab/TDM,
          bioc::release/affyio,
          bioc::release/limma
 RoxygenNote: 5.0.1
-Suggests: testthat,
-    knitr,
-    rmarkdown
+Suggests: knitr,
+    rmarkdown,
+    DT
 VignetteBuilder: knitr

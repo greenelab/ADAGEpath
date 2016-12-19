@@ -1,0 +1,109 @@
+---
+title: "Analyze user input dataset"
+author: "Jie Tan"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_width: 7
+    fig_height: 7
+vignette: >
+  %\VignetteIndexEntry{User input example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, cache = FALSE)
+```
+This is an example for analyzing a microarray dataset using the ADAGEpath R
+package.
+
+## Load in data 
+```{r loading in data}
+library("ADAGEpath")
+library("DT")
+
+# load in microarray dataset from a folder with cel files
+Anr_raw <- load_dataset(input = "../inst/anr", norm01 = FALSE)
+# 0-1 normalize expression values using the Pa compendium as background
+Anr_normed <- zeroone_norm(input_data = Anr_raw, use_ref = TRUE,
+                           ref_data = PAcompendium)
+# set phenotypes for each sample
+Anr_pheno <- factor(c("mt", "mt", "mt", "wt", "wt", "wt"))
+```
+
+## Perform signature analysis
+```{r signature analysis}
+# calculate signature activity
+Anr_activity <- calculate_activity(Anr_normed)
+# use limma to perform differential activation test
+Anr_limma <- build_limma(Anr_activity, phenotypes = Anr_pheno)
+# identify differentially active signatures
+Anr_active_sigs <- get_active_signatures(Anr_limma, phenotypes = Anr_pheno,
+                                         pheno_group = "both")
+```
+
+```{r volcano plot}
+# make a volcano plot showing the differential activation results
+plot_volcano(Anr_limma, highlight_signatures = Anr_active_sigs,
+             interactive = TRUE)
+```
+
+```{r signature overlap}
+# make a heatmap of odds ratios reflecting the gene overlaps between signatures
+plot_signature_overlap(Anr_active_sigs)
+```
+
+## Check marginal activation of similar signatures
+```{r marginal activation}
+marginal_activity <- calculate_marginal_activity(Anr_normed,
+                                                 c("Node38pos", "Node67pos",
+                                                   "Node35pos", "Node233pos",
+                                                   "Node140pos", "Node158neg"),
+                                                 model = eADAGEmodel)
+marginal_limma <- build_limma(marginal_activity, Anr_pheno)
+plot_marginal_activation(marginal_limma)
+```
+
+```{r heatmap plot}
+# make a heatmap showing signature activities
+plot_activity_heatmap(Anr_activity, signatures = Anr_active_sigs)
+```
+
+## Visualize gene-gene network
+```{r gene-gene network}
+# use limma to perform differential expression analysis
+Anr_raw_limma <- build_limma(Anr_raw, phenotypes = Anr_pheno)
+# build a gene:fold change table from limma result
+Anr_gene_logFC <- data.frame(geneID = rownames(Anr_raw_limma),
+                             logFC = Anr_raw_limma$logFC)
+# visualize ADAGE gene-gene network with the active signatures and the gene fold
+# change
+visualize_gene_network(gene_color_value = Anr_gene_logFC, 
+                       selected_signatures = Anr_active_sigs)
+```
+
+## Detailed look of one activated signature
+```{r}
+DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node205neg"))
+```
+
+```{r}
+visualize_gene_network(gene_color_value = Anr_gene_logFC,
+                       selected_signatures = "Node205neg")
+```
+
+## Detailed look of a group of similar signatures
+```{r}
+DT::datatable(annotate_genes_in_signatures(selected_signatures = c("Node35pos",
+                                                                   "Node233pos",
+                                                                   "Node67pos")))
+```
+
+```{r}
+visualize_gene_network(gene_color_value = Anr_gene_logFC,
+                       selected_signatures = c("Node35pos", "Node233pos",
+                                               "Node67pos"))
+```
+

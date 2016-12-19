@@ -1,0 +1,150 @@
+---
+title: "Analyze ArrayExpress dataset"
+author: "Jie Tan"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_width: 7
+    fig_height: 7
+vignette: >
+  %\VignetteIndexEntry{ArrayExpress example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, cache = FALSE)
+```
+This is an example for analyzing a publically available microarray dataset
+from the ArrayExpress database.
+
+# Data preperation
+Load in required libraries.
+```{r loading in libraries}
+library("ADAGEpath")
+library("knitr")
+library("DT")
+library("dplyr")
+```
+
+Here we use dataset "E-GEOD-41926" as an example.
+```{r loading in data}
+# provide the accession number
+accession <- "E-GEOD-41926"
+# specify the ADAGE model and the data compendium to use
+model <- eADAGEmodel
+compendium <- PAcompendium
+probe_dist <- probedistribution
+# load in the dataset from ArrayExpress database
+data_raw <- load_dataset(input = accession, isProcessed = FALSE,
+                         isRNAseq = FALSE, model = model,
+                         compendium = compendium,
+                         quantile_ref = probe_dist,
+                         download_folder = "./download", norm01 = FALSE)
+# 0-1 normalize expression values using the Pa compendium as background
+data_normed <- zeroone_norm(input_data = data_raw, use_ref = TRUE,
+                            ref_data = compendium)
+```
+Now we query the sample information from ArrayExpress to better understand
+each sample.
+```{r specifying phenotype}
+# query sample information from ArrayExpress
+pheno_table <- get_sample_info(accession)
+# reorder samples in the pheno_table to be the same as sample order in the
+# expression data
+pheno_table <- pheno_table[match(pheno_table$`Array Data File`,
+                           colnames(data_raw)[-1]), ]
+# print the pheno_table
+DT::datatable(pheno_table)
+# set phenotypes for each sample
+data_pheno <- pheno_table$`Characteristics [genotype]`
+```
+
+# ADAGE signature analysis
+## Signature activity calculation
+```{r signature analysis}
+# calculate signature activity
+data_activity <- calculate_activity(input_data = data_normed,
+                                    model = model, HW_cutoff = 2.5)
+# the returned data_activity is a data.frame with signature name in the first
+# column and activity values starting from the second column.
+```
+## Signature analysis between two conditions
+We are interested in identifying differentially active signatures between
+wildtype and plcH mutant.
+```{r}
+# set sample indices for samples to be included in the two-group comparison
+indices <- 1:4
+# use limma to perform differential activation test
+limma_result <- build_limma(input_data = data_activity[, c(1, indices + 1)],
+                            phenotypes = data_pheno[indices],
+                            use.bonferroni = FALSE)
+# extract differentially active signatures in first 5 layers of pareto
+# fronts (signatures in pareto fronts have both low q values and large
+# activity chagnes)
+active_sigs <- get_active_signatures(limma_result = limma_result,
+                                     phenotypes = data_pheno[indices],
+                                     method = "pareto", pheno_group = "both",
+                                     N_fronts = 5)
+```
+Signatures that are differentially active between wildtype and plcH mutant are:
+```{r}
+print(paste(active_sigs, collapse = ","))
+```
+Checkout each signature's activity chagnes and significance in a volcano plot.
+```{r volcano plot, fig.height=5, fig.width=7}
+# make a volcano plot showing the differential activation results
+plot_volcano(limma_result = limma_result, highlight_signatures = active_sigs,
+             interactive = TRUE)
+```
+
+```{r heatmap plot}
+# make a heatmap showing signature activities
+plot_activity_heatmap(activity = data_activity, signatures = active_sigs,
+                      fix_color_range = TRUE)
+```
+
+## Annotate signatures with KEGG pathways
+```{r KEGG}
+KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
+pathway_result <- annotate_signatures_with_genesets(
+  selected_signatures = active_sigs, model = model, genesets = KEGG)
+DT::datatable(pathway_result)
+```
+
+
+```{r signature overlap}
+# make a heatmap of odds ratios reflecting how genes in two signatures overlap
+plot_signature_overlap(selected_signatures = active_sigs, model = model)
+```
+
+## Visualize gene-gene network
+```{r gene-gene network}
+# use limma to perform differential expression analysis
+data_raw_limma <- build_limma(input_data = data_raw[, c(1, indices + 1)],
+                              phenotypes = data_pheno[indices],
+                              use.bonferroni = FALSE)
+# build a gene:fold change table from limma result
+gene_logFC <- data.frame(geneID = rownames(data_raw_limma),
+                         logFC = data_raw_limma$logFC)
+# visualize ADAGE gene-gene network with the active signatures and the gene fold
+# change
+visualize_gene_network(selected_signatures = active_sigs,
+                       model = model, cor_cutoff = 0.5,
+                       gene_color_value = gene_logFC)
+```
+
+## Detailed look of one signature or a group of signatures
+```{r}
+signature_group <- c("Node34pos", "Node28neg", "Node50pos", "Node41pos")
+gene_annotation <- annotate_genes_in_signatures(signature_group)
+gene_annotation <- dplyr::right_join(gene_logFC, gene_annotation,
+                                     by = c("geneID" = "LocusTag"))
+DT::datatable(gene_annotation)
+```
+
+```{r}
+visualize_gene_network(selected_signatures = signature_group,
+                       model = model, cor_cutoff = 0.5,
+                       gene_color_value = gene_logFC)
+```
