@@ -44,6 +44,7 @@ build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
   colnames(design) <- levels(phenotypes)
 
   # convert the first column to rowname as limma use rowname as feature name
+  rownames(input_data) <- NULL
   input_data <- tibble::column_to_rownames(input_data,
                                            var = colnames(input_data)[1])
 

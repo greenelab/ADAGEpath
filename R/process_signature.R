@@ -116,6 +116,12 @@ test_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
 
   # extract all signatures' gene lists
   signatures_genes <- extract_signatures(model)
+  # get unique genes in all signatures
+  all_genes <- unique(unlist(signatures_genes))
+  # make sure the input selected_signatures can be found in the model
+  if (!all(selected_signatures %in% names(signatures_genes))){
+    stop("Selected signatures can not be found in the specified model.")
+  }
   # get the gene lists of only the selected signatures
   selected_signatures_genes <- signatures_genes[selected_signatures]
 
@@ -123,12 +129,9 @@ test_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
   comb_sig <- combn(selected_signatures_genes, 2)
   comb_name <- combn(names(selected_signatures_genes), 2)
 
-  # get unique genes in all signatures
-  all_HWGs <- unique(unlist(signatures_genes))
-
   # test the significance of overlap between every two signature combinations
   result_table <- mapply(enrich_test, comb_sig[1, ], comb_sig[2, ],
-                        MoreArgs = list(set_all = all_HWGs))
+                        MoreArgs = list(set_all = all_genes))
 
   # name each element with its signature combination
   colnames(result_table) <- sapply(1: ncol(comb_name),function(x)
