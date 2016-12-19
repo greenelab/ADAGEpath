@@ -54,7 +54,7 @@ calculate_activity <- function(input_data, model = eADAGEmodel,
   HWactivity_perGene <- data.frame(
     signature = c(paste0("Node", seq(1, model_size), "pos"),
                   paste0("Node", seq(1, model_size), "neg")),
-    HWactivity_perGene, stringsAsFactors = FALSE)
+    HWactivity_perGene, stringsAsFactors = FALSE, check.names = FALSE)
 
   return(HWactivity_perGene)
 }
