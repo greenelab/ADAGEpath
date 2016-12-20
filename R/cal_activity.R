@@ -113,6 +113,8 @@ one_signature_activity <- function(weight_matrix, express_matrix, node, side,
 plot_activity_heatmap <- function(activity, signatures = NULL,
                                   fix_color_range = TRUE){
 
+  # set the activity rownames to NULL
+  rownames(activity) <- NULL
   # convert the signature name column to rowname to make it easy to plot heatmap
   activity <- tibble::column_to_rownames(activity, var = "signature")
 
