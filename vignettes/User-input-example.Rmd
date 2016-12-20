@@ -48,7 +48,7 @@ ADAGE only accepts expression values in the (0,1) range. We linearly transform
 expression values to be between 0 and 1 using the Pa compendium as the reference.
 ```{r}
 data_normed <- zeroone_norm(input_data = data_raw, use_ref = TRUE,
-                            ref_data = PAcompendium)
+                            ref_data = compendium)
 ```
 Now let's specify the phenotypes for each sample. It needs to be a charactor
 vector and has the same sample order as the expression data loaded above.
