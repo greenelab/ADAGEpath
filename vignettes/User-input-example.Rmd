@@ -44,7 +44,7 @@ data_raw <- load_dataset(input = input_path, isProcessed = FALSE,
                          compendium = compendium, quantile_ref = probe_dist,
                          norm01 = FALSE)
 ```
-ADAGE only accepts expression values in the (0,1) range. We linearly normalize
+ADAGE only accepts expression values in the (0,1) range. We linearly transform
 expression values to be between 0 and 1 using the Pa compendium as the reference.
 ```{r}
 data_normed <- zeroone_norm(input_data = data_raw, use_ref = TRUE,
@@ -123,7 +123,7 @@ similar_sigs <- c("Node38pos", "Node67pos", "Node35pos", "Node233pos",
                   "Node140pos", "Node158neg")
 marginal_activity <- calculate_marginal_activity(input_data = data_normed,
                                                  selected_signatures = similar_sigs,
-                                                 model = eADAGEmodel)
+                                                 model = model)
 ```
 Again, we build a `limma` model to test whether these marginal activities
 are still strongly different between two conditions.
@@ -175,6 +175,7 @@ gene-gene network to show as node color. Again, we use `limma` to test
 differential expression and get the logFC.
 ```{r}
 data_raw_limma <- build_limma(input_data = data_raw, phenotypes = data_pheno)
+# build a gene:fold change table from limma result
 gene_logFC <- data.frame(geneID = rownames(data_raw_limma),
                          logFC = data_raw_limma$logFC)
 ```
