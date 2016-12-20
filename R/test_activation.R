@@ -7,7 +7,8 @@
 #' @param input_data a data.frame that stores either the signature activities or
 #' gene expression values. The first column specifies feature names (genes or
 #' signatures).
-#' @param phenotypes a factor with two levels that describes the phenotype of
+#' @param phenotypes a factor (or a charactor that can be converted into a
+#' factor) with two levels that describes the phenotype of
 #' each sample.
 #' @param use.bonferroni a logical value indicating whether to use the more
 #' conservative "bonferroni" method in the p value adjustment.
@@ -61,7 +62,8 @@ build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
 #'
 #' @param limma_result a data.frame that stores the limma result table
 #' returned by the build_limma() function.
-#' @param phenotypes  a factor with two levels that describes the phenotype of
+#' @param phenotypes  a factor (or a charactor that can be converted into a
+#' factor) with two levels that describes the phenotype of
 #' each sample, should be the same as the phenotypes provided to the
 #' build_limma() function.
 #' @param method character, can be "diff", "pvalue", or "pareto"(default)

@@ -12,7 +12,8 @@ get_active_signatures(limma_result, phenotypes, method = "pareto",
 \item{limma_result}{a data.frame that stores the limma result table
 returned by the build_limma() function.}
 
-\item{phenotypes}{a factor with two levels that describes the phenotype of
+\item{phenotypes}{a factor (or a charactor that can be converted into a
+factor) with two levels that describes the phenotype of
 each sample, should be the same as the phenotypes provided to the
 build_limma() function.}
 

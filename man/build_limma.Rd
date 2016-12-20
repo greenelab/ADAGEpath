@@ -11,7 +11,8 @@ build_limma(input_data, phenotypes, use.bonferroni = FALSE)
 gene expression values. The first column specifies feature names (genes or
 signatures).}
 
-\item{phenotypes}{a factor with two levels that describes the phenotype of
+\item{phenotypes}{a factor (or a charactor that can be converted into a
+factor) with two levels that describes the phenotype of
 each sample.}
 
 \item{use.bonferroni}{a logical value indicating whether to use the more
