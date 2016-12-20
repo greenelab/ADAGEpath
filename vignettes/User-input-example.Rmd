@@ -11,99 +11,196 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
----
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, cache = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
-This is an example for analyzing a microarray dataset using the ADAGEpath R
-package.
+This is an example for analyzing a user-provided microarray dataset.
 
-## Load in data 
-```{r loading in data}
+# Data preperation
+Load in required libraries.
+```{r}
 library("ADAGEpath")
 library("DT")
-
-# load in microarray dataset from a folder with cel files
-Anr_raw <- load_dataset(input = "../inst/anr", norm01 = FALSE)
-# 0-1 normalize expression values using the Pa compendium as background
-Anr_normed <- zeroone_norm(input_data = Anr_raw, use_ref = TRUE,
-                           ref_data = PAcompendium)
-# set phenotypes for each sample
-Anr_pheno <- factor(c("mt", "mt", "mt", "wt", "wt", "wt"))
+```
+Before any analysis, we need to specify the ADAGE model and the data compendium
+we want to use.
+```{r}
+model <- eADAGEmodel
+compendium <- PAcompendium
+probe_dist <- probedistribution
+```
+Let's load in a sample dataset that come with the pacakge. It's expression data
+from *Pseudomonas aeruginosa* wild type and ∆anr grown as biofilms on ∆F508 cystic
+fibrosis bronchial epithelial cells (CFBEs). Detailed information about
+the dataset can be found here
+[GSE67006](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE67006). 
+All its CEL files are stored in the folder "../inst/anr".
+To load your own dataset, simplely modify this input path.
+```{r}
+input_path <- "../inst/anr"
+data_raw <- load_dataset(input = input_path, isProcessed = FALSE,
+                         isRNAseq = FALSE, model = model,
+                         compendium = compendium, quantile_ref = probe_dist,
+                         norm01 = FALSE)
+```
+ADAGE only accepts expression values in the (0,1) range. We linearly normalize
+expression values to be between 0 and 1 using the Pa compendium as the reference.
+```{r}
+data_normed <- zeroone_norm(input_data = data_raw, use_ref = TRUE,
+                            ref_data = PAcompendium)
+```
+Now let's specify the phenotypes for each sample. It needs to be a charactor
+vector and has the same sample order as the expression data loaded above.
+```{r}
+data_pheno <- c("mt", "mt", "mt", "wt", "wt", "wt")
 ```
 
-## Perform signature analysis
-```{r signature analysis}
-# calculate signature activity
-Anr_activity <- calculate_activity(Anr_normed)
-# use limma to perform differential activation test
-Anr_limma <- build_limma(Anr_activity, phenotypes = Anr_pheno)
-# identify differentially active signatures
-Anr_active_sigs <- get_active_signatures(Anr_limma, phenotypes = Anr_pheno,
-                                         pheno_group = "both")
-```
+# ADAGE signature analysis
 
-```{r volcano plot}
-# make a volcano plot showing the differential activation results
-plot_volcano(Anr_limma, highlight_signatures = Anr_active_sigs,
+## Activity calculation
+We calculate the activity of each signature for each sample in the dataset.
+```{r}
+data_activity <- calculate_activity(input_data = data_normed, model = model)
+```
+The returned `data_activity` is a `data.frame` with signature name in the first
+column and activity values per sample starting from the second column.
+
+## Active signature detection
+We want to find signatures that are differentially active between
+anr mutant and wildtype samples.
+We use [limma](https://bioconductor.org/packages/release/bioc/html/limma.html)
+to perform differential activation test. `limma` is more robust
+than a simple t test when sample size is small. A two-group limma analysis is
+provided in the function `build_limma()`. You can also build other `limma` models
+to test signatures' activities when the experimental design is more complex.
+```{r}
+limma_result <- build_limma(data_activity, phenotypes = data_pheno)
+```
+To take both absolute activity difference and significance into account, we
+use pareto fronts to pick the most differentially active signatures. We extract
+differentially active signatures in the first 5 layers of pareto
+fronts. Modify N_fronts to get more or fewer signatures. 
+```{r}
+active_sigs <- get_active_signatures(limma_result = limma_result,
+                                     phenotypes = data_pheno,
+                                     pheno_group = "both",
+                                     method = "pareto", N_fronts = 5)
+```
+Signatures that are differentially active between anr mutant and wildtype are:
+```{r}
+print(paste(active_sigs, collapse = ","))
+```
+Check out each signature's activity changes and significance in the `limma` test.
+```{r}
+plot_volcano(limma_result, highlight_signatures = active_sigs,
              interactive = TRUE)
 ```
-
-```{r signature overlap}
-# make a heatmap of odds ratios reflecting the gene overlaps between signatures
-plot_signature_overlap(Anr_active_sigs)
-```
-
-## Check marginal activation of similar signatures
-```{r marginal activation}
-marginal_activity <- calculate_marginal_activity(Anr_normed,
-                                                 c("Node38pos", "Node67pos",
-                                                   "Node35pos", "Node233pos",
-                                                   "Node140pos", "Node158neg"),
-                                                 model = eADAGEmodel)
-marginal_limma <- build_limma(marginal_activity, Anr_pheno)
-plot_marginal_activation(marginal_limma)
-```
-
+Look at how the activities of active signature vary across samples.
 ```{r heatmap plot}
-# make a heatmap showing signature activities
-plot_activity_heatmap(Anr_activity, signatures = Anr_active_sigs)
+plot_activity_heatmap(activity = data_activity, signatures = active_sigs)
+```
+Combining the volcano plot and the activity heatmap, Node35pos is the most
+active signature in anr mutant, followed by Node233pos, Node140pos.
+On the other sidde, Node205neg and Node269pos are most active in wildtype.
+
+## Signature overlap
+To reduce the number of signatures to look at, we can check whether these active
+signatures greatly overlap with others.
+
+`plot_signature_overlap` creates a heatmap of odds ratios. The odds ratio
+represents the odds that two signatures share a specific number of genes.
+```{r signature overlap}
+plot_signature_overlap(selected_signatures = active_sigs)
+```
+As we can see, the top six signatures more or less overlap with each other.
+
+Next we calculate the marginal activities of these similar signatures. Marginal
+activity is defined as the activity of signature A after removing genes that
+share with signature B.
+```{r marginal activation}
+similar_sigs <- c("Node38pos", "Node67pos", "Node35pos", "Node233pos",
+                  "Node140pos", "Node158neg")
+marginal_activity <- calculate_marginal_activity(input_data = data_normed,
+                                                 selected_signatures = similar_sigs,
+                                                 model = eADAGEmodel)
+```
+Again, we build a `limma` model to test whether these marginal activities
+are still strongly different between two conditions.
+```{r}
+marginal_limma <- build_limma(input_data = marginal_activity,
+                              phenotypes = data_pheno)
+```
+Let's visualize the marginal activties in a matrix heatmap.  The value in this
+matrix represents the -log10 transformed adjusted p value in
+the activation test when the effect of the column signature is removed from
+the row signature. Values in the diagonal of the heatmap are the activation
+significance of signatures themselves.
+```{r}
+plot_marginal_activation(marginal_limma_result = marginal_limma)
+```
+We can see that Node35pos, Node233pos, and Node67pos each has unique
+genes that make them still differentially active even after removing the effect
+of another signature. Node158neg and Node140pos are completely masked by
+Node35pos, because after removing Node35pos from them, their significance drop
+dramatically. Node38pos is the least unique signature, as it is no longer
+differentially active after removing any other signature. If you want to reduce
+the number of signatures to look at, you can safely drop Node38pos, Node158neg,
+and Node140pos.
+```{r}
+active_sigs <- setdiff(active_sigs, c("Node38pos", "Node158neg", "Node140pos"))
 ```
 
-## Visualize gene-gene network
-```{r gene-gene network}
-# use limma to perform differential expression analysis
-Anr_raw_limma <- build_limma(Anr_raw, phenotypes = Anr_pheno)
-# build a gene:fold change table from limma result
-Anr_gene_logFC <- data.frame(geneID = rownames(Anr_raw_limma),
-                             logFC = Anr_raw_limma$logFC)
-# visualize ADAGE gene-gene network with the active signatures and the gene fold
-# change
-visualize_gene_network(gene_color_value = Anr_gene_logFC, 
-                       selected_signatures = Anr_active_sigs)
+## Active signature annotation
+We download *Pseudomonas aeruginosa* KEGG pathway terms from the
+[TRIBE](http://tribe.greenelab.com/#/home) web server.
+```{r}
+KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
 ```
+We associate active signatures to known KEGG pathways. 
+```{r}
+pathway_result <- annotate_signatures_with_genesets(
+  selected_signatures = active_sigs, model = model, genesets = KEGG)
+DT::datatable(pathway_result)
+```
+In this case, only Node205neg has been annotated by KEGG pathways. Other active
+signatures are still uncharacterized.
 
-## Detailed look of one activated signature
+## Gene-gene network
+We can check how genes in the active signatures cluster in the ADAGE gene-gene
+network.
+
+We can calculate a expression fold change for each gene and pass it to the
+gene-gene network to show as node color. Again, we use `limma` to test
+differential expression and get the logFC.
+```{r}
+data_raw_limma <- build_limma(input_data = data_raw, phenotypes = data_pheno)
+gene_logFC <- data.frame(geneID = rownames(data_raw_limma),
+                         logFC = data_raw_limma$logFC)
+```
+Visualize the ADAGE gene-gene network of the active signatures.
+```{r}
+visualize_gene_network(selected_signatures = active_sigs,
+                       gene_color_value = gene_logFC,
+                       model = model, cor_cutoff = 0.5)
+```
+To review a signature, we can list all genes in it.
 ```{r}
 DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node205neg"))
 ```
-
+And visualize its genes with the gene-gene network.
 ```{r}
-visualize_gene_network(gene_color_value = Anr_gene_logFC,
-                       selected_signatures = "Node205neg")
+visualize_gene_network(selected_signatures = "Node205neg",
+                       gene_color_value = gene_logFC,
+                       model = model, cor_cutoff = 0.5)
 ```
-
-## Detailed look of a group of similar signatures
+We can also review a group of similar signatures.
 ```{r}
-DT::datatable(annotate_genes_in_signatures(selected_signatures = c("Node35pos",
-                                                                   "Node233pos",
-                                                                   "Node67pos")))
+sig_group <- c("Node35pos", "Node233pos", "Node67pos")
+DT::datatable(annotate_genes_in_signatures(selected_signatures = sig_group))
 ```
-
 ```{r}
-visualize_gene_network(gene_color_value = Anr_gene_logFC,
-                       selected_signatures = c("Node35pos", "Node233pos",
-                                               "Node67pos"))
+visualize_gene_network(selected_signatures = sig_group,
+                       gene_color_value = gene_logFC,
+                       model = model, cor_cutoff = 0.5)
 ```
-
