@@ -11,7 +11,7 @@ load_dataset(input, isProcessed = FALSE, isRNAseq = FALSE,
 }
 \arguments{
 \item{input}{file path to the input file or input folder or ArrayExpress
-accession number.}
+accession number or a data.frame object}
 
 \item{isProcessed}{a logical value indicating whether the input data has
 already been processed into a tab-delimited txt file (default: FALSE).}
@@ -44,17 +44,20 @@ a data frame containing the processed gene expression values ready
 for ADAGE analysis.
 }
 \description{
-Currently supports four types of inputs:
-a zip file containing microarray CEL files in a dataset (isProcessed=FALSE,
-isRNAseq=FALSE);
-a folder containing microarray CEL files in a dataset (isProcessed=FALSE,
-isRNAseq=FALSE);
-an ArrayExpress experiment accession number in the format of "E-XXXX-n" (the
-experiment must be measured on the "A-AFFY-30" platform) (
-isProcessed=FALSE, isRNAseq=FALSE);
-a tab-delimited txt file storing processed gene expression values in a
-dataset (gene identifiers in the first column and then one sample per column)
-(isProcessed=TRUE, isRNAseq=TRUE/FALSE).
+Currently supports five types of inputs:
+file path to a zip file containing microarray CEL files in a dataset
+(isProcessed=FALSE, isRNAseq=FALSE);
+file path to a folder containing microarray CEL files in a dataset
+(isProcessed=FALSE, isRNAseq=FALSE);
+an ArrayExpress experiment accession number in the format of "E-XXXX-n"
+(the experiment must be measured on the "A-AFFY-30" platform)
+(isProcessed=FALSE, isRNAseq=FALSE);
+file path to a tab-delimited txt file storing processed gene expression
+values in a dataset (gene identifiers in the first column and then one
+sample per column) (isProcessed=TRUE, isRNAseq=TRUE/FALSE);
+a data.frame object storing processed gene expression
+values in a dataset (gene identifiers in the first column and then one
+sample per column) (isProcessed=TRUE, isRNAseq=TRUE/FALSE);
 }
 \examples{
 load_data(input, isProcessed = FALSE, isRNAseq = FALSE)

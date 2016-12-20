@@ -1,19 +1,22 @@
 #' Data loading and preprocessing
 #'
-#' Currently supports four types of inputs:
-#' a zip file containing microarray CEL files in a dataset (isProcessed=FALSE,
-#' isRNAseq=FALSE);
-#' a folder containing microarray CEL files in a dataset (isProcessed=FALSE,
-#' isRNAseq=FALSE);
-#' an ArrayExpress experiment accession number in the format of "E-XXXX-n" (the
-#' experiment must be measured on the "A-AFFY-30" platform) (
-#' isProcessed=FALSE, isRNAseq=FALSE);
-#' a tab-delimited txt file storing processed gene expression values in a
-#' dataset (gene identifiers in the first column and then one sample per column)
-#' (isProcessed=TRUE, isRNAseq=TRUE/FALSE).
+#' Currently supports five types of inputs:
+#' file path to a zip file containing microarray CEL files in a dataset
+#' (isProcessed=FALSE, isRNAseq=FALSE);
+#' file path to a folder containing microarray CEL files in a dataset
+#' (isProcessed=FALSE, isRNAseq=FALSE);
+#' an ArrayExpress experiment accession number in the format of "E-XXXX-n"
+#' (the experiment must be measured on the "A-AFFY-30" platform)
+#' (isProcessed=FALSE, isRNAseq=FALSE);
+#' file path to a tab-delimited txt file storing processed gene expression
+#' values in a dataset (gene identifiers in the first column and then one
+#' sample per column) (isProcessed=TRUE, isRNAseq=TRUE/FALSE);
+#' a data.frame object storing processed gene expression
+#' values in a dataset (gene identifiers in the first column and then one
+#' sample per column) (isProcessed=TRUE, isRNAseq=TRUE/FALSE);
 #'
 #' @param input file path to the input file or input folder or ArrayExpress
-#' accession number.
+#' accession number or a data.frame object
 #' @param isProcessed a logical value indicating whether the input data has
 #' already been processed into a tab-delimited txt file (default: FALSE).
 #' @param isRNAseq a logical value indicating whether the processed input data
@@ -100,8 +103,18 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
 
   } else {
 
-    # read in the processed data
-    data <- readr::read_tsv(input)
+    if (is.data.frame(input)) {
+      # the input data has been read into a data.frame already
+      data <- input
+    } else {
+      # read in the processed data
+      data <- readr::read_tsv(input)
+    }
+    if (!check_input(input)) {
+      stop("The input data should be a data.frame with the first column being
+           character gene IDs and the rest columns storing numeric expression
+           values with each sample per column.")
+    }
     colnames(data)[1] <- "geneID"
 
     # transform gene features in the input data to gene features used in ADAGE model
