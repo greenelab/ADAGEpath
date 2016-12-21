@@ -8,7 +8,7 @@ calculate_marginal_activity(input_data, selected_signatures,
   model = eADAGEmodel)
 }
 \arguments{
-\item{input_data}{a data frame with gene IDs in the first column and
+\item{input_data}{a data.frame with gene IDs in the first column and
 expression values from the second column.}
 
 \item{selected_signatures}{a vector storing names of selected signatures}

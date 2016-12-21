@@ -9,7 +9,8 @@ get_active_signatures(limma_result, method = "pareto", pheno_group = "both",
 }
 \arguments{
 \item{limma_result}{a data.frame that stores the limma result table
-returned by the build_limma() function.}
+returned by the build_limma() function. It should have rownames that
+specifies the name of each feature.}
 
 \item{method}{character, can be "diff", "pvalue", or "pareto"(default)}
 

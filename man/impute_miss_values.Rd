@@ -7,22 +7,22 @@
 impute_miss_values(input_data, ref_data = PAcompendium)
 }
 \arguments{
-\item{input_data}{A data frame with gene IDs in the first column and
+\item{input_data}{A data.frame with gene IDs in the first column and
 expression values from the second column.}
 
-\item{ref_data}{A data frame storing gene expression values to be used
+\item{ref_data}{A data.frame storing gene expression values to be used
 as a reference dataset for calculating nearest neighbors. Should have more
-samples than the input data. The first columns of input_data and ref_data that
+samples than the input_data. The first columns of input_data and ref_data that
 specify gene IDs should exactly be the same. (default: the P.a. gene
 expression compendium).}
 }
 \value{
-the input data frame with missing values being filled
+the input_data.frame with missing values being filled
 }
 \description{
 Imputes and fills missing values using k-nearest neighbor method. The 5
 nearest neighbors of missing genes are mainly calculated using the reference
-data and then are used to fill in missing values in the input data. It uses
+data and then are used to fill in missing values in the input_data. It uses
 the impute.knn function from the impute bioconductor package.
 }
 \seealso{

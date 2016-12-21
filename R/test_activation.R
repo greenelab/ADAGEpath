@@ -9,8 +9,8 @@
 #' signatures).
 #' @param phenotypes a factor (or a charactor that can be converted into a
 #' factor) with two levels that describes the phenotype of each sample.
-#' The first factor level is used as control group and the second level is used
-#' as treatment group in the limma model.
+#' The first factor level is used as the control group and the second level is
+#' used as the treatment group in the limma test.
 #' @param use.bonferroni a logical value indicating whether to use the more
 #' conservative "bonferroni" method in the p value adjustment.
 #' This is recommended when there are too many significant features when
@@ -23,6 +23,13 @@
 #' @seealso \url{https://bioconductor.org/packages/release/bioc/html/limma.html}
 #' @export
 build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
+
+  if (!check_input(input_data)) {
+    stop("The input_data should be a data.frame with first column storing
+         feature names in character and the rest columns storing
+         expression/activity values for each sample in numeric.")
+  }
+
   # rebuild the phenotypes factor if the input phenotypes is a subset of
   # a factor with more than two levels or if it is a character
   phenotypes <- factor(as.character(phenotypes))
@@ -65,7 +72,8 @@ build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
 #' after build_limma() function.
 #'
 #' @param limma_result a data.frame that stores the limma result table
-#' returned by the build_limma() function.
+#' returned by the build_limma() function. It should have rownames that
+#' specifies the name of each feature.
 #' @param phenotypes  a factor (or a charactor that can be converted into a
 #' factor) with two levels that describes the phenotype of
 #' each sample, should be the same as the phenotypes provided to the
@@ -185,11 +193,12 @@ get_paretofront <- function(input_data, N_fronts) {
 #' each signature after testing them with build_limma().
 #'
 #' @param limma_result a data.frame that stores the limma result table
-#' returned by the build_limma() function.
+#' returned by the build_limma() function. It should have rownames that
+#' specifies the name of each feature.
 #' @param highlight_signatures a character, if provided, signatures in it will
 #' be labeled and colored in red in the volcano plot (default to NULL).
 #' @param interactive logical, whether the volcano plot should be interactive.
-#' If TRUE, the plot is made using plotly.
+#' If TRUE, the plot is made using plotly. (default: FALSE)
 #' @export
 plot_volcano <- function(limma_result, highlight_signatures = NULL,
                          interactive = FALSE){

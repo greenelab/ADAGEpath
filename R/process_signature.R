@@ -8,11 +8,17 @@
 #' distribution to be considered as high-weight (default to 2.5). Only
 #' high-weight genes are included in gene signatures.
 #' @param use_symbol logical, whether the returned signatures use gene symbol
-#' as gene identifiers.
+#' as gene identifiers (default: FALSE).
 #' @return a named list with each element being a gene signature
 #' @export
 extract_signatures <- function(model = eADAGEmodel, HW_cutoff = 2.5,
                                use_symbol = FALSE){
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with first column being gene IDs
+         in character and the rest columns storing numeric weight values for
+         each node per column.")
+  }
 
   geneID <- as.data.frame(model)[, 1]
   if (use_symbol) {
@@ -85,7 +91,6 @@ one_signature <- function(node_weight, geneID, side, HW_cutoff = 2.5){
 #' @return value returned by fisher.test() function, which is a list with
 #' class "htest" containing p.value, conf.int, estimate, and so on.
 #' @seealso \code{\link[stats]{fisher.test}}
-#' @export
 enrich_test <- function(set1, set2, set_all){
 
   set_overlap <- length(intersect(set1, set2))
@@ -113,6 +118,12 @@ enrich_test <- function(set1, set2, set_all){
 #' tests.
 #' @export
 test_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with first column being gene IDs
+         in character and the rest columns storing numeric weight values for
+         each node per column.")
+  }
 
   # extract all signatures' gene lists
   signatures_genes <- extract_signatures(model)
@@ -195,6 +206,12 @@ build_signature_overlap_matrix <- function(selected_signatures, odds_ratios){
 #' (default: the 300-node eADAGE model preloaded in the package).
 #' @export
 plot_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with first column being gene IDs
+         in character and the rest columns storing numeric weight values for
+         each node per column.")
+  }
 
   # test how sigfinicant each signature pair overlaps
   odds_ratios <- test_signature_overlap(selected_signatures, model)

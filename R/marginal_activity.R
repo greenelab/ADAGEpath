@@ -4,7 +4,7 @@
 #' signatures. Marginal activity is defined as the activity of a signature
 #' after removing genes that overlap with another signature.
 #'
-#' @param input_data a data frame with gene IDs in the first column and
+#' @param input_data a data.frame with gene IDs in the first column and
 #' expression values from the second column.
 #' @param selected_signatures a vector storing names of selected signatures
 #' @param model  an ADAGE model to extract signatures from
@@ -19,9 +19,15 @@ calculate_marginal_activity <- function(input_data, selected_signatures,
                                         model = eADAGEmodel) {
 
   if (!check_input(input_data)){
-    stop("The input data should be a data frame with first column storing
+    stop("The input data should be a data.frame with first column storing
          geneIDs in character and the rest columns storing expression values
          for each sample in numeric.")
+  }
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with first column being gene IDs
+         in character and the rest columns storing numeric weight values for
+         each node per column.")
   }
 
   if(!all(input_data[, 1] == model[, 1])){

@@ -3,11 +3,12 @@
 #' Fetches GO or KEGG gene sets from the Tribe webserver
 #' (url{tribe.greenelab.com}).
 #'
-#' @param type character, type of the gene sets, either "GO" or "KEGG".
+#' @param type character, type of the gene sets, either "GO" or "KEGG"
+#' (default: "KEGG").
 #' @param max_size int, maximum gene set size to be considered as a meaningful
-#' gene set.
+#' gene set (default: 100).
 #' @param min_size int, minimum gene set size to be considered as a meaningful
-#' gene set.
+#' gene set (default: 5).
 #' @return a named list with each element being a gene set
 #' @export
 fetch_geneset <- function(type = "KEGG", max_size = 100, min_size = 5){
@@ -84,13 +85,19 @@ fetch_geneset <- function(type = "KEGG", max_size = 100, min_size = 5){
 #' function fetch_geneset(), each element in the list is a character vector
 #' storing genes (PAO1 locus tag) in a gene set.
 #' @param significance_cutoff numeric, FDR significance cutoff used to filter
-#' the result (default to 0.05).
+#' the result (default: 0.05).
 #' @return a data.frame storing significantly enriched gene sets for the
 #' input signatures.
 #' @export
 annotate_signatures_with_genesets <- function(selected_signatures,
                                               model = eADAGEmodel, genesets,
                                               significance_cutoff = 0.05){
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with first column being gene IDs
+         in character and the rest columns storing numeric weight values for
+         each node per column.")
+  }
+
   # extract all signatures' gene lists
   signatures_genes <- extract_signatures(model)
   # get genes in all signatures
@@ -134,6 +141,13 @@ annotate_signatures_with_genesets <- function(selected_signatures,
 #' @export
 annotate_genes_in_signatures <- function(selected_signatures,
                                          model = eADAGEmodel){
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with first column being gene IDs
+         in character and the rest columns storing numeric weight values for
+         each node per column.")
+  }
+
   # extract all signatures' gene lists
   signatures_genes <- extract_signatures(model)
 

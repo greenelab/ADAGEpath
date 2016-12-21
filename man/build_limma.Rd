@@ -13,8 +13,8 @@ signatures).}
 
 \item{phenotypes}{a factor (or a charactor that can be converted into a
 factor) with two levels that describes the phenotype of each sample.
-The first factor level is used as control group and the second level is used
-as treatment group in the limma model.}
+The first factor level is used as the control group and the second level is
+used as the treatment group in the limma test.}
 
 \item{use.bonferroni}{a logical value indicating whether to use the more
 conservative "bonferroni" method in the p value adjustment.

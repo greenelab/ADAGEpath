@@ -7,17 +7,19 @@
 calculate_activity(input_data, model = eADAGEmodel, HW_cutoff = 2.5)
 }
 \arguments{
-\item{input_data}{a data frame with gene IDs in the first column and
+\item{input_data}{a data.frame with gene IDs in the first column and
 expression values from the second column.}
 
 \item{model}{the ADAGE model to be used for calculating signature activity
 (default: the 300-node eADAGE model preloaded in the package).}
 
 \item{HW_cutoff}{number of standard deviations from mean in a node's weight
-distribution to be considered as high-weight (default to 2.5).}
+distribution to be considered as high-weight (default to 2.5). Signatures
+are formed by HW genes.}
 }
 \value{
-a named matrix storing activities per signature per sample
+a data.frame with the first column being signature names and
+the rest columns storing signature activities for every sample.
 }
 \description{
 Calculates activities for each signature in an ADAGE model

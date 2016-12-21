@@ -3,21 +3,29 @@
 #' Calculates activities for each signature in an ADAGE model
 #' specified by the weight matrix for each sample in the input data
 #'
-#' @param input_data a data frame with gene IDs in the first column and
+#' @param input_data a data.frame with gene IDs in the first column and
 #' expression values from the second column.
 #' @param model the ADAGE model to be used for calculating signature activity
 #' (default: the 300-node eADAGE model preloaded in the package).
 #' @param HW_cutoff number of standard deviations from mean in a node's weight
-#' distribution to be considered as high-weight (default to 2.5).
-#' @return a named matrix storing activities per signature per sample
+#' distribution to be considered as high-weight (default to 2.5). Signatures
+#' are formed by HW genes.
+#' @return a data.frame with the first column being signature names and
+#' the rest columns storing signature activities for every sample.
 #' @export
 calculate_activity <- function(input_data, model = eADAGEmodel,
                                HW_cutoff = 2.5) {
 
   if (!check_input(input_data)){
-    stop("The input data should be a data frame with first column storing
+    stop("The input data should be a data.frame with first column storing
          geneIDs in character and the rest columns storing expression values
          for each sample in numeric.")
+  }
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with first column being gene IDs
+         in character and the rest columns storing numeric weight values for
+         each node per column.")
   }
 
   if(!all(input_data[, 1] == model[, 1])){
@@ -103,17 +111,25 @@ one_signature_activity <- function(weight_matrix, express_matrix, node, side,
 #' Plots a heatmap showing signature activities in a dataset.
 #'
 #' @param activity a data.frame that stores the signature activities for each
-#' sample in a dataset.
+#' sample in a dataset. The first column is signature name and activity values
+#' start from the second column.
 #' @param signatures a character vector specifying which signatures to include
-#' in the heatmap
+#' in the heatmap (default: NULL, all signatures will be included).
 #' @param fix_color_range logical. If TRUE, fix the heatmap color
-#' range to the maximum activity range of all signatures. If FALSE, heatmap
+#' range to the maximum activity range of the input activity. If FALSE, heatmap
 #' color range is determined by the activity ranges of the selected signatures.
+#' (default: TRUE)
 #' @export
 plot_activity_heatmap <- function(activity, signatures = NULL,
                                   fix_color_range = TRUE){
 
-  # set the activity rownames to NULL
+  if (!check_input(activity)){
+    stop("The input activity should be a data.frame with first column storing
+         signature names in character and the rest columns storing activity
+         values for each sample in numeric.")
+  }
+
+  # set the activity rownames to NULL in case it has rownames
   rownames(activity) <- NULL
   # convert the signature name column to rowname to make it easy to plot heatmap
   activity <- tibble::column_to_rownames(activity, var = "signature")

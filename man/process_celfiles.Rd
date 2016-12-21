@@ -20,7 +20,7 @@ data need to be normalized to the processed compendium, the default
 should not be changed in most cases.}
 }
 \value{
-a data frame containing normalized gene expression values with geneID
+a data.frame containing normalized gene expression values with geneID
 in the first column and then each cel file in one column.
 }
 \description{

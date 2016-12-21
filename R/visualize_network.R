@@ -20,11 +20,17 @@
 #' the other could be logFC, correlation, or other value associated with
 #' each gene. This value will be used to color genes in the network.
 #' If not provided, the gene color in the gene-gene network is uniformly blue.
-#' (default:NULL).
+#' (default: NULL).
 #' @importFrom magrittr "%>%"
 #' @export
 visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
                                     cor_cutoff = 0.5, gene_color_value = NULL) {
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with first column being gene IDs
+         in character and the rest columns storing numeric weight values for
+         each node per column.")
+  }
 
   # extract all signatures and their genes from the model using the custom
   # function extract_signatures()

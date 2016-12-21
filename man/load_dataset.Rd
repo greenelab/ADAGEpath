@@ -13,16 +13,16 @@ load_dataset(input, isProcessed = FALSE, isRNAseq = FALSE,
 \item{input}{file path to the input file or input folder or ArrayExpress
 accession number or a data.frame object}
 
-\item{isProcessed}{a logical value indicating whether the input data has
+\item{isProcessed}{a logical value indicating whether the input_data has
 already been processed into a tab-delimited txt file (default: FALSE).}
 
-\item{isRNAseq}{a logical value indicating whether the processed input data
+\item{isRNAseq}{a logical value indicating whether the processed input_data
 is RNAseq data. If true, the processed RNAseq data will be normalized to
 a comparable range with the microarray-based compendium using TDM. If false,
-the processed input data will be quantile normalized to be comparable
+the processed input_data will be quantile normalized to be comparable
 to the compendium. (default: FALSE)}
 
-\item{model}{the ADAGE model used to analyze the input data
+\item{model}{the ADAGE model used to analyze the input_data
 (default: the 300-node eADAGE model of P.a. pre-loaded within the package).}
 
 \item{compendium}{the gene expression compendium of an organism
@@ -40,7 +40,7 @@ when input is an ArrayExpress accession number.}
 zero-one normalized (default: FALSE)}
 }
 \value{
-a data frame containing the processed gene expression values ready
+a data.frame containing the processed gene expression values ready
 for ADAGE analysis.
 }
 \description{

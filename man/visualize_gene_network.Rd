@@ -21,7 +21,7 @@ between two genes exists in the network (default: 0.5).}
 the other could be logFC, correlation, or other value associated with
 each gene. This value will be used to color genes in the network.
 If not provided, the gene color in the gene-gene network is uniformly blue.
-(default:NULL).}
+(default: NULL).}
 }
 \description{
 Builds and visualizes an ADAGE-derived gene-gene network of genes in the

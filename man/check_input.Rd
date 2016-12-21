@@ -7,10 +7,10 @@
 check_input(input_data)
 }
 \arguments{
-\item{input_data}{A data frame.}
+\item{input_data}{A data.frame.}
 }
 \value{
-TRUE if the input data frame meets the requirements, otherwise FALSE.
+TRUE if the input_data.frame meets the requirements, otherwise FALSE.
 }
 \description{
 Checks whether the input is a data.frame (or a tibble) with its first

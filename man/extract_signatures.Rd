@@ -16,7 +16,7 @@ distribution to be considered as high-weight (default to 2.5). Only
 high-weight genes are included in gene signatures.}
 
 \item{use_symbol}{logical, whether the returned signatures use gene symbol
-as gene identifiers.}
+as gene identifiers (default: FALSE).}
 }
 \value{
 a named list with each element being a gene signature
