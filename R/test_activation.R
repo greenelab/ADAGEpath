@@ -8,14 +8,18 @@
 #' gene expression values. The first column specifies feature names (genes or
 #' signatures).
 #' @param phenotypes a factor (or a charactor that can be converted into a
-#' factor) with two levels that describes the phenotype of
-#' each sample.
+#' factor) with two levels that describes the phenotype of each sample.
+#' The first factor level is used as control group and the second level is used
+#' as treatment group in the limma model.
 #' @param use.bonferroni a logical value indicating whether to use the more
 #' conservative "bonferroni" method in the p value adjustment.
 #' This is recommended when there are too many significant features when
 #' using the default "BH" method. (default: FALSE)
 #' @return a data.frame that stores the result table returned by limma. It
-#' includes logFC, adj.P.Val, and other statistics for each feature.
+#' includes logFC, adj.P.Val, and other statistics for each feature. If the
+#' input is signature activity, then logFC equals to absolute difference.
+#' Features with positive logFC have higher values in the second phenotypes
+#' level.
 #' @seealso \url{https://bioconductor.org/packages/release/bioc/html/limma.html}
 #' @export
 build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
@@ -67,10 +71,12 @@ build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
 #' each sample, should be the same as the phenotypes provided to the
 #' build_limma() function.
 #' @param method character, can be "diff", "pvalue", or "pareto"(default)
-#' @param pheno_group character, can be "both" (default) or one of the
-#' phenotype level of the input phenotypes factor. If "both", signatures active
-#' in both phenotypes will be merged, sorted, and returned together. Otherwise,
-#' only signatures active in the specified phenotype will be returned.
+#' @param pheno_group character, can be "both" (default), "level1" or "level2".
+#' If "both", signatures active in both phenotypes will be merged, sorted, and
+#' returned together. If "level1", only signatures active in the first
+#' phenotypes level (signatures with negative logFC) will be returned.
+#' Similarly, "level2" will return only signatures active in the second
+#' phenotypes level (signatures with positive logFC).
 #' @param N_signatures int, number of top signatures to return in the "diff"
 #' method (default to 10)
 #' @param N_fronts int, number of pareto fronts to return in the "pareto" method
@@ -79,17 +85,10 @@ build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
 #' to use in the "pvalue" method
 #' @return a vector storing active signatures
 #' @export
-get_active_signatures <- function(limma_result, phenotypes, method = "pareto",
-                                  pheno_group = "both", N_signatures = 10,
-                                  N_fronts = 5,
+get_active_signatures <- function(limma_result, method = "pareto",
+                                  pheno_group = "both",
+                                  N_fronts = 5, N_signatures = 10,
                                   significance_cutoff = -log10(0.05)) {
-  # rebuild the phenotypes factor if the input phenotypes is a subset of
-  # a factor with more than two levels or if it is a character
-  phenotypes <- factor(as.character(phenotypes))
-
-  if (nlevels(phenotypes) > 2){
-    stop("This function can only deal with two phenotype levels")
-  }
 
   if (!method %in% c("pvalue", "diff", "pareto")){
     stop("Method not recognized! It should be \"pvalue\", \"FC\", or \"pareto\".")
@@ -101,13 +100,12 @@ get_active_signatures <- function(limma_result, phenotypes, method = "pareto",
                                     diff = limma_result$logFC,
                                     neglog10qvalue = -log10(limma_result$adj.P.Val))
 
-  if (pheno_group == levels(phenotypes)[1]) {
+  if (pheno_group == "level1") {
     test_result <- test_result[test_result$diff <= 0, ]
-  } else if (pheno_group == levels(phenotypes)[2]) {
+  } else if (pheno_group == "level2") {
     test_result <- test_result[test_result$diff >= 0, ]
   } else if (!pheno_group == "both") {
-    stop("pheno_group can only be \"both\" or one of the two phenotypes used
-         in the run_limma function!")
+    stop("pheno_group can only be \"level1\", \"level2\", or \"both\"!")
   }
   test_result$diff <- abs(test_result$diff)
 
