@@ -42,6 +42,7 @@ processes that are perturbed by the treatment. ADAGE signature analysis usually
 includes the following steps:
 
 ####Data loading
+
 ADAGEpath currently supports raw microarray data in CEL format and processed
 microarray or RNAseq data. Use function `load_dataset()` to load your own
 dataset or datasets publicly available in ArrayExpress.

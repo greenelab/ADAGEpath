@@ -4,14 +4,11 @@
 \name{eADAGEmodel}
 \alias{eADAGEmodel}
 \title{eADAGE model}
-\format{A data.frame (tibble) with 5549 rows and 301 variables:
-\describe{
-  \item{geneID}{P.a. PAO1 gene identifiers}
-  \item{Node1}{Each gene's weight to Node1}
-  ...
-}}
+\format{A data frame (tibble) with 5549 rows and 301 variables. The first
+column is geneID that specifies gene identifiers. Starting from
+the second column, each column stores numeric weight values of one node}
 \source{
-\url{http://biorxiv.org/content/early/2016/12/02/078659}
+\url{https://doi.org/10.1101/078659}
 }
 \usage{
 eADAGEmodel

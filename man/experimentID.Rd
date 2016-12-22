@@ -7,7 +7,7 @@
 \format{A data.frame with 1118 rows and 2 variables:
 \describe{
  \item{Experiment}{ArrayExpress experiment assession numbers, only contain
- experiments in the PAcompendium.}
+ experiments in the preloaded PAcompendium data object.}
  \item{Sample}{Sample IDs in "xxx.CEL" format}
 }}
 \usage{
@@ -15,7 +15,7 @@ experimentID
 }
 \description{
 ArrayExpress experiment assession numbers and their associated sample IDs
-included in the PAcompendium.
+included in the preloaded PAcompendium data object.
 There are duplicates in sample IDs because one sample can be included in
 multiple experiments.
 }

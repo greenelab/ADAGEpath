@@ -40,8 +40,6 @@
 #' zero-one normalized (default: FALSE)
 #' @return a data.frame containing the processed gene expression values ready
 #' for ADAGE analysis.
-#' @examples
-#' load_data(input, isProcessed = FALSE, isRNAseq = FALSE)
 #' @export
 load_dataset <- function(input, isProcessed, isRNAseq,
                          model = eADAGEmodel, compendium = PAcompendium,

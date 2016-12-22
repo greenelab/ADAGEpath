@@ -7,7 +7,7 @@
 to_LocusTag(input_ID, ref_IDs = eADAGEmodel$geneID)
 }
 \arguments{
-\item{input_ID}{charactor, the input gene ID.}
+\item{input_ID}{character, the input gene ID.}
 
 \item{ref_IDs}{a vector storing reference gene IDs that do not need
 conversion (default: gene IDs used in the pre-loaded P.a. ADAGE model).}

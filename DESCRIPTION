@@ -6,7 +6,8 @@ Authors@R: person("Jie", "Tan", email = "jie.tan.gr@dartmouth.edu",
   role = c("aut", "cre"))
 Description: This package provides functions to perform ADAGE-based pathway
     analysis on a gene expression dataset.
-License: BSD 3 Clause license
+Depends: R (>= 2.10.0)
+License: BSD 3-clause License + file LICENSE
 LazyData: TRUE
 Imports:
     magrittr,
