@@ -4,17 +4,18 @@
 \name{experimentID}
 \alias{experimentID}
 \title{Experiments and samples in Pseudomonas aeruginosa gene expression compendium}
-\format{A data frame with 1118 rows and 2 variables:
+\format{A data.frame with 1118 rows and 2 variables:
 \describe{
  \item{Experiment}{ArrayExpress experiment assession numbers, only contain
- experiments in the Pseudomonas aeruginosa gene expression compendium.}
+ experiments in the PAcompendium.}
  \item{Sample}{Sample IDs in "xxx.CEL" format}
 }}
 \usage{
 experimentID
 }
 \description{
-ArrayExpress experiment assession numbers and their associated sample IDs.
+ArrayExpress experiment assession numbers and their associated sample IDs
+included in the PAcompendium.
 There are duplicates in sample IDs because one sample can be included in
 multiple experiments.
 }

@@ -1,17 +1,18 @@
 #' Signature activity calculation
 #'
 #' Calculates activities for each signature in an ADAGE model
-#' specified by the weight matrix for each sample in the input data
+#' for each sample in the input_data
 #'
 #' @param input_data a data.frame with gene IDs in the first column and
 #' expression values from the second column.
 #' @param model the ADAGE model to be used for calculating signature activity
 #' (default: the 300-node eADAGE model preloaded in the package).
-#' @param HW_cutoff number of standard deviations from mean in a node's weight
-#' distribution to be considered as high-weight (default to 2.5). Signatures
-#' are formed by HW genes.
+#' @param HW_cutoff number of standard deviations away from mean in a node's
+#' weight distribution to be considered as high-weight (default to 2.5).
+#' Signature activities are calculated only using HW genes.
 #' @return a data.frame with the first column being signature names and
-#' the rest columns storing signature activities for every sample.
+#' the rest columns storing signature activities for every sample in the
+#' input_data.
 #' @export
 calculate_activity <- function(input_data, model = eADAGEmodel,
                                HW_cutoff = 2.5) {
@@ -70,10 +71,10 @@ calculate_activity <- function(input_data, model = eADAGEmodel,
 
 #' One signature activity
 #'
-#' Calculates activities for a specific signature in an ADAGE model
+#' Calculates activities for a specific signature in an ADAGE model.
 #'
-#' @param weight_matrix a data matrix storing the weight matrix in an ADAGE model.
-#' @param express_matrix a data matrix storing gene expression values in a dataset
+#' @param weight_matrix a data.matrix storing the weight matrix in an ADAGE model.
+#' @param express_matrix a data.matrix storing gene expression values in a dataset
 #' @param node a int ranging from 1 to number of columns in weight_matrix
 #' @param side character, "pos" or "neg"
 #' @param HW_cutoff number of standard deviations from mean in a node's weight

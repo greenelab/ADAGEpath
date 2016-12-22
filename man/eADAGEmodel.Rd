@@ -4,21 +4,22 @@
 \name{eADAGEmodel}
 \alias{eADAGEmodel}
 \title{eADAGE model}
-\format{A data frame (tibble) with 5549 rows and 301 variables:
+\format{A data.frame (tibble) with 5549 rows and 301 variables:
 \describe{
   \item{geneID}{P.a. PAO1 gene identifiers}
   \item{Node1}{Each gene's weight to Node1}
   ...
 }}
 \source{
-\url{http://biorxiv.org/content/early/2016/10/03/078659}
+\url{http://biorxiv.org/content/early/2016/12/02/078659}
 }
 \usage{
 eADAGEmodel
 }
 \description{
-A 300-node eADAGE model built for biological pathway analysis for
-P. aeruginosa
+The 300-node eADAGE model used in the paper "Unsupervised extraction of
+functional gene expression signatures in the bacterial pathogen Pseudomonas
+aeruginosa with eADAGE"
 }
 \keyword{datasets}
 

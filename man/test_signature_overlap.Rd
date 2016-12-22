@@ -2,7 +2,7 @@
 % Please edit documentation in R/process_signature.R
 \name{test_signature_overlap}
 \alias{test_signature_overlap}
-\title{Signature overlap calculation}
+\title{Signature overlap test}
 \usage{
 test_signature_overlap(selected_signatures, model = eADAGEmodel)
 }
@@ -14,11 +14,11 @@ to be tested.}
 (default: the 300-node eADAGE model preloaded in the package).}
 }
 \value{
-a named list storing odds ratios for all pairs of signature overlap
+a named list storing odds ratios in all signature overlap
 tests.
 }
 \description{
-Tests how significant all possible pairs of input signatures
+Tests how significant any two combinations of input signatures
 overlap with each other in term of their gene compositions.
 }
 

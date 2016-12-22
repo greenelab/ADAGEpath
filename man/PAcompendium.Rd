@@ -4,20 +4,21 @@
 \name{PAcompendium}
 \alias{PAcompendium}
 \title{Pseudomonas aeruginosa gene expression compendium}
-\format{A data frame (tibble) with 5549 rows and 1052 variables. The first column
-specifies gene identifiers and samples start from the second column.:
+\format{A data.frame (tibble) with 5549 rows and 1052 variables. The first
+column specifies gene identifiers and samples start from the second column:
 \describe{
   \item{geneID}{P.a. PAO1 gene identifiers}
   ...
 }}
 \source{
-\url{http://biorxiv.org/content/early/2016/10/03/078659}
+\url{http://biorxiv.org/content/early/2016/12/02/078659}
 }
 \usage{
 PAcompendium
 }
 \description{
-The compendium contains all P.a. microarray datasets measured on GPL84
+The compendium contains all P.a. microarray datasets measured on the
+[Pae_G1a] Affymetric Pseudomonas aeruginosa array
 platform from the ArrayExpress database as of 31 July 2015. The expression
 values in the compendium have been background corrected and quantile
 normalized.

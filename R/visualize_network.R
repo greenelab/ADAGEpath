@@ -10,8 +10,8 @@
 #' will be used to color gene nodes in the network with red meaning high positive
 #' value and blue meaning high negative value.
 #'
-#' @param selected_signatures a vector storing names of signatures whose genes
-#' to include in the gene-gene network
+#' @param selected_signatures a vector storing names of signatures. Genes in
+#' them will be included in the gene-gene network.
 #' @param model an ADAGE model to build gene-gene network from
 #' (default: the 300-node eADAGE model preloaded in the package).
 #' @param cor_cutoff numeric, the correlation cutoff to decide whether an edge
@@ -147,7 +147,7 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
 
 #' Mapping value to HEX color
 #'
-#' Maps the continuous values to HEX color values. The positive values
+#' Maps continuous values to HEX color values. The positive values
 #' are mapped to the "Reds" palette from Color Brewer 2
 #' \url{http://colorbrewer2.org/#type=sequential&scheme=Reds&n=3},
 #' and the negative values

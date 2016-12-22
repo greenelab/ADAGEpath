@@ -13,7 +13,7 @@ map_value_to_color(value)
 a character vector storing the mapped HEX color values
 }
 \description{
-Maps the continuous values to HEX color values. The positive values
+Maps continuous values to HEX color values. The positive values
 are mapped to the "Reds" palette from Color Brewer 2
 \url{http://colorbrewer2.org/#type=sequential&scheme=Reds&n=3},
 and the negative values

@@ -10,7 +10,7 @@ probedistribution
 }
 \description{
 The quantile distribution of microarray probes used in building the
-P. aeruginosa compendium. It will be used as a reference distribution to
+PAcompendium. It will be used as a reference distribution to
 quantile normalize new datasets.
 }
 \keyword{datasets}

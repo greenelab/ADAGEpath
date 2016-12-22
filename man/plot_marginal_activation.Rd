@@ -8,7 +8,7 @@ plot_marginal_activation(marginal_limma_result)
 }
 \arguments{
 \item{marginal_limma_result}{a data.frame that stores the limma result table
-returned by the build_limma() function. It's rownames are in the format of
+returned by the build_limma() function. It's rownames is in the format of
 "signature1-signature2".}
 }
 \description{

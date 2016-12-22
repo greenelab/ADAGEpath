@@ -8,8 +8,8 @@ visualize_gene_network(selected_signatures, model = eADAGEmodel,
   cor_cutoff = 0.5, gene_color_value = NULL)
 }
 \arguments{
-\item{selected_signatures}{a vector storing names of signatures whose genes
-to include in the gene-gene network}
+\item{selected_signatures}{a vector storing names of signatures. Genes in
+them will be included in the gene-gene network.}
 
 \item{model}{an ADAGE model to build gene-gene network from
 (default: the 300-node eADAGE model preloaded in the package).}

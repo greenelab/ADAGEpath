@@ -21,11 +21,11 @@ a data.frame storing marginal activities for the input samples.
 It's rownames is set as "signature1-signature2",
 indicating a marginal activity for signature1 after
 removing the effect of signature2. If rowname is "signature1-signature1",
-then it's the activity of signature1.
+then it's the activity of signature1 itself.
 }
 \description{
-Calculates the marginal activities between all possible pairs of the input
+Calculates the marginal activities between every two combinations of the input
 signatures. Marginal activity is defined as the activity of a signature
-after removing genes that overlap with another signature.
+after removing genes that it overlaps with another signature.
 }
 

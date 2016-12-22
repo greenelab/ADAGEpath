@@ -23,7 +23,8 @@ using the default "BH" method. (default: FALSE)}
 }
 \value{
 a data.frame that stores the result table returned by limma. It
-includes logFC, adj.P.Val, and other statistics for each feature. If the
+includes logFC, adj.P.Val, and other statistics for each feature. LogFC only
+makes sense when input is gene expression values. If the
 input is signature activity, then logFC equals to absolute difference.
 Features with positive logFC have higher values in the second phenotypes
 level.

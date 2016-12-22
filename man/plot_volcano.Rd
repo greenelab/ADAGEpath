@@ -12,7 +12,7 @@ returned by the build_limma() function. It should have rownames that
 specifies the name of each feature.}
 
 \item{highlight_signatures}{a character, if provided, signatures in it will
-be labeled and colored in red in the volcano plot (default to NULL).}
+be labeled and colored in red in the volcano plot (default: NULL).}
 
 \item{interactive}{logical, whether the volcano plot should be interactive.
 If TRUE, the plot is made using plotly. (default: FALSE)}

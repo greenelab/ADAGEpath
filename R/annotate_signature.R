@@ -131,13 +131,14 @@ annotate_signatures_with_genesets <- function(selected_signatures,
 #' Annotating genes in signatures
 #'
 #' Annotates genes in the input signatures with their symbols, descriptions,
-#' associated signatures.
+#' operons, and associated signatures.
 #'
 #' @param selected_signatures a character vector storing names of signatures
 #' @param model an ADAGE model to extract signatures from
 #' (default: the 300-node eADAGE model preloaded in the package).
 #' @return a data.frame storing genes in the input signatures. Each gene is
-#' annotated by gene symbol, gene description, and signatures it is in.
+#' annotated by gene symbol, gene description, its operon, and signatures it
+#' is in.
 #' @export
 annotate_genes_in_signatures <- function(selected_signatures,
                                          model = eADAGEmodel){

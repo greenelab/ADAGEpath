@@ -2,7 +2,7 @@
 % Please edit documentation in R/load_data.R
 \name{match_IDs}
 \alias{match_IDs}
-\title{Gene IDs matching}
+\title{Matching Gene IDs}
 \usage{
 match_IDs(input_data, ref_IDs = eADAGEmodel$geneID)
 }

@@ -14,11 +14,12 @@ in the plot}
 (default: the 300-node eADAGE model preloaded in the package).}
 }
 \description{
-Plots the overlap significance between signature pairs using a heatmap.
-Values in the heatmap represent the odds ratio in fisher exact test.
+Plots the overlap significance between all pairs of signatures using a heatmap.
+Values in the heatmap represent the odds ratio in fisher exact test on how
+significant two signatures overlap in their genes.
 A higher odds ratio indicates a more significant overlap between genes
 in two signatures. The diagonal is set to the highest odds ratio in the
 selected signature pairs just for visualization purpose. The plot will be
-difficult to see if including more than 50 signatures.
+difficult to see if including more than 50 selected_signatures
 }
 

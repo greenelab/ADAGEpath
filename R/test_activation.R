@@ -16,7 +16,8 @@
 #' This is recommended when there are too many significant features when
 #' using the default "BH" method. (default: FALSE)
 #' @return a data.frame that stores the result table returned by limma. It
-#' includes logFC, adj.P.Val, and other statistics for each feature. If the
+#' includes logFC, adj.P.Val, and other statistics for each feature. LogFC only
+#' makes sense when input is gene expression values. If the
 #' input is signature activity, then logFC equals to absolute difference.
 #' Features with positive logFC have higher values in the second phenotypes
 #' level.
@@ -65,38 +66,40 @@ build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
 
 #' Most active signature retrieval
 #'
-#' Returns the signatures that are most differentially active in the limma result.
-#' We provide three methods to define "most" active: sort by the activity
-#' difference (diff), significance (pvalue), and consider both difference and
-#' significance using pareto fronts (pareto). This function should be run
-#' after build_limma() function.
+#' Returns signatures that are most differentially active in the limma result.
+#' We provide three methods to define "most" active: sort by the difference in
+#' activities (method = "diff"), filter by a significance level
+#' (method = "pvalue"), and consider
+#' both difference and significance using pareto fronts (method = "pareto").
+#' This function should be used after build_limma() function.
 #'
 #' @param limma_result a data.frame that stores the limma result table
 #' returned by the build_limma() function. It should have rownames that
 #' specifies the name of each feature.
-#' @param phenotypes  a factor (or a charactor that can be converted into a
+#' @param phenotypes a factor (or a charactor that can be converted into a
 #' factor) with two levels that describes the phenotype of
 #' each sample, should be the same as the phenotypes provided to the
 #' build_limma() function.
-#' @param method character, can be "diff", "pvalue", or "pareto"(default)
-#' @param pheno_group character, can be "both" (default), "level1" or "level2".
+#' @param method character, can be "diff", "pvalue", or "pareto"
+#' (default: "pareto")
+#' @param pheno_group character, can be "both", "level1", or "level2".
 #' If "both", signatures active in both phenotypes will be merged, sorted, and
-#' returned together. If "level1", only signatures active in the first
+#' considered together. If "level1", only signatures active in the first
 #' phenotypes level (signatures with negative logFC) will be returned.
 #' Similarly, "level2" will return only signatures active in the second
-#' phenotypes level (signatures with positive logFC).
+#' phenotypes level (signatures with positive logFC). (default: "both")
 #' @param N_signatures int, number of top signatures to return in the "diff"
-#' method (default to 10)
+#' method (default: 10)
 #' @param N_fronts int, number of pareto fronts to return in the "pareto" method
-#' (default to 5)
-#' @param significance_cutoff numeric, significance cutoff (in the -log10 scale)
-#' to use in the "pvalue" method
-#' @return a vector storing active signatures
+#' (default: 5)
+#' @param significance_cutoff numeric, significance cutoff
+#' to use in the "pvalue" method (default: 0.05).
+#' @return a vector storing active signatures.
 #' @export
 get_active_signatures <- function(limma_result, method = "pareto",
                                   pheno_group = "both",
                                   N_fronts = 5, N_signatures = 10,
-                                  significance_cutoff = -log10(0.05)) {
+                                  significance_cutoff = 0.05) {
 
   if (!method %in% c("pvalue", "diff", "pareto")){
     stop("Method not recognized! It should be \"pvalue\", \"FC\", or \"pareto\".")
@@ -119,7 +122,7 @@ get_active_signatures <- function(limma_result, method = "pareto",
 
   if (method == "pvalue") {
     active_signatures <- test_result$signature[
-      test_result$neglog10qvalue > significance_cutoff]
+      test_result$neglog10qvalue > -log10(significance_cutoff)]
   } else if (method == "diff") {
     active_signatures <- test_result$signature[order(
       test_result$diff, decreasing = TRUE)][1:N_signatures]
@@ -196,7 +199,7 @@ get_paretofront <- function(input_data, N_fronts) {
 #' returned by the build_limma() function. It should have rownames that
 #' specifies the name of each feature.
 #' @param highlight_signatures a character, if provided, signatures in it will
-#' be labeled and colored in red in the volcano plot (default to NULL).
+#' be labeled and colored in red in the volcano plot (default: NULL).
 #' @param interactive logical, whether the volcano plot should be interactive.
 #' If TRUE, the plot is made using plotly. (default: FALSE)
 #' @export

@@ -13,16 +13,17 @@ expression values from the second column.}
 \item{model}{the ADAGE model to be used for calculating signature activity
 (default: the 300-node eADAGE model preloaded in the package).}
 
-\item{HW_cutoff}{number of standard deviations from mean in a node's weight
-distribution to be considered as high-weight (default to 2.5). Signatures
-are formed by HW genes.}
+\item{HW_cutoff}{number of standard deviations away from mean in a node's
+weight distribution to be considered as high-weight (default to 2.5).
+Signature activities are calculated only using HW genes.}
 }
 \value{
 a data.frame with the first column being signature names and
-the rest columns storing signature activities for every sample.
+the rest columns storing signature activities for every sample in the
+input_data.
 }
 \description{
 Calculates activities for each signature in an ADAGE model
-specified by the weight matrix for each sample in the input data
+for each sample in the input_data
 }
 
