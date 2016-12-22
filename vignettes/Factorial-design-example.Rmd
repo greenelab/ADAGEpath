@@ -1,0 +1,183 @@
+---
+title: "Analyze a factorial design dataset"
+author: "Jie Tan"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_width: 7
+    fig_height: 7
+vignette: >
+  %\VignetteIndexEntry{Time course example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+This is an example for analyzing a factorial-design experiment. Factorial design
+means that there are more than one variable in the experimental design and
+all combinations of these variables have samples available.
+
+# Data preparation
+Load in required libraries.
+```{r}
+library(ADAGEpath)
+library(DT)
+library(limma)
+```
+Before any analysis, we need to specify the ADAGE model and the data compendium
+we want to use.
+```{r}
+model <- eADAGEmodel
+compendium <- PAcompendium
+probe_dist <- probedistribution
+```
+We first load in the dataset
+[E-GEOD-17296](https://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-17296/).
+It has two variables in its experimental design: strain and growth phase.
+```{r}
+accession <- "E-GEOD-17296"
+data_raw <- load_dataset(input = accession, isProcessed = FALSE,
+                         isRNAseq = FALSE, model = model,
+                         compendium = compendium,
+                         quantile_ref = probe_dist,
+                         download_folder = "./download", norm01 = FALSE)
+```
+ADAGE only accepts expression values in the (0,1) range. We linearly transform
+expression values to be between 0 and 1 using the Pa compendium as the reference.
+```{r}
+data_normed <- zeroone_norm(input_data = data_raw, use_ref = TRUE,
+                            ref_data = compendium)
+```
+To better understand the dataset, we query its sample information from
+ArrayExpress. Later we define sample phenotypes based on this query result.
+```{r}
+pheno_table <- get_sample_info(accession)
+```
+We reorder samples in the pheno_table to have the same order as the
+expression data.
+```{r}
+pheno_table <- pheno_table[match(colnames(data_raw)[-1],
+                                 pheno_table$`Array Data File`), ]
+DT::datatable(pheno_table, class = 'cell-border stripe')
+```
+
+# ADAGE signature analysis
+
+## Activity calculation
+We calculate the activity of each signature for each sample in the dataset.
+```{r}
+data_activity <- calculate_activity(input_data = data_normed, model = model)
+```
+The returned `data_activity` is a `data.frame` with signature name in the first
+column and activity values per sample starting from the second column.
+
+## Factorial analysis using limma
+There are many statistical models for factorial design. Here we employ a
+[limma](https://bioconductor.org/packages/release/bioc/html/limma.html)-based
+model to help answer questions of interest. Please refer to Chapter 9.5 in limma
+[usersguide](https://bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf)
+for more details.
+
+Based on the `pheno_table`, we first create a factor specifying strains for
+each sample.
+```{r}
+strain_pheno <- factor(c("wt", "wt", "roxSR", "roxSR", "anr", "anr",
+                         "wt", "wt", "roxSR", "roxSR", "anr", "anr"))
+```
+We next create a factor specifying growth phase for each sample.
+```{r}
+phase_pheno <- factor(c(rep("exp", 6), rep("stat", 6)))
+```
+Collect strain/phase combinations into one factor.
+```{r}
+data_pheno <- factor(paste(strain_pheno, phase_pheno, sep = "."))
+```
+Build the design matrix.
+```{r}
+design <- model.matrix(~0+data_pheno)
+colnames(design) <- levels(data_pheno)
+```
+Fit a limma model on signature activity with the design matrix.
+```{r}
+fit <- lmFit(data_activity[, -1], design)
+```
+Now we need to decide the comparison we want and make contrasts. Let's say we
+want to compare wildtype and anr mutant in the exponential phase; wildtype
+and anr mutant in the stationary phase; and compare the difference between
+the previous two comparisons.
+
+```{r}
+cont.matrix <- makeContrasts(
+  anrVSwtInEXP=anr.exp-wt.exp,
+  anrVSwtInSTAT=anr.stat-wt.stat,
+  Diff=(anr.exp-wt.exp)-(anr.stat-wt.stat),
+  levels=design)
+fit2 <- contrasts.fit(fit, cont.matrix)
+fit2 <- eBayes(fit2)
+```
+
+Now we can check the test result of each contrast. Let's use the contrast
+"anrVSwtInEXP" as an example and you can modify it to check out the result
+of other contrasts.
+```{r}
+limma_result <- topTable(fit2, coef = "anrVSwtInEXP",
+                         number = nrow(data_activity), sort.by = "none")
+rownames(limma_result) <- data_activity$signature
+```
+To take both absolute activity difference and significance into account, we
+use pareto fronts to pick the most differentially active signatures. We extract
+differentially active signatures in the first 5 layers of pareto
+fronts. Modify N_fronts to get more or fewer signatures.
+```{r}
+active_sigs <- get_active_signatures(limma_result = limma_result,
+                                     pheno_group = "both",
+                                     method = "pareto", N_fronts = 5)
+```
+Signatures that are differentially active between anr mutant and wildtype
+in the exponential phase are:
+```{r}
+print(paste(active_sigs, collapse = ","))
+```
+Check out each signature's activity changes and significance in the `limma` test.
+```{r}
+plot_volcano(limma_result = limma_result, highlight_signatures = active_sigs,
+             interactive = TRUE)
+```
+Look at how the activities of these signature vary across samples.
+```{r}
+plot_activity_heatmap(activity = data_activity, signatures = active_sigs)
+```
+
+Now let's check out the contrast "Diff". It identifies the signatures that
+response to anr knockout differently in exponential phase and stationary phase.
+```{r}
+limma_result <- topTable(fit2, coef = "Diff",
+                         number = nrow(data_activity), sort.by = "none")
+rownames(limma_result) <- data_activity$signature
+```
+To take both absolute activity difference and significance into account, we
+use pareto fronts to pick the most differentially active signatures. We extract
+differentially active signatures in the first 5 layers of pareto
+fronts. Modify N_fronts to get more or fewer signatures.
+```{r}
+active_sigs <- get_active_signatures(limma_result = limma_result,
+                                     pheno_group = "both",
+                                     method = "pareto", N_fronts = 5)
+```
+Signatures that response to anr knockout differently in exponential phase and
+stationary phase. are:
+```{r}
+print(paste(active_sigs, collapse = ","))
+```
+Check out each signature's activity changes and significance in the `limma` test.
+```{r}
+plot_volcano(limma_result = limma_result, highlight_signatures = active_sigs,
+             interactive = TRUE)
+```
+Look at how the activities of these signature vary across samples.
+```{r}
+plot_activity_heatmap(activity = data_activity, signatures = active_sigs)
+```

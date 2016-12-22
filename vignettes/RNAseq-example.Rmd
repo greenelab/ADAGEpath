@@ -1,0 +1,91 @@
+---
+title: "Analyze processed RNAseq dataset"
+author: "Jie Tan"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_width: 7
+    fig_height: 7
+vignette: >
+  %\VignetteIndexEntry{RNAseq example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+This is an example for analyzing an RNA-seq dataset of *Pseudomonas aeruginosa*
+PA14 strain. The package currently
+only support processed RNA-seq expression data: expression values of each
+sample at the gene level.
+
+# Data preparation
+Load in required libraries.
+```{r}
+library("ADAGEpath")
+library("DT")
+library("readr")
+library("plyr")
+```
+Before any analysis, we need to specify the ADAGE model and the data compendium
+we want to use.
+```{r}
+model <- eADAGEmodel
+compendium <- PAcompendium
+probe_dist <- probedistribution
+```
+We use dataset
+[E-GEOD-64056](https://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-64056/)
+as an example here. Let's first download the zip file that stores processed
+expression values for each sample and unzip it.
+```{r}
+download.file("https://www.ebi.ac.uk/arrayexpress/files/E-GEOD-64056/E-GEOD-64056.processed.1.zip", destfile = "download/E-GEOD-64056.processed.1.zip")
+unzip(zipfile = "download/E-GEOD-64056.processed.1.zip",
+      exdir = "download/E-GEOD-64056.processed.1")
+```
+This dataset contains 6 RNA-seq samples and 2 CHIP-seq samples. We next read in
+all the RNA-seq samples and combine them into one data.frame.
+```{r}
+# RNAseq files end with "rpg.txt"
+RNAseq_files <- list.files("download/E-GEOD-64056.processed.1/",
+                             pattern = "*.rpg.txt")
+RNAseq_file_paths <- file.path("download/E-GEOD-64056.processed.1/", RNAseq_files)
+RNAseq_samples <- lapply(RNAseq_file_paths,
+                         function(x) readr::read_tsv(x, col_names = FALSE))
+RNAseq_data <-  plyr::join_all(RNAseq_samples, by = "X1")
+colnames(RNAseq_data) <- c("geneID", RNAseq_files)
+DT::datatable(RNAseq_data)
+```
+The gene IDs in this dataset are in the format of "PA14_XXXXX,symbol". We need
+to clean them to only contain "PA14_XXXXX".
+```{r}
+RNAseq_data$geneID <- sapply(RNAseq_data$geneID,
+                             function(x) unlist(strsplit(x, ","))[1])
+```
+Now the `RNAseq_data` is in the right format that can be processed by the
+`load_dataset` function. This processing step will take a while, because it
+needs to first map PA14 gene IDs to PAO1 gene IDs. Then it needs to impute
+the expression of missing genes. Finally it normalizes RNAseq expression
+values to comparable ranges with microarray expression values using
+[TDM](https://github.com/greenelab/TDM).
+```{r, results = "hide"}
+data_raw <- load_dataset(input = RNAseq_data, isProcessed = TRUE,
+                         isRNAseq = TRUE, model = model,
+                         compendium = compendium, quantile_ref = probe_dist,
+                         norm01 = FALSE)
+```
+ADAGE only accepts expression values in the (0,1) range. We linearly transform
+expression values to be between 0 and 1 using the Pa compendium as the reference.
+```{r}
+data_normed <- zeroone_norm(input_data = data_raw, use_ref = TRUE,
+                            ref_data = compendium)
+```
+Now let's specify the phenotypes for each sample. It needs to be a character
+vector and has the same sample order as the expression data loaded above.
+```{r}
+data_pheno <- c("phoB", "phoB", "tctD", "tctD", "wt", "wt")
+```
+Now this RNAseq dataset is ready for ADAGE signature analysis. Please refer
+to this [vignette](User-input-example.html) on how to perform ADAGE signature
+analysis.
