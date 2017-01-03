@@ -7,22 +7,22 @@
 quantile_norm(input_data, use_ref = FALSE, ref_data = PAcompendium)
 }
 \arguments{
-\item{input_data}{A data frame with gene IDs in the first column and
+\item{input_data}{a data.frame with gene IDs in the first column and
 expression values from the second column.}
 
-\item{use_ref}{A logical value indicating whether the normalization should
+\item{use_ref}{a logical value indicating whether the normalization should
 be done based on the reference data (default: FALSE).}
 
-\item{ref_data}{A data frame storing gene expression values to be used
+\item{ref_data}{a data.frame storing gene expression values to be used
 as a reference dataset for quantile normalization. The first columns of
 input_data and ref_data that specify gene IDs should exactly be the same.
 (default: the P.a. gene expression compendium).}
 }
 \value{
-The input data frame after quantile normalization.
+the input_data.frame after quantile normalization.
 }
 \description{
-Performs quantile normalization on the input data. If using reference,
+Performs quantile normalization on the input_data. If using reference,
 quantile normalization is done using the quantile distribution derived
 from the reference data.
 }

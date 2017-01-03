@@ -14,10 +14,11 @@ annotate_genes_in_signatures(selected_signatures, model = eADAGEmodel)
 }
 \value{
 a data.frame storing genes in the input signatures. Each gene is
-annotated by gene symbol, gene description, and signatures it is in.
+annotated by gene symbol, gene description, its operon, and signatures it
+is in.
 }
 \description{
 Annotates genes in the input signatures with their symbols, descriptions,
-associated signatures.
+operons, and associated signatures.
 }
 

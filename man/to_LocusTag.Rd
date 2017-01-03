@@ -7,7 +7,7 @@
 to_LocusTag(input_ID, ref_IDs = eADAGEmodel$geneID)
 }
 \arguments{
-\item{input_ID}{the input gene ID (character).}
+\item{input_ID}{charactor, the input gene ID.}
 
 \item{ref_IDs}{a vector storing reference gene IDs that do not need
 conversion (default: gene IDs used in the pre-loaded P.a. ADAGE model).}
@@ -17,7 +17,7 @@ the corresponding PAO1 locus tag ("PAXXXX") for the input gene or NA
 if the input gene is not recognized.
 }
 \description{
-Converts the input gene ID to PAO1 locus tag that are used in ADAGE model.
+Converts the input gene ID to PAO1 locus tag that are used in ADAGE models.
 It currently can convert gene IDs on AFFY chip, PAO1 gene symbols, and
 PAO1 gene orthologs in other P.a. strains. It returns NA if the input is not
 recognized as one of above.

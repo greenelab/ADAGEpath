@@ -1,39 +1,41 @@
 #' eADAGE model
 #'
-#' A 300-node eADAGE model built for biological pathway analysis for
-#' P. aeruginosa
+#' The 300-node eADAGE model used in the paper "Unsupervised extraction of
+#' functional gene expression signatures in the bacterial pathogen Pseudomonas
+#' aeruginosa with eADAGE"
 #'
-#' @format A data frame (tibble) with 5549 rows and 301 variables:
+#' @format A data.frame (tibble) with 5549 rows and 301 variables:
 #' \describe{
 #'   \item{geneID}{P.a. PAO1 gene identifiers}
 #'   \item{Node1}{Each gene's weight to Node1}
 #'   ...
 #' }
-#' @source \url{http://biorxiv.org/content/early/2016/10/03/078659}
+#' @source \url{https://doi.org/10.1101/078659}
 "eADAGEmodel"
 
 
 #' Pseudomonas aeruginosa gene expression compendium
 #'
-#' The compendium contains all P.a. microarray datasets measured on GPL84
+#' The compendium contains all P.a. microarray datasets measured on the
+#' [Pae_G1a] Affymetric Pseudomonas aeruginosa array
 #' platform from the ArrayExpress database as of 31 July 2015. The expression
 #' values in the compendium have been background corrected and quantile
 #' normalized.
 #'
-#' @format A data frame (tibble) with 5549 rows and 1052 variables. The first column
-#' specifies gene identifiers and samples start from the second column.:
+#' @format A data.frame (tibble) with 5549 rows and 1052 variables. The first
+#' column specifies gene identifiers and samples start from the second column:
 #' \describe{
 #'   \item{geneID}{P.a. PAO1 gene identifiers}
 #'   ...
 #' }
-#' @source \url{http://biorxiv.org/content/early/2016/10/03/078659}
+#' @source \url{https://doi.org/10.1101/078659}
 "PAcompendium"
 
 
 #' Probe distribution
 #'
-#' The quantile distribution of microarray probes used in building the
-#' P. aeruginosa compendium. It will be used as a reference distribution to
+#' The quantile distribution of microarray probes used in building the preloaded
+#' PAcompendium data object. It will be used as a reference distribution to
 #' quantile normalize new datasets.
 #'
 #' @format A numeric vector:
@@ -46,7 +48,7 @@
 #' It was downloaded from NCBI ftp on Oct. 7 2016. It is used for
 #' mapping PA numbers (LocusTag) to gene Symbol.
 #'
-#' @format A data frame (tibble) with 5698 rows and 15 variables:
+#' @format A data.frame (tibble) with 5698 rows and 15 variables:
 #' \describe{
 #'  \item{#taxid}{Taxonomic id of P. aeruginosa}
 #'  \item{GeneID}{Unique gene identifiers}
@@ -65,7 +67,7 @@
 #' It uses genes in PAO1 strain as query and finds
 #' orthologs hit in other P.a. strains.
 #'
-#' @format A data frame (tibble) with 392139 rows and 8 variables:
+#' @format A data.frame (tibble) with 392139 rows and 8 variables:
 #' \describe{
 #'  \item{Strain (Query)}{Pseudomonas aeruginosa PAO1 (Reference)}
 #'  \item{Locus Tag (Query)}{Locus tag for PAO1}
@@ -83,13 +85,14 @@
 
 #' Experiments and samples in Pseudomonas aeruginosa gene expression compendium
 #'
-#' ArrayExpress experiment assession numbers and their associated sample IDs.
+#' ArrayExpress experiment assession numbers and their associated sample IDs
+#' included in the preloaded PAcompendium data object.
 #' There are duplicates in sample IDs because one sample can be included in
 #' multiple experiments.
-#' @format A data frame with 1118 rows and 2 variables:
+#' @format A data.frame with 1118 rows and 2 variables:
 #' \describe{
 #'  \item{Experiment}{ArrayExpress experiment assession numbers, only contain
-#'  experiments in the Pseudomonas aeruginosa gene expression compendium.}
+#'  experiments in the preloaded PAcompendium data object.}
 #'  \item{Sample}{Sample IDs in "xxx.CEL" format}
 #' }
 "experimentID"

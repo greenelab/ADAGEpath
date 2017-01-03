@@ -4,7 +4,7 @@
 \name{geneinfo}
 \alias{geneinfo}
 \title{Gene information}
-\format{A data frame (tibble) with 5698 rows and 15 variables:
+\format{A data.frame (tibble) with 5698 rows and 15 variables:
 \describe{
  \item{#taxid}{Taxonomic id of P. aeruginosa}
  \item{GeneID}{Unique gene identifiers}

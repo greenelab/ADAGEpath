@@ -7,26 +7,26 @@
 zeroone_norm(input_data, use_ref = FALSE, ref_data = PAcompendium)
 }
 \arguments{
-\item{input_data}{A data frame with gene IDs in the first column and
+\item{input_data}{a data.frame with gene IDs in the first column and
 expression values from the second column.}
 
-\item{use_ref}{A logical value indicating whether the normalization should
+\item{use_ref}{a logical value indicating whether the normalization should
 be done based on the reference data (default: FALSE).}
 
-\item{ref_data}{A data frame storing gene expression values to be used
+\item{ref_data}{a data.frame storing gene expression values to be used
 as a reference dataset for zero-one normalization (default: the P.a. gene
 expression compendium). The first columns in input_data and ref_data that
 specify gene IDs should be exactly the same.}
 }
 \value{
-A data frame storing zero-one normalized gene expression values from
-the input data.
+a data.frame storing zero-one normalized gene expression values from
+the input_data.
 }
 \description{
-Normalizes the input gene expression values to be between 0 and 1.
-Normalization is done per gene (row) through
-subtracting its minimum from each value and then being divided by its range.
-If using reference, the normalization is done using the gene's expression
+Normalizes gene expression values in the input_data to be between 0 and 1.
+Normalization is done per gene (row-wise) through
+subtracting row minimum from each value and then being divided by row range.
+If using reference, the normalization is done using a gene's expression
 minimum and range in the reference data.
 }
 

@@ -6,3 +6,6 @@
 *.sublime-project
 *.sublime-workspace
 *.orig
+inst/doc
+vignettes/download/
+vignettes/*_cache

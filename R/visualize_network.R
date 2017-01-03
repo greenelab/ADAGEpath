@@ -5,23 +5,32 @@
 #' nodes are linked by an edge if the correlation of the two connected genes in
 #' the ADAGE model is higher than a certain cutoff. Edge width denotes the
 #' correlation strength and edge color indicates positive (magenta) or negative
-#' (green) correlation. If each gene's expression fold change is provided, it is
-#' reflected by node color with red meaning high positive fold change and blue
-#' meaning high negative fold change.
+#' (green) correlation. If a value associated with the expression of each gene in
+#' a dataset (such as fold change or correlation to phenotype) is provided, it
+#' will be used to color gene nodes in the network with red meaning high positive
+#' value and blue meaning high negative value.
 #'
-#' @param selected_signatures a vector storing names of signatures whose genes
-#' to include in the gene-gene network
+#' @param selected_signatures a vector storing names of signatures. Genes in
+#' them will be included in the gene-gene network.
 #' @param model an ADAGE model to build gene-gene network from
 #' (default: the 300-node eADAGE model preloaded in the package).
 #' @param cor_cutoff numeric, the correlation cutoff to decide whether an edge
 #' between two genes exists in the network (default: 0.5).
-#' @param gene_logFC a data.frame with two columns, one is geneID, the other is
-#' logFC (optional, default:NULL). If not provided, the node color in the
-#' gene-gene network is uniform.
+#' @param gene_color_value a data.frame with two columns, one is geneID,
+#' the other could be logFC, correlation, or other value associated with
+#' each gene. This value will be used to color genes in the network.
+#' If not provided, the gene color in the gene-gene network is uniformly blue.
+#' (default: NULL).
 #' @importFrom magrittr "%>%"
 #' @export
 visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
-                                    cor_cutoff = 0.5, gene_logFC = NULL) {
+                                    cor_cutoff = 0.5, gene_color_value = NULL) {
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
+  }
 
   # extract all signatures and their genes from the model using the custom
   # function extract_signatures()
@@ -67,12 +76,14 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
   # set network node size
   gene_network$nodes$size <- 15
 
-  if (!is.null(gene_logFC)) {
+  if (!is.null(gene_color_value)) {
     # set network node color to reflect gene fold change
-    gene_logFC <- gene_logFC[gene_logFC$geneID %in% selected_genes, ]
-    gene_logFC$color <- create_logFC_colors(gene_logFC$logFC)
+    gene_color_value <- gene_color_value[gene_color_value$geneID %in%
+                                         selected_genes, ]
+    value_name <- colnames(gene_color_value)[2]
+    gene_color_value$color <- map_value_to_color(gene_color_value[, 2])
     gene_network$nodes <- suppressWarnings(dplyr::left_join(gene_network$nodes,
-                                                            gene_logFC,
+                                                            gene_color_value,
                                                             by = c("id" = "geneID")))
 
     # set network node title that will be displayed when mouse is above the node
@@ -80,7 +91,8 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
                                        "<br>symbol:", gene_network$nodes$label,
                                        "<br>operon:", gene_network$nodes$operon,
                                        "<br>description:", gene_network$nodes$description,
-                                       "<br>logFC:", round(gene_network$nodes$logFC, 2),
+                                       "<br>",value_name, ":",
+                                       round(gene_network$nodes[, value_name], 2),
                                        "<br>signatures:", gene_network$nodes$signature,
                                        "</p>")
   } else {
@@ -133,25 +145,25 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
 }
 
 
-#' Mapping logFC to HEX color
+#' Mapping value to HEX color
 #'
-#' Maps the continuous logFC values to HEX color values. The positive values
+#' Maps continuous values to HEX color values. The positive values
 #' are mapped to the "Reds" palette from Color Brewer 2
 #' \url{http://colorbrewer2.org/#type=sequential&scheme=Reds&n=3},
 #' and the negative values
 #' are oppsitely mapped to the "Blues" palette from the Color Brewer 2
 #' \url{http://colorbrewer2.org/#type=sequential&scheme=Blues&n=3}.
 #'
-#' @param logFC a numeric vector storing logFC values
-#' @return a character vector storing the HEX color values
-create_logFC_colors <- function(logFC){
-  col <- logFC
+#' @param value a numeric vector storing values to map
+#' @return a character vector storing the mapped HEX color values
+map_value_to_color <- function(value){
+  col <- value
   pos_pal <- leaflet::colorNumeric(palette = "Reds",
-                                   domain = logFC[logFC > 0])
-  col[logFC > 0] <- pos_pal(logFC[logFC > 0])
+                                   domain = value[value > 0])
+  col[value > 0] <- pos_pal(value[value > 0])
   neg_pal <- leaflet::colorNumeric(palette = "Blues",
-                                   domain = abs(logFC[logFC <= 0]))
-  col[logFC <= 0] <- neg_pal(abs(logFC[logFC <= 0]))
+                                   domain = abs(value[value <= 0]))
+  col[value <= 0] <- neg_pal(abs(value[value <= 0]))
 
   return(col)
 }

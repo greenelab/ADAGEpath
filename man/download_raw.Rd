@@ -9,6 +9,9 @@ download_raw(accession, download_folder = "./")
 \arguments{
 \item{accession}{ArrayExpress experiment accession number in the format of
 "E-XXXX-n".}
+
+\item{download_folder}{file path to a folder to save downloaded files
+(default: "./", the current folder).}
 }
 \value{
 file path to the downloaded zip file that stores the cel files of

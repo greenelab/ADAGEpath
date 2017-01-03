@@ -1,7 +1,7 @@
 #' Querying sample information from ArrayExpress
 #'
 #' Gets sample information of an experiment stored in the SDRF (Sample and Data
-#' Relationship Format) file from ArrayExpress database.
+#' Relationship Format) file from the ArrayExpress database.
 #'
 #' @param accession ArrayExpress experiment accession number in the format of
 #' "E-XXXX-n".
@@ -72,6 +72,8 @@ check_accession <- function(accession){
 #'
 #' @param accession ArrayExpress experiment accession number in the format of
 #' "E-XXXX-n".
+#' @param download_folder file path to a folder to save downloaded files
+#' (default: "./", the current folder).
 #' @return file path to the downloaded zip file that stores the cel files of
 #' the input experiment.
 download_raw <- function(accession, download_folder = "./"){
@@ -90,6 +92,8 @@ download_raw <- function(accession, download_folder = "./"){
 
       # get the url of the raw data when it exists
       raw_url <- all_files$url[which(grepl("raw", all_files$name))]
+      # create the download folder
+      dir.create(download_folder)
       # specify the file path to save the downloaded the zip file
       raw_zip <- file.path(download_folder, basename(raw_url))
       # download it from the url

@@ -2,15 +2,15 @@
 % Please edit documentation in R/load_data.R
 \name{check_input}
 \alias{check_input}
-\title{Input format check}
+\title{Checking input format}
 \usage{
 check_input(input_data)
 }
 \arguments{
-\item{input_data}{A data frame.}
+\item{input_data}{the input to check}
 }
 \value{
-TRUE if the input data frame meets the requirements, otherwise FALSE.
+TRUE if the input_data.frame meets the requirements, otherwise FALSE.
 }
 \description{
 Checks whether the input is a data.frame (or a tibble) with its first

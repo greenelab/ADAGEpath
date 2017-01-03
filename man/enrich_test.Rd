@@ -7,14 +7,14 @@
 enrich_test(set1, set2, set_all)
 }
 \arguments{
-\item{set1}{character vector storing genes in the first gene set}
+\item{set1}{character vector storing genes in the first gene set.}
 
-\item{set2}{character vector storing genes in the second gene set}
+\item{set2}{character vector storing genes in the second gene set.}
 
-\item{set_all}{character vector storing all possible genes}
+\item{set_all}{character vector storing all possible genes to choose from.}
 }
 \value{
-value returned by fisher.test() function, which is a list with
+object returned by fisher.test() function, which is a list with
 class "htest" containing p.value, conf.int, estimate, and so on.
 }
 \description{

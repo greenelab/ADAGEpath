@@ -4,14 +4,18 @@
 \alias{plot_volcano}
 \title{Signature volcano plot}
 \usage{
-plot_volcano(limma_result, highlight_signatures = NULL)
+plot_volcano(limma_result, highlight_signatures = NULL, interactive = FALSE)
 }
 \arguments{
 \item{limma_result}{a data.frame that stores the limma result table
-returned by the build_limma() function.}
+returned by the build_limma() function. It should have rownames that
+specifies the name of each feature.}
 
 \item{highlight_signatures}{a character, if provided, signatures in it will
-be labeled and colored in red in the volcano plot (default to NULL).}
+be labeled and colored in red in the volcano plot (default: NULL).}
+
+\item{interactive}{logical, whether the volcano plot should be interactive.
+If TRUE, the plot is made using plotly. (default: FALSE)}
 }
 \description{
 Makes a volcano plot that shows the activity difference and significance of

@@ -4,7 +4,7 @@
 \name{PAO1orthologs}
 \alias{PAO1orthologs}
 \title{Pseudomonas aeruginosa PAO1 strain orthologs}
-\format{A data frame (tibble) with 392139 rows and 8 variables:
+\format{A data.frame (tibble) with 392139 rows and 8 variables:
 \describe{
  \item{Strain (Query)}{Pseudomonas aeruginosa PAO1 (Reference)}
  \item{Locus Tag (Query)}{Locus tag for PAO1}

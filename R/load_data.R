@@ -1,59 +1,64 @@
-#' Data loading and preprocessing
+#' Loading and processing input data
 #'
-#' Currently supports four types of inputs:
-#' a zip file containing microarray CEL files in a dataset (isProcessed=FALSE,
-#' isRNAseq=FALSE);
-#' a folder containing microarray CEL files in a dataset (isProcessed=FALSE,
-#' isRNAseq=FALSE);
-#' an ArrayExpress experiment accession number in the format of "E-XXXX-n" (the
-#' experiment must be measured on the "A-AFFY-30" platform) (
-#' isProcessed=FALSE, isRNAseq=FALSE);
-#' a tab-delimited txt file storing processed gene expression values in a
-#' dataset (gene identifiers in the first column and then one sample per column)
-#' (isProcessed=TRUE, isRNAseq=TRUE/FALSE).
+#' Currently supports five types of inputs:
+#' file path to a zip file containing microarray CEL files in a dataset
+#' (isProcessed=FALSE, isRNAseq=FALSE);
+#' file path to a folder containing microarray CEL files in a dataset
+#' (isProcessed=FALSE, isRNAseq=FALSE);
+#' an ArrayExpress experiment accession number in the format of "E-XXXX-n"
+#' (the experiment must be measured on the "A-AFFY-30" platform)
+#' (isProcessed=FALSE, isRNAseq=FALSE);
+#' file path to a tab-delimited txt file storing processed gene expression
+#' values in a dataset (gene identifiers in the first column and then one
+#' sample per column) (isProcessed=TRUE, isRNAseq=TRUE/FALSE);
+#' a data.frame object storing processed gene expression
+#' values in a dataset (gene identifiers in the first column and then one
+#' sample per column) (isProcessed=TRUE, isRNAseq=TRUE/FALSE);
 #'
 #' @param input file path to the input file or input folder or ArrayExpress
-#' accession number.
-#' @param isProcessed a logical value indicating whether the input data has
-#' already been processed into a tab-delimited txt file (default: FALSE).
-#' @param isRNAseq a logical value indicating whether the processed input data
-#' is RNAseq data. If true, the processed RNAseq data will be normalized to
-#' a comparable range with the microarray-based compendium using TDM. If false,
-#' the processed input data will be quantile normalized to be comparable
-#' to the compendium. (default: FALSE)
-#' @param model the ADAGE model used to analyze the input data
+#' accession number or a data.frame object
+#' @param isProcessed a logical value indicating whether the input_data has
+#' already been processed into expression values at the gene level.
+#' @param isRNAseq a logical value indicating whether the processed input_data
+#' is RNAseq data. If TRUE, the processed RNAseq data will be normalized to
+#' a comparable range with the microarray-based compendium using TDM. If FALSE,
+#' the processed input_data is considered a microarray dataset  and will be
+#' quantile normalized to be comparable to the compendium.
+#' @param model the ADAGE model used to analyze the input_data
 #' (default: the 300-node eADAGE model of P.a. pre-loaded within the package).
 #' @param compendium the gene expression compendium of an organism
-#' (default: the P. aeruginosa expression compendium pre-loaded within
-#' the package).
-#' @param quantile_ref a vector storing the reference quantile distribution
+#' (default: the P.a. expression compendium pre-loaded within the package).
+#' @param quantile_ref a vector storing the reference quantile distribution of
+#' the input compendium at the microarray probe level.
+#' Since the input microarray data needs to be normalized to the processed
+#' compendium, the compendium and the quantile_ref must match each other.
 #' (default: the quantile distribution of probes used in
-#' normalizing the P.a. gene expression compendium).
+#' normalizing the P.a. expression compendium pre-loaded within the package).
 #' @param download_folder file path to save files downloaded from ArrayExpress
 #' when input is an ArrayExpress accession number.
 #' @param norm01 a logical value indicating whether the output should be
 #' zero-one normalized (default: FALSE)
-#' @return a data frame containing the processed gene expression values ready
+#' @return a data.frame containing the processed gene expression values ready
 #' for ADAGE analysis.
 #' @examples
 #' load_data(input, isProcessed = FALSE, isRNAseq = FALSE)
 #' @export
-load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
+load_dataset <- function(input, isProcessed, isRNAseq,
                          model = eADAGEmodel, compendium = PAcompendium,
                          quantile_ref = probedistribution,
                          download_folder = "./",
                          norm01 = FALSE){
 
   if (!check_input(model)) {
-    stop("The model should be a data frame with first column being gene IDs
-         in character and the rest columns storing numeric weight values for
-         each node per column.")
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
   }
 
   if (!check_input(compendium)) {
-    stop("The compendium should be a data frame with first column being gene IDs
-         in character and the rest columns storing numeric gene expression
-         values for each sample per column.")
+    stop("The compendium should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric gene
+         expression values for each sample per column.")
   }
 
   # quantile normalize probes if the input is raw CEL format, directly load data
@@ -87,7 +92,8 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
       }
 
     } else {
-      stop("Input is not a zip file, nor a folder, nor a valid ArrayExpress
+      stop("When isProcessed is FALSE, the input should be a zip file with CEL
+           files inside, or a folder of CEL files, or a valid ArrayExpress
            accession number.")
     }
 
@@ -95,16 +101,30 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
     data <- process_celfiles(cel_folder = cel_folder, use_ref = TRUE,
                              quantile_ref = quantile_ref)
 
-    # transform gene features in the input data to gene features used in ADAGE model
+    # transform gene features in the input_data to gene features used in ADAGE model
     data <- match_IDs(input_data = data, ref_IDs = as.data.frame(model)[, 1])
 
   } else {
 
-    # read in the processed data
-    data <- readr::read_tsv(input)
+    if (is.data.frame(input)) {
+      # expression data has been read into the data.frame input already
+      data <- input
+    } else if (file.exists(input)) {
+      # read in the processed data when input is a file path
+      data <- readr::read_tsv(input)
+    } else {
+      stop("When isProcessed is TRUE, the input should be an existing data.frame
+           storing processed expression values or a file path to a tab-delimited
+           file storing processed expression values.")
+    }
+    if (!check_input(data)) {
+      stop("The input data should be a data.frame with the first column as a
+           character of gene IDs and the rest of the columns storing numeric
+           expression values for each sample.")
+    }
     colnames(data)[1] <- "geneID"
 
-    # transform gene features in the input data to gene features used in ADAGE model
+    # transform gene features in the input_data to gene features used in ADAGE model
     data <- match_IDs(input_data = data, ref_IDs = as.data.frame(model)[, 1])
 
     # impute missing values if exist
@@ -137,27 +157,25 @@ load_dataset <- function(input, isProcessed = FALSE, isRNAseq = FALSE,
 }
 
 
-#' CEL files processing
+#' Processing CEL files
 #'
-#' Processes microarray data in cel format. Only cel files measured on the
+#' Processes microarray data in CEL format. Only CEL files measured on the
 #' "Pae_G1a" platform will be processed. If using reference, the quantile
 #' normalization of probes is based on a reference quantile
 #' distribution.
 #'
-#' @param cel_folder file path to the folder storing cel files.
+#' @param cel_folder file path to the folder storing CEL files.
 #' @param use_ref a logical value indicating whether the probe normalization
 #' should be done using a reference quantile distribution (default: TRUE).
 #' @param quantile_ref a vector storing the reference quantile distribution
-#' (default: the quantile distribution of probes used in
-#' normalizing the P.a. gene expression compendium) Since the input microarray
-#' data need to be normalized to the processed compendium, the default
-#' should not be changed in most cases.
-#' @return a data frame containing normalized gene expression values with geneID
-#' in the first column and then each cel file in one column.
+#' (default: the quantile distribution of probes used in normalizing the P.a.
+#' expression compendium pre-loaded within the package)
+#' @return a data.frame containing normalized gene expression values with geneID
+#' in the first column and then each CEL file in one column.
 process_celfiles <- function(cel_folder, use_ref = TRUE,
                              quantile_ref = probedistribution){
 
-  # read in all cel files in the folder
+  # read in all CEL files in the folder
   celfiles <- affy::list.celfiles(cel_folder)
 
   # get the platform types
@@ -165,10 +183,10 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
     affyio::read.celfile.header(paste(cel_folder, f, sep = "/"))[1]
   })
 
-  # only process cel files on "Pae_G1a" platform
+  # only process CEL files on "Pae_G1a" platform
   pfiles <- paste(cel_folder, subset(celfiles, ptype == "Pae_G1a"), sep = "/")
 
-  # read in cel files and produce an AffyBatch object
+  # read in CEL files and produce an AffyBatch object
   affybatch <- affy::ReadAffy(filenames = pfiles)
 
 
@@ -193,12 +211,12 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
 
   } else {
 
-    # directly use rma function to normalize within the input data
+    # directly use rma function to normalize within the input_data
     expression <- affy::rma(affybatch)
 
   }
 
-  # build the final gene expression data frame
+  # build the final gene expression data.frame
   colnames(expression) <- celfiles
   expression <- data.frame(geneID = rownames(expression), expression,
                            stringsAsFactors = FALSE, check.names = FALSE)
@@ -210,12 +228,12 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
 
 #' Converting gene ID to locus tag
 #'
-#' Converts the input gene ID to PAO1 locus tag that are used in ADAGE model.
+#' Converts the input gene ID to PAO1 locus tag that are used in ADAGE models.
 #' It currently can convert gene IDs on AFFY chip, PAO1 gene symbols, and
 #' PAO1 gene orthologs in other P.a. strains. It returns NA if the input is not
 #' recognized as one of above.
 #'
-#' @param input_ID the input gene ID (character).
+#' @param input_ID character, the input gene ID.
 #' @param ref_IDs a vector storing reference gene IDs that do not need
 #' conversion (default: gene IDs used in the pre-loaded P.a. ADAGE model).
 #' @return the corresponding PAO1 locus tag ("PAXXXX") for the input gene or NA
@@ -286,29 +304,30 @@ to_symbol <- function(input_ID){
 
 }
 
-#'Gene IDs matching
+
+#' Matching Gene IDs
 #'
-#'Makes sure the input data having the same gene IDs in the same order as
-#'the ADAGE model. It first converts gene IDs from the input data to PAO1 locus
-#'tags. Then it re-orders input's rows according to gene order in ADAGE and fills
-#'in zero values for genes used in the ADAGE model but missed in the
-#'input data.
+#' Makes sure the input_data has the same gene IDs in the same order as
+#' the ADAGE model. It first converts gene IDs from the input_data to PAO1 locus
+#' tags. Then it re-orders input's rows according to gene order in ADAGE and fills
+#' in zero values for genes used in the ADAGE model but missed in the
+#' input_data.
 #'
-#'@param input_data a data frame containing geneIDs in the first column and each
-#'sample's gene expression values from the second column.
-#'@param ref_IDs a vector storing the reference geneIDs in the right order
-#'(default: ordered PAO1 locus tags used in the ADAGE model).
-#'@return A data frame containing the input_data's expression values after
-#'converting gene IDs, sorting gene orders, and filling in missing genes.
+#' @param input_data a data.frame containing geneIDs in the first column and each
+#' sample's gene expression values from the second column.
+#' @param ref_IDs a vector storing the reference geneIDs in the right order
+#' (default: ordered PAO1 locus tags used in the ADAGE model).
+#' @return A data.frame containing the input_data's expression values after
+#' converting gene IDs, sorting gene orders, and filling in missing genes.
 match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 
   if (!check_input(input_data)) {
-    stop("The input data should be a data frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
-  # convert the gene IDs used in the input data to PAO1 locus tags
+  # convert the gene IDs used in the input_data to PAO1 locus tags
   converted_geneIDs <- sapply(as.data.frame(input_data)[, 1],
                               function(x) to_LocusTag(x))
 
@@ -325,10 +344,10 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
                   "are not found in the input!"))
   }
 
-  # re-order the input data
+  # re-order the input_data
   IDmapped <- input_data[match_index, -1]
 
-  # assign reference ID to the input data
+  # assign reference ID to the input_data
   IDmapped <- data.frame(geneID = ref_IDs, IDmapped, stringsAsFactors = FALSE,
                          check.names = FALSE)
 
@@ -336,49 +355,49 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 }
 
 
-#' Missing value imputation
+#' Missing values imputation
 #'
 #' Imputes and fills missing values using k-nearest neighbor method. The 5
-#' nearest neighbors of missing genes are mainly calculated using the reference
-#' data and then are used to fill in missing values in the input data. It uses
+#' nearest neighbors of missing genes are calculated mainly using the reference
+#' data and then are used to fill in missing values in the input_data. It uses
 #' the impute.knn function from the impute bioconductor package.
 #'
-#' @param input_data A data frame with gene IDs in the first column and
+#' @param input_data a data.frame with gene IDs in the first column and
 #' expression values from the second column.
-#' @param ref_data A data frame storing gene expression values to be used
+#' @param ref_data a data.frame storing gene expression values to be used
 #' as a reference dataset for calculating nearest neighbors. Should have more
-#' samples than the input data. The first columns of input_data and ref_data that
+#' samples than the input_data. The first columns of input_data and ref_data that
 #' specify gene IDs should exactly be the same. (default: the P.a. gene
 #' expression compendium).
-#' @return the input data frame with missing values being filled
+#' @return the input_data data.frame with missing values being filled
 #' @seealso \code{\link[impute]{impute.knn}}
 impute_miss_values <- function(input_data, ref_data = PAcompendium){
 
   if (!check_input(input_data)) {
-    stop("The input data should be a data frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   if (!check_input(ref_data)) {
-    stop("The reference data should be a data frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The reference data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
-  # make sure each row in the input data and reference data represents the
+  # make sure each row in the input_data and reference data represents the
   # same gene (the first columns are the same)
   if (!(nrow(input_data) == nrow(ref_data)) |
       !all(input_data[, 1] == ref_data[, 1])) {
-    stop("The gene identifiers from the input data and reference data should be
+    stop("The gene identifiers from the input_data and reference data should be
          the same!")
   }
 
-  # combine the input data and the reference data
+  # combine the input_data and the reference data
   combined_data <- as.matrix(cbind(input_data[, -1], ref_data[, -1]))
   # perform knn imputation using the reference data to find nearest neighbors
   impute_result <- impute::impute.knn(combined_data, k = 5)
-  # extract the imputed input data
+  # extract the imputed input_data
   imputed_data <- impute_result$data[, 1:ncol(input_data[, -1])]
   # add geneID column in front
   imputed_data <- data.frame(geneID = input_data[, 1], imputed_data,
@@ -389,41 +408,41 @@ impute_miss_values <- function(input_data, ref_data = PAcompendium){
 
 #' Quantile normalization
 #'
-#' Performs quantile normalization on the input data. If using reference,
+#' Performs quantile normalization on the input_data. If using reference,
 #' quantile normalization is done using the quantile distribution derived
 #' from the reference data.
 #'
-#' @param input_data A data frame with gene IDs in the first column and
+#' @param input_data a data.frame with gene IDs in the first column and
 #' expression values from the second column.
-#' @param use_ref A logical value indicating whether the normalization should
+#' @param use_ref a logical value indicating whether the normalization should
 #' be done based on the reference data (default: FALSE).
-#' @param ref_data A data frame storing gene expression values to be used
+#' @param ref_data a data.frame storing gene expression values to be used
 #' as a reference dataset for quantile normalization. The first columns of
 #' input_data and ref_data that specify gene IDs should exactly be the same.
 #' (default: the P.a. gene expression compendium).
-#' @return The input data frame after quantile normalization.
+#' @return the input_data.frame after quantile normalization.
 #' @seealso \code{\link[preprocessCore]{normalize.quantiles}},
 #' \code{\link[preprocessCore]{normalize.quantiles.use.target}},
 #' \code{\link[preprocessCore]{normalize.quantiles.determine.target}}
 quantile_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium){
 
   if (!check_input(input_data)) {
-    stop("The input data should be a data frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   if (!check_input(ref_data)) {
-    stop("The reference data should be a data frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The reference data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
-  # make sure each row in the input data and reference data represents the
+  # make sure each row in the input_data and reference data represents the
   # same gene (the first columns are the same)
   if (!(nrow(input_data) == nrow(ref_data)) |
       !all(input_data[, 1] == ref_data[, 1])) {
-    stop("The gene identifiers from the input data and reference data should be
+    stop("The gene identifiers from the input_data and reference data should be
          the same!")
   }
 
@@ -431,11 +450,11 @@ quantile_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium){
     # determine quantile distribution using the reference data
     ref_dist <- preprocessCore::normalize.quantiles.determine.target(
       as.matrix(ref_data[, -1]))
-    # normalize the input data with the derived quantile distribution
+    # normalize the input_data with the derived quantile distribution
     normed_data <- preprocessCore::normalize.quantiles.use.target(
       as.matrix(input_data[, -1]), ref_dist)
   } else {
-    # directly normalize the input data
+    # directly normalize the input_data
     normed_data <- preprocessCore::normalize.quantiles(
       as.matrix(input_data[, -1]))
   }
@@ -449,39 +468,39 @@ quantile_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium){
 }
 
 
-#'RNAseq data normalization with TDM
+#' RNAseq data normalization with TDM
 #'
-#'Performs Training Distribution Matching (TDM) on the input RNAseq data
-#'to normalize RNAseq data to a comparable range of the reference microarray
-#'compendium.
+#' Performs Training Distribution Matching (TDM) on the input RNAseq data
+#' to normalize RNAseq expression values to a comparable range of the reference
+#' microarray data.
 #'
-#'@param input_data A data frame with gene IDs in the first column and
-#'expression values from the second column.
-#'@param ref_data A data frame storing gene expression values of a
-#'compendium built from microarray data. It is used as the reference data in
-#'TDM.
-#'@return A data frame storing TDM normalized gene expression values from the
-#'input data.
-#'@seealso \url{https://github.com/greenelab/TDM}
+#' @param input_data a data.frame with gene IDs in the first column and
+#' expression values from the second column.
+#' @param ref_data a data.frame storing gene expression values of a
+#' compendium built from microarray data. It is used as the reference data in
+#' TDM (default: the P.a. gene expression compendium).
+#' @return a data.frame storing TDM normalized gene expression values from the
+#' input_data.
+#' @seealso \url{https://github.com/greenelab/TDM}
 TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 
   if (!check_input(input_data)) {
-    stop("The input data should be a data frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   if (!check_input(ref_data)) {
-    stop("The reference data should be a data frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The reference data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
-  # make sure each row in the input data and reference data represents the
+  # make sure each row in the input_data and reference data represents the
   # same gene (the first columns are the same)
   if (!(nrow(input_data) == nrow(ref_data)) |
       !all(input_data[, 1] == ref_data[, 1])) {
-    stop("The gene identifiers from the input data and reference data should be
+    stop("The gene identifiers from the input_data and reference data should be
          the same!")
   }
 
@@ -508,44 +527,44 @@ TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 }
 
 
-#'Zero-one normalization
+#' Zero-one normalization
 #'
-#'Normalizes the input gene expression values to be between 0 and 1.
-#'Normalization is done per gene (row) through
-#'subtracting its minimum from each value and then being divided by its range.
-#'If using reference, the normalization is done using the gene's expression
-#'minimum and range in the reference data.
+#' Normalizes gene expression values in the input_data to be between 0 and 1.
+#' Normalization is done per gene (row-wise) through
+#' subtracting row minimum from each value and then being divided by row range.
+#' If using reference, the normalization is done using a gene's expression
+#' minimum and range in the reference data.
 #'
-#'@param input_data A data frame with gene IDs in the first column and
-#'expression values from the second column.
-#'@param use_ref A logical value indicating whether the normalization should
-#'be done based on the reference data (default: FALSE).
-#'@param ref_data A data frame storing gene expression values to be used
-#'as a reference dataset for zero-one normalization (default: the P.a. gene
-#'expression compendium). The first columns in input_data and ref_data that
-#'specify gene IDs should be exactly the same.
-#'@return A data frame storing zero-one normalized gene expression values from
-#'the input data.
-#'@export
+#' @param input_data a data.frame with gene IDs in the first column and
+#' expression values from the second column.
+#' @param use_ref a logical value indicating whether the normalization should
+#' be done based on the reference data (default: FALSE).
+#' @param ref_data a data.frame storing gene expression values to be used
+#' as a reference dataset for zero-one normalization (default: the P.a. gene
+#' expression compendium). The first columns in input_data and ref_data that
+#' specify gene IDs should be exactly the same.
+#' @return a data.frame storing zero-one normalized gene expression values from
+#' the input_data.
+#' @export
 zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
 
   if (!check_input(input_data)) {
-    stop("The input data should be a data frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   if (!check_input(ref_data)) {
-    stop("The reference data should be a data frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The reference data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
-  # make sure each row in the input data and reference data represents the
+  # make sure each row in the input_data and reference data represents the
   # same gene (the first columns are the same)
   if (!(nrow(input_data) == nrow(ref_data)) |
       !all(input_data[, 1] == ref_data[, 1])) {
-    stop("The gene identifiers from the input data and reference data should be
+    stop("The gene identifiers from the input_data and reference data should be
          the same!")
   }
 
@@ -565,13 +584,13 @@ zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
 
   } else {
 
-    # perform zero-one normalization per gene directly on the input data
+    # perform zero-one normalization per gene directly on the input_data
     zeroone_normed <- t(apply(input_data[, -1], 1,
                               function(x) (x - min(x)) / diff(range(x))))
 
   }
 
-  # build the output data frame
+  # build the output data.frame
   zeroone_normed <- data.frame(geneID = as.data.frame(ref_data)[, 1],
                                zeroone_normed, stringsAsFactors = FALSE,
                                check.names = FALSE)
@@ -580,13 +599,13 @@ zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
 }
 
 
-#' Input format check
+#' Checking input format
 #'
 #' Checks whether the input is a data.frame (or a tibble) with its first
 #' column being character and the rest columns being numeric.
 #'
-#' @param input_data A data frame.
-#' @return TRUE if the input data frame meets the requirements, otherwise FALSE.
+#' @param input_data the input to check
+#' @return TRUE if the input_data.frame meets the requirements, otherwise FALSE.
 check_input <- function(input_data){
 
   # check whether the first column is character and the rest columns

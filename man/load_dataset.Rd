@@ -2,36 +2,37 @@
 % Please edit documentation in R/load_data.R
 \name{load_dataset}
 \alias{load_dataset}
-\title{Data loading and preprocessing}
+\title{Loading and processing input data}
 \usage{
-load_dataset(input, isProcessed = FALSE, isRNAseq = FALSE,
-  model = eADAGEmodel, compendium = PAcompendium,
-  quantile_ref = probedistribution, download_folder = "./",
-  norm01 = FALSE)
+load_dataset(input, isProcessed, isRNAseq, model = eADAGEmodel,
+  compendium = PAcompendium, quantile_ref = probedistribution,
+  download_folder = "./", norm01 = FALSE)
 }
 \arguments{
 \item{input}{file path to the input file or input folder or ArrayExpress
-accession number.}
+accession number or a data.frame object}
 
-\item{isProcessed}{a logical value indicating whether the input data has
-already been processed into a tab-delimited txt file (default: FALSE).}
+\item{isProcessed}{a logical value indicating whether the input_data has
+already been processed into expression values at the gene level.}
 
-\item{isRNAseq}{a logical value indicating whether the processed input data
-is RNAseq data. If true, the processed RNAseq data will be normalized to
-a comparable range with the microarray-based compendium using TDM. If false,
-the processed input data will be quantile normalized to be comparable
-to the compendium. (default: FALSE)}
+\item{isRNAseq}{a logical value indicating whether the processed input_data
+is RNAseq data. If TRUE, the processed RNAseq data will be normalized to
+a comparable range with the microarray-based compendium using TDM. If FALSE,
+the processed input_data is considered a microarray dataset  and will be
+quantile normalized to be comparable to the compendium.}
 
-\item{model}{the ADAGE model used to analyze the input data
+\item{model}{the ADAGE model used to analyze the input_data
 (default: the 300-node eADAGE model of P.a. pre-loaded within the package).}
 
 \item{compendium}{the gene expression compendium of an organism
-(default: the P. aeruginosa expression compendium pre-loaded within
-the package).}
+(default: the P.a. expression compendium pre-loaded within the package).}
 
-\item{quantile_ref}{a vector storing the reference quantile distribution
+\item{quantile_ref}{a vector storing the reference quantile distribution of
+the input compendium at the microarray probe level.
+Since the input microarray data need to be normalized to the processed
+compendium, the compendium and the quantile_ref must match each other.
 (default: the quantile distribution of probes used in
-normalizing the P.a. gene expression compendium).}
+normalizing the P.a. expression compendium pre-loaded within the package).}
 
 \item{download_folder}{file path to save files downloaded from ArrayExpress
 when input is an ArrayExpress accession number.}
@@ -40,21 +41,24 @@ when input is an ArrayExpress accession number.}
 zero-one normalized (default: FALSE)}
 }
 \value{
-a data frame containing the processed gene expression values ready
+a data.frame containing the processed gene expression values ready
 for ADAGE analysis.
 }
 \description{
-Currently supports four types of inputs:
-a zip file containing microarray CEL files in a dataset (isProcessed=FALSE,
-isRNAseq=FALSE);
-a folder containing microarray CEL files in a dataset (isProcessed=FALSE,
-isRNAseq=FALSE);
-an ArrayExpress experiment accession number in the format of "E-XXXX-n" (the
-experiment must be measured on the "A-AFFY-30" platform) (
-isProcessed=FALSE, isRNAseq=FALSE);
-a tab-delimited txt file storing processed gene expression values in a
-dataset (gene identifiers in the first column and then one sample per column)
-(isProcessed=TRUE, isRNAseq=TRUE/FALSE).
+Currently supports five types of inputs:
+file path to a zip file containing microarray CEL files in a dataset
+(isProcessed=FALSE, isRNAseq=FALSE);
+file path to a folder containing microarray CEL files in a dataset
+(isProcessed=FALSE, isRNAseq=FALSE);
+an ArrayExpress experiment accession number in the format of "E-XXXX-n"
+(the experiment must be measured on the "A-AFFY-30" platform)
+(isProcessed=FALSE, isRNAseq=FALSE);
+file path to a tab-delimited txt file storing processed gene expression
+values in a dataset (gene identifiers in the first column and then one
+sample per column) (isProcessed=TRUE, isRNAseq=TRUE/FALSE);
+a data.frame object storing processed gene expression
+values in a dataset (gene identifiers in the first column and then one
+sample per column) (isProcessed=TRUE, isRNAseq=TRUE/FALSE);
 }
 \examples{
 load_data(input, isProcessed = FALSE, isRNAseq = FALSE)

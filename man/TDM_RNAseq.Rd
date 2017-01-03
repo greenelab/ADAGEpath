@@ -7,21 +7,21 @@
 TDM_RNAseq(input_data, ref_data = PAcompendium)
 }
 \arguments{
-\item{input_data}{A data frame with gene IDs in the first column and
+\item{input_data}{a data.frame with gene IDs in the first column and
 expression values from the second column.}
 
-\item{ref_data}{A data frame storing gene expression values of a
+\item{ref_data}{a data.frame storing gene expression values of a
 compendium built from microarray data. It is used as the reference data in
-TDM.}
+TDM (default: the P.a. gene expression compendium).}
 }
 \value{
-A data frame storing TDM normalized gene expression values from the
-input data.
+a data.frame storing TDM normalized gene expression values from the
+input_data.
 }
 \description{
 Performs Training Distribution Matching (TDM) on the input RNAseq data
-to normalize RNAseq data to a comparable range of the reference microarray
-compendium.
+to normalize RNAseq expression values to a comparable range of the reference
+microarray data.
 }
 \seealso{
 \url{https://github.com/greenelab/TDM}

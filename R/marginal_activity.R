@@ -1,10 +1,10 @@
 #' Marginal activity calculation
 #'
-#' Calculates the marginal activities between all possible pairs of the input
+#' Calculates the marginal activities between every two combinations of the input
 #' signatures. Marginal activity is defined as the activity of a signature
-#' after removing genes that overlap with another signature.
+#' after removing genes that it overlaps with another signature.
 #'
-#' @param input_data a data frame with gene IDs in the first column and
+#' @param input_data a data.frame with gene IDs in the first column and
 #' expression values from the second column.
 #' @param selected_signatures a vector storing names of selected signatures
 #' @param model  an ADAGE model to extract signatures from
@@ -13,15 +13,21 @@
 #' It's rownames is set as "signature1-signature2",
 #' indicating a marginal activity for signature1 after
 #' removing the effect of signature2. If rowname is "signature1-signature1",
-#' then it's the activity of signature1.
+#' then it's the activity of signature1 itself.
 #' @export
 calculate_marginal_activity <- function(input_data, selected_signatures,
                                         model = eADAGEmodel) {
 
   if (!check_input(input_data)){
-    stop("The input data should be a data frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
+  }
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
   }
 
   if(!all(input_data[, 1] == model[, 1])){
@@ -104,7 +110,7 @@ calculate_marginal_activity <- function(input_data, selected_signatures,
 #' significance of signatures themselves.
 #'
 #' @param marginal_limma_result a data.frame that stores the limma result table
-#' returned by the build_limma() function. It's rownames are in the format of
+#' returned by the build_limma() function. It's rownames is in the format of
 #' "signature1-signature2".
 #' @export
 plot_marginal_activation <- function(marginal_limma_result){

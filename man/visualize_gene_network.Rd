@@ -5,11 +5,11 @@
 \title{Gene-gene network visualization}
 \usage{
 visualize_gene_network(selected_signatures, model = eADAGEmodel,
-  cor_cutoff = 0.5, gene_logFC = NULL)
+  cor_cutoff = 0.5, gene_color_value = NULL)
 }
 \arguments{
-\item{selected_signatures}{a vector storing names of signatures whose genes
-to include in the gene-gene network}
+\item{selected_signatures}{a vector storing names of signatures. Genes in
+them will be included in the gene-gene network.}
 
 \item{model}{an ADAGE model to build gene-gene network from
 (default: the 300-node eADAGE model preloaded in the package).}
@@ -17,9 +17,11 @@ to include in the gene-gene network}
 \item{cor_cutoff}{numeric, the correlation cutoff to decide whether an edge
 between two genes exists in the network (default: 0.5).}
 
-\item{gene_logFC}{a data.frame with two columns, one is geneID, the other is
-logFC (optional, default:NULL). If not provided, the node color in the
-gene-gene network is uniform.}
+\item{gene_color_value}{a data.frame with two columns, one is geneID,
+the other could be logFC, correlation, or other value associated with
+each gene. This value will be used to color genes in the network.
+If not provided, the gene color in the gene-gene network is uniformly blue.
+(default: NULL).}
 }
 \description{
 Builds and visualizes an ADAGE-derived gene-gene network of genes in the
@@ -27,8 +29,9 @@ selected signatures. In the network, each node represents a gene and two
 nodes are linked by an edge if the correlation of the two connected genes in
 the ADAGE model is higher than a certain cutoff. Edge width denotes the
 correlation strength and edge color indicates positive (magenta) or negative
-(green) correlation. If each gene's expression fold change is provided, it is
-reflected by node color with red meaning high positive fold change and blue
-meaning high negative fold change.
+(green) correlation. If a value associated with the expression of each gene in
+a dataset (such as fold change or correlation to phenotype) is provided, it
+will be used to color gene nodes in the network with red meaning high positive
+value and blue meaning high negative value.
 }
 

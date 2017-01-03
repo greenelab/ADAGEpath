@@ -4,41 +4,47 @@
 \alias{get_active_signatures}
 \title{Most active signature retrieval}
 \usage{
-get_active_signatures(limma_result, phenotypes, method = "pareto",
-  pheno_group = "both", N_signatures = 10, N_fronts = 5,
-  significance_cutoff = -log10(0.05))
+get_active_signatures(limma_result, method = "pareto", pheno_group = "both",
+  N_fronts = 5, N_signatures = 10, significance_cutoff = 0.05)
 }
 \arguments{
 \item{limma_result}{a data.frame that stores the limma result table
-returned by the build_limma() function.}
+returned by the build_limma() function. It should have rownames that
+specifies the name of each feature.}
 
-\item{phenotypes}{a factor obtained from the set_phenotype() function, should
-be the same as the phenotypes provided to build_limma() function.}
+\item{method}{character, can be "diff", "pvalue", or "pareto"
+(default: "pareto")}
 
-\item{method}{character, can be "diff", "pvalue", or "pareto"(default)}
-
-\item{pheno_group}{character, can be "both" (default) or one of the
-phenotype level used during build_limma(). If "both", signatures active
-in both phenotypes will be merged, sorted, and returned together. Otherwise,
-only signatures active in the input phenotype will be returned.}
-
-\item{N_signatures}{int, number of top signatures to return in the "diff"
-method (default to 10)}
+\item{pheno_group}{character, can be "both", "level1", or "level2".
+If "both", signatures active in both phenotypes will be merged, sorted, and
+considered together. If "level1", only signatures active in the first
+phenotypes level (signatures with negative logFC) will be returned.
+Similarly, "level2" will return only signatures active in the second
+phenotypes level (signatures with positive logFC). (default: "both")}
 
 \item{N_fronts}{int, number of pareto fronts to return in the "pareto" method
-(default to 5)}
+(default: 5)}
 
-\item{significance_cutoff}{numeric, significance cutoff (in the -log10 scale)
-to use in the "pvalue" method}
+\item{N_signatures}{int, number of top signatures to return in the "diff"
+method (default: 10)}
+
+\item{significance_cutoff}{numeric, significance cutoff
+to use in the "pvalue" method (default: 0.05).}
+
+\item{phenotypes}{a factor (or a charactor that can be converted into a
+factor) with two levels that describes the phenotype of
+each sample, should be the same as the phenotypes provided to the
+build_limma() function.}
 }
 \value{
-a vector storing active signatures
+a vector storing active signatures.
 }
 \description{
-Returns the signatures that are most differentially active in the limma result.
-We provide three methods to define "most" active: sort by the activity
-difference (diff), significance (pvalue), and consider both difference and
-significance using pareto fronts (pareto). This function should be run
-after build_limma() function.
+Returns signatures that are most differentially active in the limma result.
+We provide three methods to define "most" active: sort by the difference in
+activities (method = "diff"), filter by a significance level
+(method = "pvalue"), and consider
+both difference and significance using pareto fronts (method = "pareto").
+This function should be used after build_limma() function.
 }
 

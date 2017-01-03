@@ -15,6 +15,6 @@ a data.frame storing sample information in the SDRF file
 }
 \description{
 Gets sample information of an experiment stored in the SDRF (Sample and Data
-Relationship Format) file from ArrayExpress database.
+Relationship Format) file from the ArrayExpress database.
 }
 

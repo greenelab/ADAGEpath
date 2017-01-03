@@ -8,9 +8,9 @@ one_signature_activity(weight_matrix, express_matrix, node, side,
   HW_cutoff = 2.5)
 }
 \arguments{
-\item{weight_matrix}{a data matrix storing the weight matrix in an ADAGE model.}
+\item{weight_matrix}{a data.matrix storing the weight matrix in an ADAGE model.}
 
-\item{express_matrix}{a data matrix storing gene expression values in a dataset}
+\item{express_matrix}{a data.matrix storing gene expression values in a dataset}
 
 \item{node}{a int ranging from 1 to number of columns in weight_matrix}
 
@@ -23,6 +23,6 @@ distribution to be considered as high-weight (default to 2.5).}
 a vector storing activities of one signature across samples
 }
 \description{
-Calculates activities for a specific signature in an ADAGE model
+Calculates activities for a specific signature in an ADAGE model.
 }
 

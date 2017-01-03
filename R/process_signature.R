@@ -2,17 +2,23 @@
 #'
 #' Extracts all gene signatures from an ADAGE model.
 #'
-#' @param model the ADAGE model to be used for extracting gene signatures
+#' @param model the ADAGE model to be used for extracting signatures
 #' (default: the 300-node eADAGE model preloaded in the package).
 #' @param HW_cutoff number of standard deviations from mean in a node's weight
 #' distribution to be considered as high-weight (default to 2.5). Only
-#' high-weight genes are included in gene signatures.
+#' high-weight genes are included in signatures.
 #' @param use_symbol logical, whether the returned signatures use gene symbol
-#' as gene identifiers.
+#' as gene identifiers (default: FALSE).
 #' @return a named list with each element being a gene signature
 #' @export
 extract_signatures <- function(model = eADAGEmodel, HW_cutoff = 2.5,
                                use_symbol = FALSE){
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
+  }
 
   geneID <- as.data.frame(model)[, 1]
   if (use_symbol) {
@@ -79,13 +85,12 @@ one_signature <- function(node_weight, geneID, side, HW_cutoff = 2.5){
 #' Performs a one-side fisher exact test to determine whether two sets of genes
 #' have significant overlap.
 #'
-#' @param set1 character vector storing genes in the first gene set
-#' @param set2 character vector storing genes in the second gene set
-#' @param set_all character vector storing all possible genes
-#' @return value returned by fisher.test() function, which is a list with
+#' @param set1 character vector storing genes in the first gene set.
+#' @param set2 character vector storing genes in the second gene set.
+#' @param set_all character vector storing all possible genes to choose from.
+#' @return object returned by fisher.test() function, which is a list with
 #' class "htest" containing p.value, conf.int, estimate, and so on.
 #' @seealso \code{\link[stats]{fisher.test}}
-#' @export
 enrich_test <- function(set1, set2, set_all){
 
   set_overlap <- length(intersect(set1, set2))
@@ -100,19 +105,24 @@ enrich_test <- function(set1, set2, set_all){
 }
 
 
-#' Signature overlap calculation
+#' Signature overlap test
 #'
-#' Tests how significant all possible pairs of input signatures
+#' Tests how significant any two combinations of input signatures
 #' overlap with each other in term of their gene compositions.
 #'
 #' @param selected_signatures a vector storing names of signatures selected
 #' to be tested.
 #' @param model an ADAGE model to extract signatures from
 #' (default: the 300-node eADAGE model preloaded in the package).
-#' @return a named list storing odds ratios for all pairs of signature overlap
+#' @return a named list storing odds ratios in all signature overlap
 #' tests.
-#' @export
 test_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
+  }
 
   # extract all signatures' gene lists
   signatures_genes <- extract_signatures(model)
@@ -182,12 +192,13 @@ build_signature_overlap_matrix <- function(selected_signatures, odds_ratios){
 
 #' Signature overlap plot
 #'
-#' Plots the overlap significance between signature pairs using a heatmap.
-#' Values in the heatmap represent the odds ratio in fisher exact test.
+#' Plots the overlap significance between all pairs of signatures using a heatmap.
+#' Values in the heatmap represent the odds ratio in fisher exact test on how
+#' significant two signatures overlap in their genes.
 #' A higher odds ratio indicates a more significant overlap between genes
 #' in two signatures. The diagonal is set to the highest odds ratio in the
 #' selected signature pairs just for visualization purpose. The plot will be
-#' difficult to see if including more than 50 signatures.
+#' difficult to see if including more than 50 selected_signatures
 #'
 #' @param selected_signatures a vector storing names of signatures to include
 #' in the plot
@@ -195,6 +206,12 @@ build_signature_overlap_matrix <- function(selected_signatures, odds_ratios){
 #' (default: the 300-node eADAGE model preloaded in the package).
 #' @export
 plot_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
+
+  if (!check_input(model)) {
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
+  }
 
   # test how sigfinicant each signature pair overlaps
   odds_ratios <- test_signature_overlap(selected_signatures, model)

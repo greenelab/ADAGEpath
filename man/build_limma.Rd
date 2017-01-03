@@ -11,7 +11,10 @@ build_limma(input_data, phenotypes, use.bonferroni = FALSE)
 gene expression values. The first column specifies feature names (genes or
 signatures).}
 
-\item{phenotypes}{a factor obtained from the set_phenotype() function.}
+\item{phenotypes}{a factor (or a charactor that can be converted into a
+factor) with two levels that describes the phenotype of each sample.
+The first factor level is used as the control group and the second level is
+used as the treatment group in the limma test.}
 
 \item{use.bonferroni}{a logical value indicating whether to use the more
 conservative "bonferroni" method in the p value adjustment.
@@ -20,7 +23,11 @@ using the default "BH" method. (default: FALSE)}
 }
 \value{
 a data.frame that stores the result table returned by limma. It
-includes logFC, adj.P.Val, and other statistics for each feature.
+includes logFC, adj.P.Val, and other statistics for each feature. LogFC only
+makes sense when input is gene expression values. If the
+input is signature activity, then logFC equals to absolute difference.
+Features with positive logFC have higher values in the second phenotypes
+level.
 }
 \description{
 Uses limma to build a linear model to test the differential expression or

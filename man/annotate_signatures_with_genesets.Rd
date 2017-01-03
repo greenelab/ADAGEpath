@@ -18,7 +18,7 @@ function fetch_geneset(), each element in the list is a character vector
 storing genes (PAO1 locus tag) in a gene set.}
 
 \item{significance_cutoff}{numeric, FDR significance cutoff used to filter
-the result (default to 0.05).}
+the result (default: 0.05).}
 }
 \value{
 a data.frame storing significantly enriched gene sets for the
