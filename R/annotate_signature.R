@@ -93,9 +93,9 @@ annotate_signatures_with_genesets <- function(selected_signatures,
                                               model = eADAGEmodel, genesets,
                                               significance_cutoff = 0.05){
   if (!check_input(model)) {
-    stop("The model should be a data.frame with first column being gene IDs
-         in character and the rest columns storing numeric weight values for
-         each node per column.")
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
   }
 
   # extract all signatures' gene lists
@@ -144,9 +144,9 @@ annotate_genes_in_signatures <- function(selected_signatures,
                                          model = eADAGEmodel){
 
   if (!check_input(model)) {
-    stop("The model should be a data.frame with first column being gene IDs
-         in character and the rest columns storing numeric weight values for
-         each node per column.")
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
   }
 
   # extract all signatures' gene lists

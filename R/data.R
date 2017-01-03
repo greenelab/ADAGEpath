@@ -10,7 +10,7 @@
 #'   \item{Node1}{Each gene's weight to Node1}
 #'   ...
 #' }
-#' @source \url{http://biorxiv.org/content/early/2016/12/02/078659}
+#' @source \url{https://doi.org/10.1101/078659}
 "eADAGEmodel"
 
 
@@ -28,14 +28,14 @@
 #'   \item{geneID}{P.a. PAO1 gene identifiers}
 #'   ...
 #' }
-#' @source \url{http://biorxiv.org/content/early/2016/12/02/078659}
+#' @source \url{https://doi.org/10.1101/078659}
 "PAcompendium"
 
 
 #' Probe distribution
 #'
-#' The quantile distribution of microarray probes used in building the
-#' PAcompendium. It will be used as a reference distribution to
+#' The quantile distribution of microarray probes used in building the preloaded
+#' PAcompendium data object. It will be used as a reference distribution to
 #' quantile normalize new datasets.
 #'
 #' @format A numeric vector:
@@ -86,13 +86,13 @@
 #' Experiments and samples in Pseudomonas aeruginosa gene expression compendium
 #'
 #' ArrayExpress experiment assession numbers and their associated sample IDs
-#' included in the PAcompendium.
+#' included in the preloaded PAcompendium data object.
 #' There are duplicates in sample IDs because one sample can be included in
 #' multiple experiments.
 #' @format A data.frame with 1118 rows and 2 variables:
 #' \describe{
 #'  \item{Experiment}{ArrayExpress experiment assession numbers, only contain
-#'  experiments in the PAcompendium.}
+#'  experiments in the preloaded PAcompendium data object.}
 #'  \item{Sample}{Sample IDs in "xxx.CEL" format}
 #' }
 "experimentID"

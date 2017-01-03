@@ -18,15 +18,15 @@ calculate_activity <- function(input_data, model = eADAGEmodel,
                                HW_cutoff = 2.5) {
 
   if (!check_input(input_data)){
-    stop("The input data should be a data.frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   if (!check_input(model)) {
-    stop("The model should be a data.frame with first column being gene IDs
-         in character and the rest columns storing numeric weight values for
-         each node per column.")
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
   }
 
   if(!all(input_data[, 1] == model[, 1])){
@@ -125,9 +125,9 @@ plot_activity_heatmap <- function(activity, signatures = NULL,
                                   fix_color_range = TRUE){
 
   if (!check_input(activity)){
-    stop("The input activity should be a data.frame with first column storing
-         signature names in character and the rest columns storing activity
-         values for each sample in numeric.")
+    stop("The input activity should be a data.frame with the first column as
+         a character of signature names and the rest of the columns storing
+         numeric activity values for each sample.")
   }
 
   # set the activity rownames to NULL in case it has rownames

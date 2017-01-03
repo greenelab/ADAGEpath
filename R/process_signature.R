@@ -15,9 +15,9 @@ extract_signatures <- function(model = eADAGEmodel, HW_cutoff = 2.5,
                                use_symbol = FALSE){
 
   if (!check_input(model)) {
-    stop("The model should be a data.frame with first column being gene IDs
-         in character and the rest columns storing numeric weight values for
-         each node per column.")
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
   }
 
   geneID <- as.data.frame(model)[, 1]
@@ -119,9 +119,9 @@ enrich_test <- function(set1, set2, set_all){
 test_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
 
   if (!check_input(model)) {
-    stop("The model should be a data.frame with first column being gene IDs
-         in character and the rest columns storing numeric weight values for
-         each node per column.")
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
   }
 
   # extract all signatures' gene lists
@@ -208,9 +208,9 @@ build_signature_overlap_matrix <- function(selected_signatures, odds_ratios){
 plot_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
 
   if (!check_input(model)) {
-    stop("The model should be a data.frame with first column being gene IDs
-         in character and the rest columns storing numeric weight values for
-         each node per column.")
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
   }
 
   # test how sigfinicant each signature pair overlaps

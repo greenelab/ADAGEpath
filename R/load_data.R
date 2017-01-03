@@ -30,7 +30,7 @@
 #' (default: the P.a. expression compendium pre-loaded within the package).
 #' @param quantile_ref a vector storing the reference quantile distribution of
 #' the input compendium at the microarray probe level.
-#' Since the input microarray data need to be normalized to the processed
+#' Since the input microarray data needs to be normalized to the processed
 #' compendium, the compendium and the quantile_ref must match each other.
 #' (default: the quantile distribution of probes used in
 #' normalizing the P.a. expression compendium pre-loaded within the package).
@@ -50,15 +50,15 @@ load_dataset <- function(input, isProcessed, isRNAseq,
                          norm01 = FALSE){
 
   if (!check_input(model)) {
-    stop("The model should be a data.frame with first column being gene IDs
-         in character and the rest columns storing numeric weight values for
-         each node per column.")
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
   }
 
   if (!check_input(compendium)) {
-    stop("The compendium should be a data.frame with first column being gene IDs
-         in character and the rest columns storing numeric gene expression
-         values for each sample per column.")
+    stop("The compendium should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric gene
+         expression values for each sample per column.")
   }
 
   # quantile normalize probes if the input is raw CEL format, directly load data
@@ -117,10 +117,10 @@ load_dataset <- function(input, isProcessed, isRNAseq,
            storing processed expression values or a file path to a tab-delimited
            file storing processed expression values.")
     }
-    if (!check_input(input)) {
-      stop("The input_data should be a data.frame with the first column being
-           character gene IDs and the rest columns storing numeric expression
-           values with one sample per column.")
+    if (!check_input(data)) {
+      stop("The input data should be a data.frame with the first column as a
+           character of gene IDs and the rest of the columns storing numeric
+           expression values for each sample.")
     }
     colnames(data)[1] <- "geneID"
 
@@ -233,7 +233,7 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
 #' PAO1 gene orthologs in other P.a. strains. It returns NA if the input is not
 #' recognized as one of above.
 #'
-#' @param input_ID charactor, the input gene ID.
+#' @param input_ID character, the input gene ID.
 #' @param ref_IDs a vector storing reference gene IDs that do not need
 #' conversion (default: gene IDs used in the pre-loaded P.a. ADAGE model).
 #' @return the corresponding PAO1 locus tag ("PAXXXX") for the input gene or NA
@@ -307,7 +307,7 @@ to_symbol <- function(input_ID){
 
 #' Matching Gene IDs
 #'
-#' Makes sure the input_data having the same gene IDs in the same order as
+#' Makes sure the input_data has the same gene IDs in the same order as
 #' the ADAGE model. It first converts gene IDs from the input_data to PAO1 locus
 #' tags. Then it re-orders input's rows according to gene order in ADAGE and fills
 #' in zero values for genes used in the ADAGE model but missed in the
@@ -322,9 +322,9 @@ to_symbol <- function(input_ID){
 match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 
   if (!check_input(input_data)) {
-    stop("The input_data should be a data.frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   # convert the gene IDs used in the input_data to PAO1 locus tags
@@ -374,15 +374,15 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 impute_miss_values <- function(input_data, ref_data = PAcompendium){
 
   if (!check_input(input_data)) {
-    stop("The input_data should be a data.frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   if (!check_input(ref_data)) {
-    stop("The reference data should be a data.frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The reference data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   # make sure each row in the input_data and reference data represents the
@@ -427,15 +427,15 @@ impute_miss_values <- function(input_data, ref_data = PAcompendium){
 quantile_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium){
 
   if (!check_input(input_data)) {
-    stop("The input_data should be a data.frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   if (!check_input(ref_data)) {
-    stop("The reference data should be a data.frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The reference data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   # make sure each row in the input_data and reference data represents the
@@ -485,15 +485,15 @@ quantile_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium){
 TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 
   if (!check_input(input_data)) {
-    stop("The input_data should be a data.frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   if (!check_input(ref_data)) {
-    stop("The reference data should be a data.frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The reference data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   # make sure each row in the input_data and reference data represents the
@@ -549,15 +549,15 @@ TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
 
   if (!check_input(input_data)) {
-    stop("The input_data should be a data.frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The input data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   if (!check_input(ref_data)) {
-    stop("The reference data should be a data.frame with first column storing
-         geneIDs in character and the rest columns storing expression values
-         for each sample in numeric.")
+    stop("The reference data should be a data.frame with the first column as a
+         character of gene IDs and the rest of the columns storing numeric
+         expression values for each sample.")
   }
 
   # make sure each row in the input_data and reference data represents the

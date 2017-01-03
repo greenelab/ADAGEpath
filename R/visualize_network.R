@@ -27,9 +27,9 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
                                     cor_cutoff = 0.5, gene_color_value = NULL) {
 
   if (!check_input(model)) {
-    stop("The model should be a data.frame with first column being gene IDs
-         in character and the rest columns storing numeric weight values for
-         each node per column.")
+    stop("The model should be a data.frame with the first column as a character
+         of gene IDs and the rest of the columns storing numeric weight values
+         for each node.")
   }
 
   # extract all signatures and their genes from the model using the custom
