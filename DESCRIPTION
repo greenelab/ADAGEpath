@@ -41,5 +41,6 @@ Remotes: Greenelab/TDM,
 RoxygenNote: 5.0.1
 Suggests: knitr,
     rmarkdown,
-    DT
+    DT,
+    plyr
 VignetteBuilder: knitr

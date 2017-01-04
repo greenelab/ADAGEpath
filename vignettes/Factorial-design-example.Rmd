@@ -124,7 +124,7 @@ colnames(design) <- levels(data_pheno)
 Fit a limma model on signature activity with the design matrix.
 
 ```{r}
-fit <- lmFit(data_activity[, -1], design)
+fit <- limma::lmFit(data_activity[, -1], design)
 ```
 
 Now we need to decide the comparison we want and make contrasts. Let's say we
@@ -133,13 +133,13 @@ and anr mutant in the stationary phase; and compare the difference between
 the previous two comparisons.
 
 ```{r}
-cont.matrix <- makeContrasts(
-  anrVSwtInEXP=anr.exp-wt.exp,
-  anrVSwtInSTAT=anr.stat-wt.stat,
-  Diff=(anr.exp-wt.exp)-(anr.stat-wt.stat),
-  levels=design)
-fit2 <- contrasts.fit(fit, cont.matrix)
-fit2 <- eBayes(fit2)
+cont.matrix <- limma::makeContrasts(
+  anrVSwtInEXP = anr.exp - wt.exp,
+  anrVSwtInSTAT = anr.stat - wt.stat,
+  Diff = (anr.exp - wt.exp) - (anr.stat - wt.stat),
+  levels = design)
+fit2 <- limma::contrasts.fit(fit, cont.matrix)
+fit2 <- limma::eBayes(fit2)
 ```
 
 Now we can check the test result of each contrast. Let's use the contrast
@@ -147,8 +147,8 @@ Now we can check the test result of each contrast. Let's use the contrast
 of other contrasts.
 
 ```{r}
-limma_result <- topTable(fit2, coef = "anrVSwtInEXP",
-                         number = nrow(data_activity), sort.by = "none")
+limma_result <- limma::topTable(fit2, coef = "anrVSwtInEXP",
+                                number = nrow(data_activity), sort.by = "none")
 rownames(limma_result) <- data_activity$signature
 ```
 
@@ -187,8 +187,8 @@ Now let's check out the contrast "Diff". It identifies the signatures that
 response to anr knockout differently in exponential phase and stationary phase.
 
 ```{r}
-limma_result <- topTable(fit2, coef = "Diff",
-                         number = nrow(data_activity), sort.by = "none")
+limma_result <- limma::topTable(fit2, coef = "Diff",
+                                number = nrow(data_activity), sort.by = "none")
 rownames(limma_result) <- data_activity$signature
 ```
 

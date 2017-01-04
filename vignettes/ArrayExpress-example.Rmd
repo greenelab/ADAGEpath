@@ -24,7 +24,6 @@ Load in required libraries.
 
 ```{r}
 library("ADAGEpath")
-library("knitr")
 library("DT")
 library("dplyr")
 ```

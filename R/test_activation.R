@@ -76,10 +76,6 @@ build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
 #' @param limma_result a data.frame that stores the limma result table
 #' returned by the build_limma() function. It should have rownames that
 #' specifies the name of each feature.
-#' @param phenotypes a factor (or a charactor that can be converted into a
-#' factor) with two levels that describes the phenotype of
-#' each sample, should be the same as the phenotypes provided to the
-#' build_limma() function.
 #' @param method character, can be "diff", "pvalue", or "pareto"
 #' (default: "pareto")
 #' @param pheno_group character, can be "both", "level1", or "level2".
