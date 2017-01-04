@@ -1,0 +1,255 @@
+---
+title: "Analyze a time-course dataset"
+author: "Jie Tan"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_width: 7
+    fig_height: 7
+vignette: >
+  %\VignetteIndexEntry{Time course example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+This is an example for analyzing a time-course experiment.
+
+# Data preparation
+Load in required libraries.
+
+```{r}
+library(ADAGEpath)
+library(DT)
+library(splines)
+library(limma)
+```
+
+Before any analysis, we need to specify the ADAGE model and the data compendium
+we want to use.
+
+```{r}
+model <- eADAGEmodel
+compendium <- PAcompendium
+probe_dist <- probedistribution
+```
+
+We first load in the dataset
+[E-GEOD-52445](https://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-52445/).
+It is a high resolution time-series data of *Pseudomonas aeruginosa* PAO1.
+
+```{r}
+accession <- "E-GEOD-52445"
+data_raw <- load_dataset(input = accession, isProcessed = FALSE,
+                         isRNAseq = FALSE, model = model,
+                         compendium = compendium,
+                         quantile_ref = probe_dist,
+                         download_folder = "./download", norm01 = FALSE)
+```
+
+ADAGE only accepts expression values in the (0,1) range. We linearly transform
+expression values to be between 0 and 1 using the Pa compendium as the reference.
+
+```{r}
+data_normed <- zeroone_norm(input_data = data_raw, use_ref = TRUE,
+                            ref_data = compendium)
+```
+
+To better understand the dataset, we query its sample information from
+ArrayExpress. Later we define sample phenotypes based on this query result.
+
+```{r}
+pheno_table <- get_sample_info(accession)
+```
+
+We reorder samples in the pheno_table to have the same order as the
+expression data.
+
+```{r}
+pheno_table <- pheno_table[match(colnames(data_raw)[-1],
+                                 pheno_table$`Array Data File`), ]
+DT::datatable(pheno_table[, 1:10], class = 'cell-border stripe')
+```
+
+# ADAGE signature analysis
+
+## Activity calculation
+We calculate the activity of each signature for each sample in the dataset.
+
+```{r}
+data_activity <- calculate_activity(input_data = data_normed, model = model)
+```
+
+The returned `data_activity` is a `data.frame` with signature names in the first
+column and activity values per sample starting from the second column.
+
+## Most responsive signatures
+For datasets with complex experimental design, it is helpful to first look
+at signatures that have the most dramatic activity changes across samples.
+
+We first calculate the range of each signature's activity.
+
+```{r}
+activity_range <- apply(data_activity[, -1], 1, function(x) diff(range(x)))
+activity_range <- data.frame(signature = data_activity[, 1], activity_range,
+                             stringsAsFactors = FALSE)
+```
+
+Get the top 15 signatures with largest ranges.
+
+```{r}
+large_range_sigs <- activity_range[order(activity_range$activity_range,
+                                         decreasing = TRUE), "signature"][1:15]
+```
+
+Signatures that show dramatic changes across samples are:
+
+```{r}
+paste(large_range_sigs, collapse = ",")
+```
+
+View these signatures' activity changes in a heatmap.
+
+```{r}
+plot_activity_heatmap(activity = data_activity, signatures = large_range_sigs)
+```
+
+As we can see in the heatmap, Node50pos, Node41pos, Node1neg, Node34pos, and
+Node28neg become more active when oxygen is depleted, indicating these signatures
+are related to anaerobic adaptation. On the other side, Node31pos,
+Node107pos, Node33neg, Node75pos, Node269pos become less active when oxygen is
+depleted, indicating that they capture biological processes that depend on
+oxygen. Node100pos, Node12neg, and Node69pos show an interesting activity
+pattern. Their activities increase with time. Node5pos and Node112pos do not
+show a clear pattern.
+
+## KEGG annotation
+We can associate these signatures to known KEGG pathways to better understand
+them.
+
+```{r}
+KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
+pathway_result <- annotate_signatures_with_genesets(
+  selected_signatures = large_range_sigs, model = model, genesets = KEGG)
+DT::datatable(pathway_result)
+```
+
+From the KEGG annotation, we can see that Node100pos, Node12neg, and Node69pos
+are associated with sulfate-related metabolism; Node50pos, Node34pos, and
+Node28neg are associated with nitrogen related metabolism; Node31pos and
+Node33neg are associated with Type VI secretion system. Other signatures
+are uncharacterized by KEGG.
+
+## Signature overlap
+We next check the gene overlap between these signatures.
+
+`plot_signature_overlap` creates a heatmap of odds ratios. The odds ratio
+represents the odds that two signatures share a specific number of genes.
+
+```{r}
+plot_signature_overlap(large_range_sigs)
+```
+
+Consistent with the KEGG annotation and the activity pattern, Node12neg,
+Node69pos, and Node100pos have some gene overlaps; Node50pos, Node28neg,
+Node34pos, and Node41pos have large gene overlaps; Node33neg, Node75pos have
+large gene overlaps; Node107pos, Node269pos, Node31pos have small gene overlaps.
+
+Let's take the "Node12neg, Node69pos, and Node100pos" signature cluster as
+an example to calculate their marginal activities.
+
+```{r}
+similar_sigs <- c("Node12neg", "Node69pos", "Node100pos")
+marginal_activity <- calculate_marginal_activity(input_data = data_normed,
+                                                 selected_signatures = similar_sigs,
+                                                 model = model)
+```
+
+View these signatures' marginal activity changes in a heatmap.
+
+```{r}
+plot_activity_heatmap(activity = marginal_activity)
+```
+
+From the heatmap we see that Node100pos and Node69pos still show a temporal
+pattern even after genes shared with each other or Node12neg have been removed.
+The temporal pattern of Node12neg becomes much weaker when Node100pos or Node69pos
+is removed. Therefore, among these three signatures we can safely drop Node12neg.
+
+## Gene-gene network
+We can check how genes in these signatures cluster in the ADAGE gene-gene
+network.
+
+```{r}
+visualize_gene_network(selected_signatures = large_range_sigs,
+                       model = model, cor_cutoff = 0.5)
+```
+
+## Differential temporal pattern detection using limma
+We can also use customized statistical tests on signature activities to identify
+signatures of interest. We apply the limma model for time-course experimental
+design here as an example (Chapter 9.6.2 in limma
+[usersguide](https://bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf)).
+This test helps us detect signatures with general differences in
+their temporal trends between the oxygen depletion and oxygen addition processes.
+
+We first create a numeric vector representing time.
+
+```{r}
+time_pheno <- as.numeric(gsub("\\D", "", pheno_table$`FactorValue [TIME]`))
+```
+
+We next create a treatment factor specifying the oxygen depletion vs oxygen
+addition treatment.
+
+```{r}
+treat_pheno <- factor(pheno_table$`FactorValue [TREATMENT]`)
+levels(treat_pheno) <- c("LowToHigh", "HighToLow")
+```
+
+Represent a time course with a cubic spline curve.
+
+```{r}
+X <- ns(time_pheno, df = 3)
+```
+
+Build a design matrix for limma and then fit a limma model.
+
+```{r}
+design <- model.matrix(~treat_pheno*X)
+fit <- lmFit(data_activity[, -1], design)
+fit <- eBayes(fit)
+```
+
+Extract the top 15 most significant signatures from the limma fit result.
+
+```{r}
+limma_result <- topTable(fit, number = nrow(data_activity),
+                         sort.by = "none")
+limma_result$signature <- data_activity$signature
+different_sigs <- limma_result[order(limma_result$F, decreasing = TRUE),
+                               "signature"][1:15]
+```
+
+Signatures that show differences in temporal trends between oxygen depletion
+and oxygen addition are:
+
+```{r}
+paste(different_sigs, collapse = ",")
+```
+
+View these signatures' activity changes in a heatmap.
+
+```{r}
+plot_activity_heatmap(activity = data_activity, signatures = different_sigs)
+```
+
+This approach also identified Node34pos, Node28neg, Node50pos, Node41pos,
+Node75pos and some other signatures that do not show a large range of activity
+perturbations but show significant differences in their temporal patterns
+during the shift from high-to-low oxygen process and low-to-high oxygen process.
+We can use the same strategies above (KEGG annotations, signature overlap
+check, gene-gene network) to investigate these signatures.
