@@ -39,7 +39,7 @@ probe_dist <- probedistribution
 
 We first load in the dataset
 [E-GEOD-52445](https://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-52445/).
-It is a high resolution time-serious data of *Pseudomonas aeruginosa* PAO1.
+It is a high resolution time-series data of *Pseudomonas aeruginosa* PAO1.
 
 ```{r}
 accession <- "E-GEOD-52445"
@@ -83,7 +83,7 @@ We calculate the activity of each signature for each sample in the dataset.
 data_activity <- calculate_activity(input_data = data_normed, model = model)
 ```
 
-The returned `data_activity` is a `data.frame` with signature name in the first
+The returned `data_activity` is a `data.frame` with signature names in the first
 column and activity values per sample starting from the second column.
 
 ## Most responsive signatures
@@ -248,7 +248,7 @@ plot_activity_heatmap(activity = data_activity, signatures = different_sigs)
 ```
 
 This approach also identified Node34pos, Node28neg, Node50pos, Node41pos,
-Node75pos and some other signatures that do not show large range of activity
+Node75pos and some other signatures that do not show a large range of activity
 perturbations but show significant differences in their temporal patterns
 during the shift from high-to-low oxygen process and low-to-high oxygen process.
 We can use the same strategies above (KEGG annotations, signature overlap

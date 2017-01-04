@@ -1,5 +1,5 @@
 ---
-title: "Analyze processed RNAseq dataset"
+title: "Process RNAseq dataset"
 author: "Jie Tan"
 date: "`r Sys.Date()`"
 output:
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 This is an example for analyzing an RNA-seq dataset of *Pseudomonas aeruginosa*
 PA14 strain. The package currently
-only support processed RNA-seq expression data: expression values of each
+only supports processed RNA-seq expression data: expression values of each
 sample at the gene level.
 
 # Data preparation

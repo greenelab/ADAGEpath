@@ -84,7 +84,7 @@ We calculate the activity of each signature for each sample in the dataset.
 data_activity <- calculate_activity(input_data = data_normed, model = model)
 ```
 
-The returned `data_activity` is a `data.frame` with signature name in the first
+The returned `data_activity` is a `data.frame` with signature names in the first
 column and activity values per sample starting from the second column.
 
 ## Factorial analysis using limma

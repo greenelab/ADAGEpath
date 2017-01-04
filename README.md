@@ -35,13 +35,13 @@ information.
 
 ### ADAGE signature analysis
 Signatures are gene sets derived from an ADAGE model. They are formed because
-their genes expressed coordinately in some samples in the compendium.
-An ADAGE signature analysis aims at identifying signatures that response to
-a treatment. Such signatures potentially represent biological processes that
-are perturbed by the treatment. ADAGE signature analysis usually includes the
-following steps:
+their genes are expressed coordinately in some samples in the compendium.
+An ADAGE signature analysis aims at identifying signatures that respond to
+an experimental treatment. Such signatures potentially represent biological
+processes that are perturbed by the treatment. ADAGE signature analysis usually
+includes the following steps:
 
-**Data loading**  
+####Data loading
 ADAGEpath currently supports raw microarray data in CEL format and processed
 microarray or RNAseq data. Use function `load_dataset()` to load your own
 dataset or datasets publicly available in ArrayExpress.
@@ -50,11 +50,11 @@ Since ADAGE only accepts expression values in the (0,1) range, we linearly
 transform expression values to be between 0 and 1 using the function
 `zeroone_norm()`.
 
-**Signature activity calculation**  
+####Signature activity calculation
 We next calculate each signature's activity for each sample in the dataset
 with the function `calculate_activity()`.
 
-**Active signature detection**  
+####Active signature detection
 Now we want to identify signatures whose activities strongly vary with sample
 phenotypes, such as signatures whose activities are being significantly different
 in a comparison of interest. We recommend using the more robust
@@ -70,7 +70,7 @@ You can also use other statistical tests to identify active signatures.
 `plot_activity_heatmap()` generates a heatmap showing how signature activity
 changes across samples.
 
-**Signature overlap examination**  
+####Signature overlap examination
 To be robust to noise, ADAGE models would sometimes construct signatures that
 have overlapping genes. We can check whether the active signatures identified above
 overlap with others using `plot_signature_overlap()`. If there is a group of
@@ -83,7 +83,7 @@ of another signature has been removed using `plot_marginal_activation()`. Exampl
 of signature overlap examination are in vignettes **ArrayExpress-example** and
 **Time-course-example**.
 
-**Signature interpretation and visualization**  
+####Signature interpretation and visualization
 Finally, to get a detailed view of a signature or a group of signatures,
 we can check what genes are contained in them using
 `annotate_genes_in_signatures()` and visualize these genes through a

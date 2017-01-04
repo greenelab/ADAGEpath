@@ -75,14 +75,14 @@ We calculate the activity of each signature for each sample in the dataset.
 data_activity <- calculate_activity(input_data = data_normed, model = model)
 ```
 
-The returned `data_activity` is a `data.frame` with signature name in the first
+The returned `data_activity` is a `data.frame` with signature names in the first
 column and activity values per sample starting from the second column.
 
 ## Active signature detection
 We want to find signatures that are differentially active between
 anr mutant and wildtype samples.
 We use [limma](https://bioconductor.org/packages/release/bioc/html/limma.html)
-to perform differential activation test. limma is more robust
+to perform a differential activation test. limma is more robust
 than a simple t test when sample size is small. A two-group limma analysis is
 provided in the function `build_limma()`. You can also build other limma models
 to test signatures' activities when the experimental design is more complex.
@@ -171,7 +171,7 @@ plot_marginal_activation(marginal_limma_result = marginal_limma)
 We can see that Node35pos, Node233pos, and Node67pos each has unique
 genes that make them still differentially active even after removing the effect
 of another signature. Node158neg and Node140pos are completely masked by
-Node35pos, because after removing Node35pos from them, their significance drop
+Node35pos, because after removing Node35pos from them, their significance drops
 dramatically. Node38pos is the least unique signature, as it is no longer
 differentially active after removing any other signature. If you want to reduce
 the number of signatures to look at, you can safely drop Node38pos, Node158neg,

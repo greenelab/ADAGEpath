@@ -91,7 +91,7 @@ We calculate the activity of each signature for each sample in the dataset.
 data_activity <- calculate_activity(input_data = data_normed, model = model)
 ```
 
-The returned `data_activity` is a `data.frame` with signature name in the first
+The returned `data_activity` is a `data.frame` with signature names in the first
 column and activity values per sample starting from the second column.
 
 ## Active signature detection
@@ -107,7 +107,7 @@ indices <- 1:4
 ```
 
 We use [limma](https://bioconductor.org/packages/release/bioc/html/limma.html)
-to perform differential activation test. `limma` is more robust
+to perform a differential activation test. `limma` is more robust
 than a simple t test when sample size is small. A two-group limma analysis is
 provided in the function `build_limma()`. You can also build other `limma` models
 to test signatures' activities when the experimental design is more complex.
