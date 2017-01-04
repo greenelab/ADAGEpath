@@ -15,40 +15,26 @@ vignette: >
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
-<<<<<<< HEAD
 
-=======
->>>>>>> Add vignettes
 This is an example for analyzing a user-provided microarray dataset.
 
 # Data preparation
 Load in required libraries.
-<<<<<<< HEAD
 
-=======
->>>>>>> Add vignettes
 ```{r}
 library("ADAGEpath")
 library("DT")
 ```
-<<<<<<< HEAD
 
 Before any analysis, we need to specify the ADAGE model and the data compendium
 we want to use.
 
-=======
-Before any analysis, we need to specify the ADAGE model and the data compendium
-we want to use.
->>>>>>> Add vignettes
 ```{r}
 model <- eADAGEmodel
 compendium <- PAcompendium
 probe_dist <- probedistribution
 ```
-<<<<<<< HEAD
 
-=======
->>>>>>> Add vignettes
 Let's load in a sample dataset that come with the package. It's expression data
 from *Pseudomonas aeruginosa* wild type and ∆anr grown as biofilms on ∆F508 cystic
 fibrosis bronchial epithelial cells (CFBEs). Detailed information about
@@ -56,10 +42,7 @@ the dataset can be found here
 [GSE67006](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE67006).
 All its CEL files are stored in the folder "../inst/anr".
 To load your own dataset, simply modify this input path.
-<<<<<<< HEAD
 
-=======
->>>>>>> Add vignettes
 ```{r}
 input_path <- "../inst/anr"
 data_raw <- load_dataset(input = input_path, isProcessed = FALSE,
@@ -67,28 +50,18 @@ data_raw <- load_dataset(input = input_path, isProcessed = FALSE,
                          compendium = compendium, quantile_ref = probe_dist,
                          norm01 = FALSE)
 ```
-<<<<<<< HEAD
 
 ADAGE only accepts expression values in the (0,1) range. We linearly transform
 expression values to be between 0 and 1 using the Pa compendium as the reference.
 
-=======
-ADAGE only accepts expression values in the (0,1) range. We linearly transform
-expression values to be between 0 and 1 using the Pa compendium as the reference.
->>>>>>> Add vignettes
 ```{r}
 data_normed <- zeroone_norm(input_data = data_raw, use_ref = TRUE,
                             ref_data = compendium)
 ```
-<<<<<<< HEAD
 
 Now let's specify the phenotypes for each sample. It needs to be a character
 vector and has the same sample order as the expression data loaded above.
 
-=======
-Now let's specify the phenotypes for each sample. It needs to be a character
-vector and has the same sample order as the expression data loaded above.
->>>>>>> Add vignettes
 ```{r}
 data_pheno <- c("mt", "mt", "mt", "wt", "wt", "wt")
 ```
@@ -97,26 +70,18 @@ data_pheno <- c("mt", "mt", "mt", "wt", "wt", "wt")
 
 ## Activity calculation
 We calculate the activity of each signature for each sample in the dataset.
-<<<<<<< HEAD
 
 ```{r}
 data_activity <- calculate_activity(input_data = data_normed, model = model)
 ```
 
 The returned `data_activity` is a `data.frame` with signature names in the first
-=======
-```{r}
-data_activity <- calculate_activity(input_data = data_normed, model = model)
-```
-The returned `data_activity` is a `data.frame` with signature name in the first
->>>>>>> Add vignettes
 column and activity values per sample starting from the second column.
 
 ## Active signature detection
 We want to find signatures that are differentially active between
 anr mutant and wildtype samples.
 We use [limma](https://bioconductor.org/packages/release/bioc/html/limma.html)
-<<<<<<< HEAD
 to perform a differential activation test. limma is more robust
 than a simple t test when sample size is small. A two-group limma analysis is
 provided in the function `build_limma()`. You can also build other limma models
@@ -126,29 +91,16 @@ to test signatures' activities when the experimental design is more complex.
 limma_result <- build_limma(data_activity, phenotypes = data_pheno)
 ```
 
-=======
-to perform differential activation test. limma is more robust
-than a simple t test when sample size is small. A two-group limma analysis is
-provided in the function `build_limma()`. You can also build other limma models
-to test signatures' activities when the experimental design is more complex.
-```{r}
-limma_result <- build_limma(data_activity, phenotypes = data_pheno)
-```
->>>>>>> Add vignettes
 To take both absolute activity difference and significance into account, we
 use pareto fronts to pick the most differentially active signatures. We extract
 differentially active signatures in the first 5 layers of pareto
 fronts. Modify N_fronts to get more or fewer signatures.
-<<<<<<< HEAD
 
-=======
->>>>>>> Add vignettes
 ```{r}
 active_sigs <- get_active_signatures(limma_result = limma_result,
                                      pheno_group = "both",
                                      method = "pareto", N_fronts = 5)
 ```
-<<<<<<< HEAD
 
 Signatures that are differentially active between anr mutant and wildtype are:
 
@@ -158,18 +110,10 @@ print(paste(active_sigs, collapse = ","))
 
 Check out each signature's activity changes and significance in the `limma` test.
 
-=======
-Signatures that are differentially active between anr mutant and wildtype are:
-```{r}
-print(paste(active_sigs, collapse = ","))
-```
-Check out each signature's activity changes and significance in the `limma` test.
->>>>>>> Add vignettes
 ```{r}
 plot_volcano(limma_result, highlight_signatures = active_sigs,
              interactive = TRUE)
 ```
-<<<<<<< HEAD
 
 Look at how the activities of active signature vary across samples.
 
@@ -177,12 +121,6 @@ Look at how the activities of active signature vary across samples.
 plot_activity_heatmap(activity = data_activity, signatures = active_sigs)
 ```
 
-=======
-Look at how the activities of active signature vary across samples.
-```{r}
-plot_activity_heatmap(activity = data_activity, signatures = active_sigs)
-```
->>>>>>> Add vignettes
 Combining the volcano plot and the activity heatmap, Node35pos is the most
 active signature in anr mutant, followed by Node233pos, Node140pos.
 On the other side, Node205neg and Node269pos are most active in wildtype.
@@ -193,26 +131,17 @@ signatures greatly overlap with others.
 
 `plot_signature_overlap` creates a heatmap of odds ratios. The odds ratio
 represents the odds that two signatures share a specific number of genes.
-<<<<<<< HEAD
 
 ```{r signature overlap}
 plot_signature_overlap(selected_signatures = active_sigs)
 ```
 
-=======
-```{r signature overlap}
-plot_signature_overlap(selected_signatures = active_sigs)
-```
->>>>>>> Add vignettes
 As we can see, the top six signatures more or less overlap with each other.
 
 Next we calculate the marginal activities of these similar signatures. Marginal
 activity is defined as the activity of signature A after removing genes that
 share with signature B.
-<<<<<<< HEAD
 
-=======
->>>>>>> Add vignettes
 ```{r marginal activation}
 similar_sigs <- c("Node38pos", "Node67pos", "Node35pos", "Node233pos",
                   "Node140pos", "Node158neg")
@@ -220,29 +149,20 @@ marginal_activity <- calculate_marginal_activity(input_data = data_normed,
                                                  selected_signatures = similar_sigs,
                                                  model = model)
 ```
-<<<<<<< HEAD
 
 Again, we build a limma model to test whether these marginal activities
 are still strongly different between two conditions.
 
-=======
-Again, we build a limma model to test whether these marginal activities
-are still strongly different between two conditions.
->>>>>>> Add vignettes
 ```{r}
 marginal_limma <- build_limma(input_data = marginal_activity,
                               phenotypes = data_pheno)
 ```
-<<<<<<< HEAD
 
-=======
->>>>>>> Add vignettes
 Let's visualize the marginal activities in a matrix heatmap.  The value in this
 matrix represents the -log10 transformed adjusted p value in
 the activation test when the effect of the column signature is removed from
 the row signature. Values in the diagonal of the heatmap are the activation
 significance of signatures themselves.
-<<<<<<< HEAD
 
 ```{r}
 plot_marginal_activation(marginal_limma_result = marginal_limma)
@@ -252,23 +172,11 @@ We can see that Node35pos, Node233pos, and Node67pos each has unique
 genes that make them still differentially active even after removing the effect
 of another signature. Node158neg and Node140pos are completely masked by
 Node35pos, because after removing Node35pos from them, their significance drops
-=======
-```{r}
-plot_marginal_activation(marginal_limma_result = marginal_limma)
-```
-We can see that Node35pos, Node233pos, and Node67pos each has unique
-genes that make them still differentially active even after removing the effect
-of another signature. Node158neg and Node140pos are completely masked by
-Node35pos, because after removing Node35pos from them, their significance drop
->>>>>>> Add vignettes
 dramatically. Node38pos is the least unique signature, as it is no longer
 differentially active after removing any other signature. If you want to reduce
 the number of signatures to look at, you can safely drop Node38pos, Node158neg,
 and Node140pos.
-<<<<<<< HEAD
 
-=======
->>>>>>> Add vignettes
 ```{r}
 active_sigs <- setdiff(active_sigs, c("Node38pos", "Node158neg", "Node140pos"))
 ```
@@ -276,7 +184,6 @@ active_sigs <- setdiff(active_sigs, c("Node38pos", "Node158neg", "Node140pos"))
 ## Active signature annotation
 We download *Pseudomonas aeruginosa* KEGG pathway terms from the
 [TRIBE](http://tribe.greenelab.com/#/home) web server.
-<<<<<<< HEAD
 
 ```{r}
 KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
@@ -284,21 +191,12 @@ KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
 
 We associate active signatures to known KEGG pathways.
 
-=======
-```{r}
-KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
-```
-We associate active signatures to known KEGG pathways.
->>>>>>> Add vignettes
 ```{r}
 pathway_result <- annotate_signatures_with_genesets(
   selected_signatures = active_sigs, model = model, genesets = KEGG)
 DT::datatable(pathway_result)
 ```
-<<<<<<< HEAD
 
-=======
->>>>>>> Add vignettes
 In this case, only Node205neg has been annotated by KEGG pathways. Other active
 signatures are still uncharacterized.
 
@@ -309,29 +207,21 @@ network.
 We can calculate a expression fold change for each gene and pass it to the
 gene-gene network to show as node color. Again, we use limma to test
 differential expression and get the logFC.
-<<<<<<< HEAD
 
-=======
->>>>>>> Add vignettes
 ```{r}
 data_raw_limma <- build_limma(input_data = data_raw, phenotypes = data_pheno)
 # build a gene:fold change table from limma result
 gene_logFC <- data.frame(geneID = rownames(data_raw_limma),
                          logFC = data_raw_limma$logFC)
 ```
-<<<<<<< HEAD
 
 Visualize the ADAGE gene-gene network of the active signatures.
 
-=======
-Visualize the ADAGE gene-gene network of the active signatures.
->>>>>>> Add vignettes
 ```{r}
 visualize_gene_network(selected_signatures = active_sigs,
                        gene_color_value = gene_logFC,
                        model = model, cor_cutoff = 0.5)
 ```
-<<<<<<< HEAD
 
 To review a signature, we can list all genes in it.
 
@@ -341,25 +231,14 @@ DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node205neg"))
 
 And visualize its genes with the gene-gene network.
 
-=======
-To review a signature, we can list all genes in it.
-```{r}
-DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node205neg"))
-```
-And visualize its genes with the gene-gene network.
->>>>>>> Add vignettes
 ```{r}
 visualize_gene_network(selected_signatures = "Node205neg",
                        gene_color_value = gene_logFC,
                        model = model, cor_cutoff = 0.5)
 ```
-<<<<<<< HEAD
 
 We can also review a group of similar signatures.
 
-=======
-We can also review a group of similar signatures.
->>>>>>> Add vignettes
 ```{r}
 sig_group <- c("Node35pos", "Node233pos", "Node67pos")
 DT::datatable(annotate_genes_in_signatures(selected_signatures = sig_group))
