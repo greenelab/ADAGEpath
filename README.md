@@ -5,8 +5,13 @@ ADAGEpath provides necessary functions to perform ADAGE-based signature analysis
 You can install the latest development version from github with
 ``` r
 install.packages("devtools")
-devtools::install_github("ADAGEpath")
+devtools::install_github("greenelab/ADAGEpath")
 ```
+If you want to build the vignettes, run
+``` r
+devtools::install_github("greenelab/ADAGEpath", build_vignettes = TRUE)
+```
+
 ### ADAGE introduction
 ADAGE (or eADAGE) models are neural networks trained unsupervisedly on large
 publically available gene expression compendia. ADAGE aims at building essential
