@@ -1,10 +1,11 @@
 Package: ADAGEpath
 Type: Package
-Title: ADAGE-based Pathway Analysis
+Title: ADAGE-based Signature Analysis
 Version: 0.1.0
 Authors@R: person("Jie", "Tan", email = "jie.tan.gr@dartmouth.edu",
   role = c("aut", "cre"))
-Description: This package provides functions to perform ADAGE-based pathway
+URL: https://github.com/greenelab/ADAGEpath
+Description: This package provides functions to perform ADAGE-based signature
     analysis on a gene expression dataset.
 Depends: R (>= 2.10.0)
 License: BSD 3-clause License + file LICENSE
