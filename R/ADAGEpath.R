@@ -11,5 +11,5 @@
 #' @importFrom utils combn download.file unzip
 #' @importFrom grDevices colorRampPalette rgb
 #' @importFrom stats cor fisher.test model.matrix p.adjust sd
-#' @importFrom grDevices colorRampPalette rgb
+#' @importFrom graphics abline plot points text
 NULL
