@@ -6,7 +6,6 @@ library("Biobase")
 library("preprocessCore")
 library("tibble")
 
-
 # This script prepares compendium-related data objects for the package. They
 # include "PAcompendium", "probedistribution", and "experimentID". It
 # downloads datasets from the ArrayExpress database, processes the raw cel
@@ -15,7 +14,6 @@ library("tibble")
 # probe level. The current setting allows it to build the same compendium as
 # used in the eADAGE paper. Modify "end_date" and "exclude_samples" to build an
 # up-to-date compendium.
-
 
 # set parameters--------------
 
@@ -43,7 +41,6 @@ dir.create(cel_folder)
 compendium_file <- paste0("./data-raw/PAcompendium_", end_date, ".txt")
 chip_type <- "Pae_G1a"
 
-
 # query ArrayExpress--------------
 
 AE_req <- httr::GET("https://www.ebi.ac.uk/arrayexpress/json/v3/files",
@@ -54,7 +51,6 @@ AE_req <- httr::GET("https://www.ebi.ac.uk/arrayexpress/json/v3/files",
 AE_content <- suppressWarnings(httr::content(AE_req, as = "text"))
 AE_files <- jsonlite::fromJSON(AE_content)
 N_experiments <- AE_files$files$`total-experiments`
-
 
 # download datasets--------------
 
@@ -103,13 +99,11 @@ write.table(PAcompendium, compendium_file, sep = "\t", quote = FALSE,
             row.names = FALSE)
 devtools::use_data(PAcompendium, overwrite = TRUE, compress = "bzip2")
 
-
 # build an experiment-sample map-----------------
 
 experimentID <- do.call(rbind, experiment_sample)
 experimentID <- experimentID[experimentID$Sample %in% pfiles, ]
 devtools::use_data(experimentID, overwrite = TRUE, compress = "bzip2")
-
 
 # record the quantile distribution at the probe level---------------
 
@@ -121,4 +115,3 @@ PMmat_bg <- preprocessCore::rma.background.correct(PMmat)
 probedistribution <- preprocessCore::normalize.quantiles.determine.target(
   PMmat_bg)
 devtools::use_data(probedistribution, overwrite = TRUE)
-
