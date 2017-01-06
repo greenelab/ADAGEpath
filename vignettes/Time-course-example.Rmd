@@ -213,22 +213,22 @@ levels(treat_pheno) <- c("LowToHigh", "HighToLow")
 Represent a time course with a cubic spline curve.
 
 ```{r}
-X <- ns(time_pheno, df = 3)
+X <- splines::ns(time_pheno, df = 3)
 ```
 
 Build a design matrix for limma and then fit a limma model.
 
 ```{r}
 design <- model.matrix(~treat_pheno*X)
-fit <- lmFit(data_activity[, -1], design)
-fit <- eBayes(fit)
+fit <- limma::lmFit(data_activity[, -1], design)
+fit <- limma::eBayes(fit)
 ```
 
 Extract the top 15 most significant signatures from the limma fit result.
 
 ```{r}
-limma_result <- topTable(fit, number = nrow(data_activity),
-                         sort.by = "none")
+limma_result <- limma::topTable(fit, number = nrow(data_activity),
+                                sort.by = "none")
 limma_result$signature <- data_activity$signature
 different_sigs <- limma_result[order(limma_result$F, decreasing = TRUE),
                                "signature"][1:15]

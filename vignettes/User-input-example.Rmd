@@ -44,7 +44,7 @@ All its CEL files are stored in the folder "../inst/anr".
 To load your own dataset, simply modify this input path.
 
 ```{r}
-input_path <- "../inst/anr"
+input_path <- system.file("extdata", "anr/", package = "ADAGEpath")
 data_raw <- load_dataset(input = input_path, isProcessed = FALSE,
                          isRNAseq = FALSE, model = model,
                          compendium = compendium, quantile_ref = probe_dist,

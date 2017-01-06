@@ -4,12 +4,9 @@
 #' functional gene expression signatures in the bacterial pathogen Pseudomonas
 #' aeruginosa with eADAGE"
 #'
-#' @format A data.frame (tibble) with 5549 rows and 301 variables:
-#' \describe{
-#'   \item{geneID}{P.a. PAO1 gene identifiers}
-#'   \item{Node1}{Each gene's weight to Node1}
-#'   ...
-#' }
+#' @format A data frame (tibble) with 5549 rows and 301 variables. The first
+#' column is geneID that specifies gene identifiers. Starting from
+#' the second column, each column stores numeric weight values of one node
 #' @source \url{https://doi.org/10.1101/078659}
 "eADAGEmodel"
 
@@ -22,12 +19,9 @@
 #' values in the compendium have been background corrected and quantile
 #' normalized.
 #'
-#' @format A data.frame (tibble) with 5549 rows and 1052 variables. The first
-#' column specifies gene identifiers and samples start from the second column:
-#' \describe{
-#'   \item{geneID}{P.a. PAO1 gene identifiers}
-#'   ...
-#' }
+#' @format A data frame (tibble) with 5549 rows and 1052 variables. The first
+#' column is geneID that specifies gene identifiers. Starting from
+#' the second column, each column stores numeric expression values of one sample.
 #' @source \url{https://doi.org/10.1101/078659}
 "PAcompendium"
 
@@ -50,11 +44,21 @@
 #'
 #' @format A data.frame (tibble) with 5698 rows and 15 variables:
 #' \describe{
-#'  \item{#taxid}{Taxonomic id of P. aeruginosa}
-#'  \item{GeneID}{Unique gene identifiers}
-#'  \item{Symbol}{Gene symbols or gene names}
-#'  \item{LocusTag}{Locus tags or PA numbers}
-#'  ...
+#'   \item{\samp{#tax_id}}{a numeric vector, taxonomic id of P. aeruginosa}
+#'   \item{\code{GeneID}}{a numeric vector, unique gene identifiers}
+#'   \item{\code{Symbol}}{a character vector, gene symbols or gene names}
+#'   \item{\code{LocusTag}}{a character vector, locus tags or PA numbers}
+#'   \item{\code{Synonyms}}{a numeric vector}
+#'   \item{\code{dbXrefs}}{a character vector}
+#'  \item{\code{chromosome}}{a numeric vector}
+#'   \item{\code{map_location}}{a numeric vector}
+#'   \item{\code{description}}{a character vector}
+#'   \item{\code{type_of_gene}}{a character vector}
+#'   \item{\code{Symbol_from_nomenclature_authority}}{a numeric vector}
+#'   \item{\code{Full_name_from_nomenclature_authority}}{a numeric vector}
+#'   \item{\code{Nomenclature_status}}{a numeric vector}
+#'   \item{\code{Other_designations}}{a numeric vector}
+#'   \item{\code{Modification_date}}{a numeric vector}
 #' }
 #' @source \url{ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/GENE_INFO/Archaea_Bacteria/Pseudomonas_aeruginosa_PAO1.gene_info.gz}
 "geneinfo"

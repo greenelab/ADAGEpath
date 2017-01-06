@@ -9,8 +9,8 @@
 probedistribution
 }
 \description{
-The quantile distribution of microarray probes used in building the
-PAcompendium. It will be used as a reference distribution to
+The quantile distribution of microarray probes used in building the preloaded
+PAcompendium data object. It will be used as a reference distribution to
 quantile normalize new datasets.
 }
 \keyword{datasets}

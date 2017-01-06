@@ -4,14 +4,11 @@
 \name{PAcompendium}
 \alias{PAcompendium}
 \title{Pseudomonas aeruginosa gene expression compendium}
-\format{A data.frame (tibble) with 5549 rows and 1052 variables. The first
-column specifies gene identifiers and samples start from the second column:
-\describe{
-  \item{geneID}{P.a. PAO1 gene identifiers}
-  ...
-}}
+\format{A data frame (tibble) with 5549 rows and 1052 variables. The first
+column is geneID that specifies gene identifiers. Starting from
+the second column, each column stores numeric expression values of one sample.}
 \source{
-\url{http://biorxiv.org/content/early/2016/12/02/078659}
+\url{https://doi.org/10.1101/078659}
 }
 \usage{
 PAcompendium

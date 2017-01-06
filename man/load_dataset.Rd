@@ -29,7 +29,7 @@ quantile normalized to be comparable to the compendium.}
 
 \item{quantile_ref}{a vector storing the reference quantile distribution of
 the input compendium at the microarray probe level.
-Since the input microarray data need to be normalized to the processed
+Since the input microarray data needs to be normalized to the processed
 compendium, the compendium and the quantile_ref must match each other.
 (default: the quantile distribution of probes used in
 normalizing the P.a. expression compendium pre-loaded within the package).}
@@ -59,8 +59,5 @@ sample per column) (isProcessed=TRUE, isRNAseq=TRUE/FALSE);
 a data.frame object storing processed gene expression
 values in a dataset (gene identifiers in the first column and then one
 sample per column) (isProcessed=TRUE, isRNAseq=TRUE/FALSE);
-}
-\examples{
-load_data(input, isProcessed = FALSE, isRNAseq = FALSE)
 }
 

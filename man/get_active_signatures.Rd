@@ -30,11 +30,6 @@ method (default: 10)}
 
 \item{significance_cutoff}{numeric, significance cutoff
 to use in the "pvalue" method (default: 0.05).}
-
-\item{phenotypes}{a factor (or a charactor that can be converted into a
-factor) with two levels that describes the phenotype of
-each sample, should be the same as the phenotypes provided to the
-build_limma() function.}
 }
 \value{
 a vector storing active signatures.
