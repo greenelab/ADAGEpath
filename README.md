@@ -13,14 +13,13 @@ devtools::install_github("greenelab/ADAGEpath", build_vignettes = TRUE)
 ```
 
 ### ADAGE introduction
-ADAGE (or eADAGE) models are neural networks trained unsupervisedly on large
-publically available gene expression compendia. ADAGE aims at building essential
-features that can reconstruct a compendium. We derived gene expression
-signatures from ADAGE features and found that these gene expression signatures
-resemble human-annotated biological pathways and cover
-a significant amount of existing pathways [1,2]. In addition to signatures well
-characterized by known pathways, ADAGE also extracts signatures that may
-bring novel biological insights.
+ADAGE (or eADAGE) models are neural networks trained in an unsupervise manner on
+large publically available gene expression compendia. ADAGE aims at building
+essential features that can reconstruct a compendium. We derived gene expression
+signatures from ADAGE neural network nodes and found that these signatures
+resemble human-annotated biological pathways and cover many existing pathways
+[1,2]. In addition to signatures that match known pathways, ADAGE also extracts
+signatures that may group genes in novel data-driven ways.
 
 Please refer to the following papers if you want to learn more about ADAGE:  
 1. [ADAGE-Based Integration of Publicly Available Pseudomonas aeruginosa Gene
@@ -31,8 +30,8 @@ bacterial pathogen Pseudomonas aeruginosa with eADAGE](
 https://doi.org/10.1101/078659)
 
 ### Preloaded data
-ADAGEpath currently only supports one organism *Pseudomonas aeruginosa* and is
-preloaded with a *P.a.* expression compendium (`PAcompendium` and its probe
+ADAGEpath currently supports one organism *Pseudomonas aeruginosa*. The package
+is preloaded with a *P.a.* expression compendium (`PAcompendium` and its probe
 quantile distribution `probedistribution`) and an eADAGE
 model (`eADAGEmodel`) trained on the compendium. The package is also preloaded
 with *P.a.* gene (`geneinfo` and `PAO1orthologs`) and operon (`operons`)
@@ -41,10 +40,10 @@ information.
 ### ADAGE signature analysis
 Signatures are gene sets derived from an ADAGE model. They are formed because
 their genes are expressed coordinately in some samples in the compendium.
-An ADAGE signature analysis aims at identifying signatures that respond to
-an experimental treatment. Such signatures potentially represent biological
-processes that are perturbed by the treatment. ADAGE signature analysis usually
-includes the following steps:
+An ADAGE signature analysis aims to identify signatures in which the expression
+of constiuent genes are altered by an experimental treatment. Such signatures
+may represent biological processes that are perturbed by the treatment. ADAGE
+signature analysis usually includes the following steps:
 
 ####Data loading
 ADAGEpath currently supports raw microarray data in CEL format and processed
@@ -60,11 +59,11 @@ We next calculate each signature's activity for each sample in the dataset
 with the function `calculate_activity()`.
 
 ####Active signature detection
-Now we want to identify signatures whose activities strongly vary with sample
-phenotypes, such as signatures whose activities are being significantly different
-in a comparison of interest. We recommend using the more robust
-[limma](https://bioconductor.org/packages/release/bioc/html/limma.html) approach
-to test differential activation when sample size is small.
+We next identify signatures whose activities strongly vary with treatments,
+such as signatures whose activities are significantly differentially expressed
+in a comparison of interest. We recommend using 
+[limma](https://bioconductor.org/packages/release/bioc/html/limma.html)
+to test differential activation, particularly when sample size is small.
 To facilitate the most frequent two-group comparison,
 we wrapped a two-group limma test into the function `build_limma()`. You can
 visualize the limma two-group test results using `plot_volcano()` and get
@@ -90,8 +89,8 @@ of signature overlap examination are in vignettes **ArrayExpress-example** and
 
 ####Signature interpretation and visualization
 Finally, to get a detailed view of a signature or a group of signatures,
-we can check what genes are contained in them using
-`annotate_genes_in_signatures()` and visualize these genes through a
+we can retrieve their constituent genes using `annotate_genes_in_signatures()`
+and visualize these genes through a
 gene-gene network using `visualize_gene_network()`. We can also download
 existing KEGG pathways using `fetch_geneset()` and associate
 signatures to known KEGG pathways using `annotate_signatures_with_genesets()`.
