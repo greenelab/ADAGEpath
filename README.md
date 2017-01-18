@@ -60,8 +60,8 @@ with the function `calculate_activity()`.
 
 ####Active signature detection
 We next identify signatures whose activities strongly vary with treatments,
-such as signatures whose activities are significantly differentially expressed
-in a comparison of interest. We recommend using 
+such as signatures whose activities are significantly different in conditions
+of interest. We recommend using 
 [limma](https://bioconductor.org/packages/release/bioc/html/limma.html)
 to test differential activation, particularly when sample size is small.
 To facilitate the most frequent two-group comparison,
