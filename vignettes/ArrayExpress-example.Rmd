@@ -70,8 +70,8 @@ We reorder samples in the pheno_table to have the same order as the
 expression data.
 
 ```{r}
-pheno_table <- pheno_table[match(pheno_table$`Array Data File`,
-                           colnames(data_raw)[-1]), ]
+pheno_table <- pheno_table[match(colnames(data_raw)[-1],
+                                 pheno_table$`Array Data File`), ]
 DT::datatable(pheno_table, class = 'cell-border stripe')
 ```
 
@@ -119,13 +119,13 @@ limma_result <- build_limma(input_data = data_activity[, c(1, indices + 1)],
 
 To take both absolute activity difference and significance into account, we
 use pareto fronts to pick the most differentially active signatures. We extract
-differentially active signatures in the first 5 layers of pareto
+differentially active signatures in the first 10 layers of pareto
 fronts. Modify N_fronts to get more or fewer signatures.
 
 ```{r}
 active_sigs <- get_active_signatures(limma_result = limma_result,
                                      pheno_group = "both",
-                                     method = "pareto", N_fronts = 5)
+                                     method = "pareto", N_fronts = 10)
 ```
 
 Signatures that are differentially active between wildtype and plcH mutant are:
@@ -148,8 +148,8 @@ plot_activity_heatmap(activity = data_activity, signatures = active_sigs)
 ```
 
 Based on the volcano plot and the activity heatmap, we can see that Node34pos,
-Node28neg, Node41pos, and Node50pos are active in wildtype, while the rest
-signatures become more active in plcH mutant.
+Node28neg, Node41pos, Node50pos, Node69pos, Node49neg, and Node65pos are active
+in wildtype, while the rest signatures become more active in plcH mutant.
 
 ## Signature overlap
 To reduce the number of signatures to look at, we can check whether these active
@@ -159,21 +159,23 @@ signatures greatly overlap with others.
 represents the odds that two signatures share a specific number of genes.
 
 ```{r}
-plot_signature_overlap(selected_signatures = active_sigs, model = model)
+plot_signature_overlap(selected_signatures = active_sigs,
+                                               model = model)
 ```
 
-We can see that the four signatures that are strongly active in wildtype also
-share significant number of genes. The signatures active in plcH mutant are
-all unique.
+We can see that the four signatures that are most strongly active in wildtype
+share significant number of genes. Node49neg overlap with Node65pos.
+Node34neg and Node28pos that are active in plcH mutant also overlap.
 
 Next we calculate the marginal activities of these similar signatures. Marginal
 activity is defined as the activity of signature A after removing genes that
 are shared with signature B.
 
 ```{r}
-similar_sigs <- c("Node34pos", "Node28neg", "Node41pos", "Node50pos")
+similar_sigs <- c("Node34neg", "Node28pos", "Node50pos", "Node28neg",
+                  "Node34pos", "Node41pos", "Node49neg", "Node65pos")
 marginal_activity <- calculate_marginal_activity(
-  input_data = data_normed[, c(1, indices + 1)],
+  input_data = data_normed,
   selected_signatures = similar_sigs, model = model)
 ```
 
@@ -181,7 +183,7 @@ Again, we build a `limma` model to test whether these marginal activities
 are still strongly different between two conditions.
 
 ```{r}
-marginal_limma <- build_limma(input_data = marginal_activity,
+marginal_limma <- build_limma(input_data = marginal_activity[, c(1, indices + 1)],
                               phenotypes = data_pheno[indices])
 ```
 
@@ -192,17 +194,21 @@ the row signature. Values in the diagonal of the heatmap are the activation
 significance of signatures themselves.
 
 ```{r}
-plot_marginal_activation(marginal_limma_result = marginal_limma)
+plot_marginal_activation(marginal_limma_result = marginal_limma,
+                         signature_order = similar_sigs)
 ```
 
-This plot shows that Node50pos is the least unique signature, as it
+Among Node50pos, Node28neg, Node34pos, and Node41pos,
+Node50pos is the least unique signature, as it
 is no longer significant after removing any other signature. Node34pos is
 completely masked by Node28neg and Node41pos, as its significance drops
 dramatically after removing Node41pos or Node28neg. Therefore, we can use
 Node28neg and Node41pos to represent this signature cluster.
+Between Node34neg and Node28pos, we will choose Node28pos.
+Node49neg and Node65pos do not cover each other, so we will keep both.
 
 ```{r}
-active_sigs <- setdiff(active_sigs, c("Node50pos", "Node34pos"))
+active_sigs <- setdiff(active_sigs, c("Node34neg", "Node50pos", "Node34pos"))
 ```
 
 ## Active signature annotation
@@ -243,13 +249,16 @@ Visualize the ADAGE gene-gene network of the active signatures.
 ```{r}
 visualize_gene_network(selected_signatures = active_sigs,
                        model = model, cor_cutoff = 0.5,
-                       gene_color_value = gene_logFC)
+                       gene_color_value = gene_logFC,
+                       curated_pathways = KEGG)
 ```
 
 To review a signature, we can list all genes in it.
 
 ```{r}
-gene_annotation <- annotate_genes_in_signatures("Node28neg")
+gene_annotation <- annotate_genes_in_signatures(selected_signatures = "Node28neg",
+                                                model = model,
+                                                curated_pathways = KEGG)
 # add expression fold change to the gene table
 gene_annotation <- dplyr::right_join(gene_logFC, gene_annotation,
                                      by = c("geneID" = "LocusTag"))
@@ -261,7 +270,8 @@ And visualize its genes with the gene-gene network.
 ```{r}
 visualize_gene_network(selected_signatures = "Node28neg",
                        model = model, cor_cutoff = 0.5,
-                       gene_color_value = gene_logFC)
+                       gene_color_value = gene_logFC,
+                       curated_pathways = KEGG)
 ```
 
 We can also review a group of similar signatures. Simply replace one signature

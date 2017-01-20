@@ -185,7 +185,8 @@ network.
 
 ```{r}
 visualize_gene_network(selected_signatures = large_range_sigs,
-                       model = model, cor_cutoff = 0.5)
+                       model = model, cor_cutoff = 0.5,
+                       curated_pathways = KEGG)
 ```
 
 ## Differential temporal pattern detection using limma

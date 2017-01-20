@@ -40,7 +40,7 @@ from *Pseudomonas aeruginosa* wild type and ∆anr grown as biofilms on ∆F508 
 fibrosis bronchial epithelial cells (CFBEs). Detailed information about
 the dataset can be found here
 [GSE67006](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE67006).
-All its CEL files are stored in the folder "../inst/anr".
+All its CEL files are stored in the folder "./inst/extdata/anr".
 To load your own dataset, simply modify this input path.
 
 ```{r}
@@ -88,18 +88,21 @@ provided in the function `build_limma()`. You can also build other limma models
 to test signatures' activities when the experimental design is more complex.
 
 ```{r}
-limma_result <- build_limma(data_activity, phenotypes = data_pheno)
+# Because there are a lot of signatures passing the significance cutoff, we use
+# bonferroni procedure instead of Benjamini–Hochberg procedure.
+limma_result <- build_limma(data_activity, phenotypes = data_pheno,
+                            use.bonferroni = TRUE)
 ```
 
 To take both absolute activity difference and significance into account, we
 use pareto fronts to pick the most differentially active signatures. We extract
-differentially active signatures in the first 5 layers of pareto
+differentially active signatures in the first 10 layers of pareto
 fronts. Modify N_fronts to get more or fewer signatures.
 
 ```{r}
 active_sigs <- get_active_signatures(limma_result = limma_result,
-                                     pheno_group = "both",
-                                     method = "pareto", N_fronts = 5)
+                                     pheno_group = "both", 
+                                     method = "pareto", N_fronts = 10)
 ```
 
 Signatures that are differentially active between anr mutant and wildtype are:
@@ -123,7 +126,8 @@ plot_activity_heatmap(activity = data_activity, signatures = active_sigs)
 
 Combining the volcano plot and the activity heatmap, Node35pos is the most
 active signature in anr mutant, followed by Node233pos, Node140pos.
-On the other side, Node205neg and Node269pos are most active in wildtype.
+On the other side, Node38neg, Node31pos, Node269pos, Node205neg are most active
+in wildtype.
 
 ## Signature overlap
 To reduce the number of signatures to look at, we can check whether these active
@@ -132,21 +136,17 @@ signatures greatly overlap with others.
 `plot_signature_overlap` creates a heatmap of odds ratios. The odds ratio
 represents the odds that two signatures share a specific number of genes.
 
-```{r signature overlap}
-plot_signature_overlap(selected_signatures = active_sigs)
+```{r}
+signature_similarity <- plot_signature_overlap(selected_signatures = active_sigs)
 ```
 
-As we can see, the top six signatures more or less overlap with each other.
-
-Next we calculate the marginal activities of these similar signatures. Marginal
+Next we calculate the marginal activities of similar signatures. Marginal
 activity is defined as the activity of signature A after removing genes that
 share with signature B.
 
-```{r marginal activation}
-similar_sigs <- c("Node38pos", "Node67pos", "Node35pos", "Node233pos",
-                  "Node140pos", "Node158neg")
+```{r}
 marginal_activity <- calculate_marginal_activity(input_data = data_normed,
-                                                 selected_signatures = similar_sigs,
+                                                 selected_signatures = active_sigs,
                                                  model = model)
 ```
 
@@ -165,20 +165,28 @@ the row signature. Values in the diagonal of the heatmap are the activation
 significance of signatures themselves.
 
 ```{r}
-plot_marginal_activation(marginal_limma_result = marginal_limma)
+plot_marginal_activation(marginal_limma_result = marginal_limma,
+                         signature_order = colnames(signature_similarity))
 ```
 
-We can see that Node35pos, Node233pos, and Node67pos each has unique
+Based on this plot, we can see that Node119pos, Node214neg, and Node299pos are
+completely masked by Node191pos, because after removing Node191pos from them,
+their significance drops dramatically. Node130pos and Node250neg are masked by
+Node31pos.
+Node154pos is masked by Node57neg. Node63neg, Node39neg, Node228pos, Node158neg,
+Node140pos, Node269neg and Node31neg are masked by Node35pos. Node185neg and
+Node275pos are masked by Node67pos. Node278pos is masked by Node9pos.
+We can see that Node67pos, Node35pos, and Node233pos each has unique
 genes that make them still differentially active even after removing the effect
-of another signature. Node158neg and Node140pos are completely masked by
-Node35pos, because after removing Node35pos from them, their significance drops
-dramatically. Node38pos is the least unique signature, as it is no longer
-differentially active after removing any other signature. If you want to reduce
-the number of signatures to look at, you can safely drop Node38pos, Node158neg,
-and Node140pos.
+of another signature.
 
 ```{r}
-active_sigs <- setdiff(active_sigs, c("Node38pos", "Node158neg", "Node140pos"))
+active_sigs <- setdiff(active_sigs,c("Node119pos", "Node214neg", "Node299pos",
+                                     "Node130pos","Node250neg", "Node154pos",
+                                     "Node63neg", "Node39neg", "Node228pos",
+                                     "Node158neg", "Node140pos", "Node269neg",
+                                     "Node31neg", "Node185neg","Node275pos",
+                                     "Node278pos"))
 ```
 
 ## Active signature annotation
@@ -197,8 +205,8 @@ pathway_result <- annotate_signatures_with_genesets(
 DT::datatable(pathway_result)
 ```
 
-In this case, only Node205neg has been annotated by KEGG pathways. Other active
-signatures are still uncharacterized.
+In this case, many signatures including Node35pos, Node233pos, Node269pos,
+Node67pos, Node38pos, Node107pos, Node191pos are still uncharacterized by KEGG.
 
 ## Gene-gene network
 We can check how genes in the active signatures cluster in the ADAGE gene-gene
@@ -220,31 +228,38 @@ Visualize the ADAGE gene-gene network of the active signatures.
 ```{r}
 visualize_gene_network(selected_signatures = active_sigs,
                        gene_color_value = gene_logFC,
-                       model = model, cor_cutoff = 0.5)
+                       model = model, cor_cutoff = 0.5,
+                       curated_pathways = KEGG)
 ```
 
 To review a signature, we can list all genes in it.
 
 ```{r}
-DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node205neg"))
+DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node35pos",
+                                           model = model,
+                                           curated_pathways = KEGG))
 ```
 
 And visualize its genes with the gene-gene network.
 
 ```{r}
-visualize_gene_network(selected_signatures = "Node205neg",
+visualize_gene_network(selected_signatures = "Node35pos",
                        gene_color_value = gene_logFC,
-                       model = model, cor_cutoff = 0.5)
+                       model = model, cor_cutoff = 0.5,
+                       curated_pathways = KEGG)
 ```
 
 We can also review a group of similar signatures.
 
 ```{r}
 sig_group <- c("Node35pos", "Node233pos", "Node67pos")
-DT::datatable(annotate_genes_in_signatures(selected_signatures = sig_group))
+DT::datatable(annotate_genes_in_signatures(selected_signatures = sig_group,
+                                           model = model,
+                                           curated_pathways = KEGG))
 ```
 ```{r}
 visualize_gene_network(selected_signatures = sig_group,
                        gene_color_value = gene_logFC,
-                       model = model, cor_cutoff = 0.5)
+                       model = model, cor_cutoff = 0.5,
+                       curated_pathways = KEGG)
 ```
