@@ -226,6 +226,6 @@ plot_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
     max(overlap_matrix[overlap_matrix != Inf], na.rm = TRUE)
 
   # plot the odds ratio heatmap using corrplot
-  corrplot::corrplot(overlap_matrix, is.corr = FALSE, method = 'square',
-                     order = 'hclust')
+  return(corrplot::corrplot(overlap_matrix, is.corr = FALSE, method = 'square',
+                     order = 'hclust'))
 }

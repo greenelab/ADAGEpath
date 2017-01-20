@@ -131,17 +131,20 @@ annotate_signatures_with_genesets <- function(selected_signatures,
 #' Annotating genes in signatures
 #'
 #' Annotates genes in the input signatures with their symbols, descriptions,
-#' operons, and associated signatures.
+#' operons, associated signatures, and curated pathways if provided.
 #'
 #' @param selected_signatures a character vector storing names of signatures
 #' @param model an ADAGE model to extract signatures from
 #' (default: the 300-node eADAGE model preloaded in the package).
+#' @param curated_pathways a named list with each element being a gene set, such
+#' as the output of the function fetch_geneset(). (default: NULL).
 #' @return a data.frame storing genes in the input signatures. Each gene is
 #' annotated by gene symbol, gene description, its operon, and signatures it
 #' is in.
 #' @export
 annotate_genes_in_signatures <- function(selected_signatures,
-                                         model = eADAGEmodel){
+                                         model = eADAGEmodel,
+                                         curated_pathways = NULL){
 
   if (!check_input(model)) {
     stop("The model should be a data.frame with the first column as a character
@@ -161,17 +164,28 @@ annotate_genes_in_signatures <- function(selected_signatures,
   selected_signatures_genes <- signatures_genes[selected_signatures]
 
   # build a gene-signature map from the selected signatures
-  gene_signature_map <- build_gene_signature_map(selected_signatures_genes)
+  gene_signature_map <- build_gene_geneset_map(selected_signatures_genes)
+  colnames(gene_signature_map)[2] <- "signature"
+  # replace ; with , because visNetwork can only use , to separate multiple groups
+  gene_signature_map$signature <- gsub(";", ",", gene_signature_map$signature)
   gene_signature_map$N_signatures <- sapply(gene_signature_map$signature,
     function(x) length(unlist(strsplit(x,","))))
 
   # build a gene-operon map
-  gene_operon_map <- build_gene_signature_map(operons)
+  gene_operon_map <- build_gene_geneset_map(operons)
   colnames(gene_operon_map)[2] <- "operon"
 
   # incorporate gene symbol, description, operon, and signature annotations
   genes_df <- suppressWarnings(dplyr::right_join(gene_operon_map,
                                                  gene_signature_map))
+
+  # annotate pathways each gene participate if curated_pathways is provided
+  if (!is.null(curated_pathways)) {
+    gene_pathway_map <- build_gene_geneset_map(curated_pathways)
+    colnames(gene_pathway_map)[2] <- "pathway"
+    genes_df <- suppressWarnings(dplyr::left_join(genes_df, gene_pathway_map))
+  }
+
   genes_df <- suppressWarnings(
     dplyr::right_join(geneinfo[, c("LocusTag", "Symbol", "description")],
                                 genes_df, by = c("LocusTag" = "geneID")))
@@ -181,38 +195,38 @@ annotate_genes_in_signatures <- function(selected_signatures,
 }
 
 
-#' Gene-signature map
+#' Gene-geneset map
 #'
-#' Map genes to the signatures they are in.
+#' Map genes to the genesets they are in.
 #'
-#' @param signatures_genes a named list with each element storing genes in one
-#' signature.
+#' @param genesets a named list with each element storing genes in one
+#' geneset.
 #' @return a data.frame with the first column specifying geneID and the second
-#' column specifying signatures that a gene is in.
-build_gene_signature_map <- function(signatures_genes){
+#' column specifying the names of genesets that a gene is in.
+build_gene_geneset_map <- function(genesets){
 
-  # initialize a gene-signature data.frame with a geneID column containing all
-  # unique genes in the input signatures and a signature column set to NA
-  gene_signature_df <- data.frame(geneID = unique(unlist(signatures_genes)),
-                                  signature = NA)
+  # initialize a gene-geneset data.frame with a geneID column containing all
+  # unique genes in the input genesets and a geneset column set to NA
+  gene_geneset_df <- data.frame(geneID = unique(unlist(genesets)),
+                                geneset = NA)
 
-  # loop through each gene in each signature
-  for (sig in names(signatures_genes)) {
-    for (gene in signatures_genes[[sig]]) {
-      if (is.na(gene_signature_df[gene_signature_df$geneID == gene, "signature"])){
-        # if NA, this is the first gene-signature relationship found for this
-        # gene, replace NA with the signature name
-        gene_signature_df[gene_signature_df$geneID == gene, "signature"] <- sig
+  # loop through each gene in each geneset
+  for (set in names(genesets)) {
+    for (gene in genesets[[set]]) {
+      if (is.na(gene_geneset_df[gene_geneset_df$geneID == gene, "geneset"])){
+        # if NA, this is the first gene-geneset relationship found for this
+        # gene, replace NA with the geneset name
+        gene_geneset_df[gene_geneset_df$geneID == gene, "geneset"] <- set
       }
       else{
-        # this gene is already in some other signatures, simply append this
-        # signature's name to existing signature names
-        gene_signature_df[gene_signature_df$geneID == gene, "signature"] <-
-          paste(gene_signature_df[gene_signature_df$geneID == gene, "signature"],
-                sig, sep = ",")
+        # this gene is already in some other genesets, simply append this
+        # geneset's name to existing geneset names
+        gene_geneset_df[gene_geneset_df$geneID == gene, "geneset"] <-
+          paste(gene_geneset_df[gene_geneset_df$geneID == gene, "geneset"],
+                set, sep = ";")
       }
     }
   }
 
-  return(gene_signature_df)
+  return(gene_geneset_df)
 }

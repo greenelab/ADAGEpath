@@ -178,7 +178,7 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
 
   # get the platform types
   ptype <- sapply(celfiles, function(f) {
-    affyio::read.celfile.header(paste(cel_folder, f, sep = "/"))[1]
+    affyio::read.celfile.header(file.path(cel_folder, f))[1]
   })
 
   # only process CEL files on "Pae_G1a" platform

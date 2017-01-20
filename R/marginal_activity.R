@@ -80,6 +80,9 @@ calculate_marginal_activity <- function(input_data, selected_signatures,
 
     marginal_activities <- data.frame(rbind(sig1_activities, sig2_activities),
                                       check.names = FALSE)
+    # replace NA with 0
+    marginal_activities[is.na(marginal_activities)] <- 0
+
     return(marginal_activities)
   }, comb_index[1, ], comb_index[2, ], SIMPLIFY = FALSE)
 
@@ -112,8 +115,12 @@ calculate_marginal_activity <- function(input_data, selected_signatures,
 #' @param marginal_limma_result a data.frame that stores the limma result table
 #' returned by the build_limma() function. It's rownames is in the format of
 #' "signature1-signature2".
+#' @param signature_order a vector of signature names, the order of signatures
+#' in this vector will be used to order signatures in the plot. If NULL,
+#' signatures will be ordered alphabatically. (default: NULL)
 #' @export
-plot_marginal_activation <- function(marginal_limma_result){
+plot_marginal_activation <- function(marginal_limma_result,
+                                     signature_order = NULL){
 
   # extract the names of the signature pair
   marginal_limma_result$sig1 <- sapply(rownames(marginal_limma_result),
@@ -127,8 +134,12 @@ plot_marginal_activation <- function(marginal_limma_result){
                                      value.var = "log10qvalue")
   marginal_matrix <- tibble::column_to_rownames(marginal_matrix, var = "sig1")
 
-  col <- colorRampPalette(c("white", "yellow","red"))
-  corrplot::corrplot(as.matrix(marginal_matrix), is.corr = FALSE, order = "FPC",
+  if (!is.null(signature_order)) {
+    marginal_matrix <- marginal_matrix[signature_order, signature_order]
+  }
+
+  col <- colorRampPalette(c("white", "yellow", "red"))
+  corrplot::corrplot(as.matrix(marginal_matrix), is.corr = FALSE,
                      col = col(100))
 
 }

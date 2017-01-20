@@ -8,7 +8,10 @@
 #' (green) correlation. If a value associated with the expression of each gene in
 #' a dataset (such as fold change or correlation to phenotype) is provided, it
 #' will be used to color gene nodes in the network with red meaning high positive
-#' value and blue meaning high negative value.
+#' value and blue meaning high negative value. If curated pathways such as KEGG
+#' pathways are provided, they will be used to annotate genes in the network and
+#' color the node border. Genes that have been annotated by curated pathways are
+#' colored black and others grey.
 #'
 #' @param selected_signatures a vector storing names of signatures. Genes in
 #' them will be included in the gene-gene network.
@@ -21,10 +24,15 @@
 #' each gene. This value will be used to color genes in the network.
 #' If not provided, the gene color in the gene-gene network is uniformly blue.
 #' (default: NULL).
+#' @param curated_pathways a named list with each element being a gene set, such
+#' as the output of the function fetch_geneset(). (default: NULL).
+#' @param random_seed int, control the layout of the network. The layout will
+#' be the same if the same random_seed is provided (default: 123).
 #' @importFrom magrittr "%>%"
 #' @export
 visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
-                                    cor_cutoff = 0.5, gene_color_value = NULL) {
+                                   cor_cutoff = 0.5, gene_color_value = NULL,
+                                   curated_pathways = NULL, random_seed = 123) {
 
   if (!check_input(model)) {
     stop("The model should be a data.frame with the first column as a character
@@ -44,11 +52,15 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
   # only include genes in the selected signatures
   selected_signatures_genes <- signatures_genes[selected_signatures]
   selected_genes <- unique(unlist(selected_signatures_genes))
-  model <- model[model$geneID %in% selected_genes, ]
+  # make sure the selected signatures have genes in them
+  if (is.null(selected_genes)) {
+    stop("The provided signatures have no genes.")
+  }
+  selected_model <- model[model$geneID %in% selected_genes, ]
 
   # extract the weight matrix from the model
-  weight_matrix <- as.matrix(model[, -1])
-  rownames(weight_matrix) <- as.data.frame(model)[, 1]
+  weight_matrix <- as.matrix(selected_model[, -1])
+  rownames(weight_matrix) <- as.data.frame(selected_model)[, 1]
 
   # calculate weight correlation
   weight_cor <- cor(t(weight_matrix))
@@ -66,7 +78,8 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
   gene_network <- visNetwork::toVisNetworkData(graph)
 
   # annotate genes in the selected signatures
-  gene_annotation <- annotate_genes_in_signatures(selected_signatures)
+  gene_annotation <- annotate_genes_in_signatures(selected_signatures, model,
+                                                  curated_pathways)
   gene_network$nodes <- suppressWarnings(dplyr::left_join(gene_network$nodes,
                                                           gene_annotation,
                                                           by = c("id" = "LocusTag")))
@@ -81,53 +94,107 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
     gene_color_value <- gene_color_value[gene_color_value$geneID %in%
                                          selected_genes, ]
     value_name <- colnames(gene_color_value)[2]
-    gene_color_value$color <- map_value_to_color(gene_color_value[, 2])
+    gene_color_value$color.background <- map_value_to_color(gene_color_value[, 2])
     gene_network$nodes <- suppressWarnings(dplyr::left_join(gene_network$nodes,
                                                             gene_color_value,
                                                             by = c("id" = "geneID")))
 
-    # set network node title that will be displayed when mouse is above the node
-    gene_network$nodes$title <- paste0("<p>locus tag:", gene_network$nodes$id,
-                                       "<br>symbol:", gene_network$nodes$label,
-                                       "<br>operon:", gene_network$nodes$operon,
-                                       "<br>description:", gene_network$nodes$description,
-                                       "<br>",value_name, ":",
-                                       round(gene_network$nodes[, value_name], 2),
-                                       "<br>signatures:", gene_network$nodes$signature,
-                                       "</p>")
+    if (!is.null(curated_pathways)) {
+      # use node border color to reflect whether a gene has been annotated by
+      # provided pathways
+      gene_network$nodes$color.border	<- ifelse(is.na(gene_network$nodes$pathway),
+                                                "lightgrey", "black")
+
+      # set network node title that will be displayed when mouse is above the node
+      gene_network$nodes$title <- paste0("<p>locus tag:", gene_network$nodes$id,
+                                         "<br>symbol:", gene_network$nodes$label,
+                                         "<br>operon:", gene_network$nodes$operon,
+                                         "<br>description:", gene_network$nodes$description,
+                                         "<br>",value_name, ":",
+                                         round(gene_network$nodes[, value_name], 2),
+                                         "<br>signatures:", gene_network$nodes$signature,
+                                         "<br>pathways:<br>",
+                                         gsub(";", "<br>", gene_network$nodes$pathway),
+                                         "</p>")
+    } else {
+      # set node border color to be the same as node background color
+      gene_network$nodes$color.border	<- gene_network$nodes$color.background
+
+      # set network node title that will be displayed when mouse is above the node
+      gene_network$nodes$title <- paste0("<p>locus tag:", gene_network$nodes$id,
+                                         "<br>symbol:", gene_network$nodes$label,
+                                         "<br>operon:", gene_network$nodes$operon,
+                                         "<br>description:", gene_network$nodes$description,
+                                         "<br>",value_name, ":",
+                                         round(gene_network$nodes[, value_name], 2),
+                                         "<br>signatures:", gene_network$nodes$signature,
+                                         "</p>")
+    }
+
   } else {
-    # set network node title that will be displayed when mouse is above the node
-    # (without fold change)
-    gene_network$nodes$title <- paste0("<p>locus tag:", gene_network$nodes$id,
-                                       "<br>symbol:", gene_network$nodes$label,
-                                       "<br>operon:", gene_network$nodes$operon,
-                                       "<br>description:", gene_network$nodes$description,
-                                       "<br>signatures:", gene_network$nodes$signature,
-                                       "</p>")
+    gene_network$nodes$color.background <- "lightblue"
+
+    if (!is.null(curated_pathways)) {
+      # use node border color to reflect whether a gene has been annotated by
+      # provided pathways
+      gene_network$nodes$color.border	<- ifelse(is.na(gene_network$nodes$pathway),
+                                                "lightgrey", "black")
+
+      # set network node title that will be displayed when mouse is above the node
+      # (without fold change)
+      gene_network$nodes$title <- paste0("<p>locus tag:", gene_network$nodes$id,
+                                         "<br>symbol:", gene_network$nodes$label,
+                                         "<br>operon:", gene_network$nodes$operon,
+                                         "<br>description:", gene_network$nodes$description,
+                                         "<br>signatures:", gene_network$nodes$signature,
+                                         "<br>pathways:<br>",
+                                         gsub(";", "<br>", gene_network$nodes$pathway),
+                                         "</p>")
+    } else {
+      # set node border color to be the same as node background color
+      gene_network$nodes$color.border	<- gene_network$nodes$color.background
+
+      # set network node title that will be displayed when mouse is above the node
+      # (without fold change)
+      gene_network$nodes$title <- paste0("<p>locus tag:", gene_network$nodes$id,
+                                         "<br>symbol:", gene_network$nodes$label,
+                                         "<br>operon:", gene_network$nodes$operon,
+                                         "<br>description:", gene_network$nodes$description,
+                                         "<br>signatures:", gene_network$nodes$signature,
+                                         "</p>")
+    }
   }
 
-  # set network edge color to magenta if edge weight (correlation) is positive
-  # and green if negative
-  gene_network$edges$color <- ifelse(gene_network$edges$weight > 0,
-                                     "#d01c8b", "#4dac26")
+  # set node hightlight colors
+  gene_network$nodes$color.highlight.border <- gene_network$nodes$color.border
+  gene_network$nodes$color.highlight.background <- gene_network$nodes$color.background
 
-  # set the network edge width to be linear to edge weight
-  min_weight <- min(abs(abs(gene_network$edges$weight)))
-  range_weight <- diff(range(abs(gene_network$edges$weight)))
-  gene_network$edges$width <- (abs(gene_network$edges$weight) - min_weight) /
-    range_weight * 5
+  # annotate edges only when there are edges
+  if (nrow(gene_network$edges) > 0) {
 
-  # annotate network edge to include a column indicating which signatures two
-  # genes share with each other
-  gene_network$edges <- annotate_shared_signatures(
-    gene_network$edges, selected_signatures_genes)
+    # set network edge color to magenta if edge weight (correlation) is positive
+    # and green if negative
+    gene_network$edges$color <- ifelse(gene_network$edges$weight > 0,
+                                       "#d01c8b", "#4dac26")
 
-  # set network edge title that will be displayed when mouse is above the edge
-  gene_network$edges$title <- paste0("<p>correlation:",
-                                     round(gene_network$edges$weight, 2),
-                                     "<br>shared signatures:",
-                                     gene_network$edges$shared_signatures,
-                                     "</p>")
+    # set the network edge width to be linear to edge weight
+    min_weight <- min(abs(abs(gene_network$edges$weight)))
+    range_weight <- diff(range(abs(gene_network$edges$weight)))
+    gene_network$edges$width <- (abs(gene_network$edges$weight) - min_weight) /
+      range_weight * 5
+
+    # annotate network edge to include a column indicating which signatures two
+    # genes share with each other
+    gene_network$edges <- annotate_shared_signatures(
+      gene_network$edges, selected_signatures_genes)
+
+    # set network edge title that will be displayed when mouse is above the edge
+    gene_network$edges$title <- paste0("<p>correlation:",
+                                       round(gene_network$edges$weight, 2),
+                                       "<br>shared signatures:",
+                                       gene_network$edges$shared_signatures,
+                                       "</p>")
+  }
 
   # set the final network display options
   final_network <- visNetwork::visNetwork(nodes = gene_network$nodes,
@@ -139,7 +206,7 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
                                highlightNearest = TRUE,
                                nodesIdSelection = TRUE) %>%
         visNetwork::visInteraction(navigationButtons = TRUE) %>%
-        visNetwork::visLayout(randomSeed = 123)
+        visNetwork::visLayout(randomSeed = random_seed)
 
   return(final_network)
 }
