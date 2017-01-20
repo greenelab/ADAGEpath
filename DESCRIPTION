@@ -7,7 +7,7 @@ Authors@R: person("Jie", "Tan", email = "jie.tan.gr@dartmouth.edu",
 URL: https://github.com/greenelab/ADAGEpath
 Description: This package provides functions to perform ADAGE-based signature
     analysis on a gene expression dataset.
-Depends: R (>= 2.10.0)
+Depends: R (>= 3.3.0)
 License: BSD 3-clause License + file LICENSE
 LazyData: TRUE
 Imports:
