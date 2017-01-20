@@ -5,7 +5,8 @@
 \title{Gene-gene network visualization}
 \usage{
 visualize_gene_network(selected_signatures, model = eADAGEmodel,
-  cor_cutoff = 0.5, gene_color_value = NULL)
+  cor_cutoff = 0.5, gene_color_value = NULL, curated_pathways = NULL,
+  random_seed = 123)
 }
 \arguments{
 \item{selected_signatures}{a vector storing names of signatures. Genes in
@@ -22,6 +23,12 @@ the other could be logFC, correlation, or other value associated with
 each gene. This value will be used to color genes in the network.
 If not provided, the gene color in the gene-gene network is uniformly blue.
 (default: NULL).}
+
+\item{curated_pathways}{a named list with each element being a gene set, such
+as the output of the function fetch_geneset(). (default: NULL).}
+
+\item{random_seed}{int, control the layout of the network. The layout will
+be the same if the same random_seed is provided (default: 123).}
 }
 \description{
 Builds and visualizes an ADAGE-derived gene-gene network of genes in the
@@ -32,6 +39,9 @@ correlation strength and edge color indicates positive (magenta) or negative
 (green) correlation. If a value associated with the expression of each gene in
 a dataset (such as fold change or correlation to phenotype) is provided, it
 will be used to color gene nodes in the network with red meaning high positive
-value and blue meaning high negative value.
+value and blue meaning high negative value. If curated pathways such as KEGG
+pathways are provided, they will be used to annotate genes in the network and
+color the node border. Genes that have been annotated by curated pathways are
+colored black and others grey.
 }
 
