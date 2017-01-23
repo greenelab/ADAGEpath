@@ -4,7 +4,8 @@
 \alias{plot_marginal_activation}
 \title{Marginal activation plot}
 \usage{
-plot_marginal_activation(marginal_limma_result, signature_order = NULL)
+plot_marginal_activation(marginal_limma_result, signature_order = NULL,
+  sig_cutoff = 0.05)
 }
 \arguments{
 \item{marginal_limma_result}{a data.frame that stores the limma result table
@@ -14,6 +15,10 @@ returned by the build_limma() function. It's rownames is in the format of
 \item{signature_order}{a vector of signature names, the order of signatures
 in this vector will be used to order signatures in the plot. If NULL,
 signatures will be ordered alphabatically. (default: NULL)}
+
+\item{sig_cutoff}{a numeric value used as the significance cutoff.
+Significance values below the cutoff will be crossed out in the plot.
+(default: 0.05)}
 }
 \description{
 Plots the activation significance of the marginal effects of signatures.
