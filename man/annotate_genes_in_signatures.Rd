@@ -4,13 +4,17 @@
 \alias{annotate_genes_in_signatures}
 \title{Annotating genes in signatures}
 \usage{
-annotate_genes_in_signatures(selected_signatures, model = eADAGEmodel)
+annotate_genes_in_signatures(selected_signatures, model = eADAGEmodel,
+  curated_pathways = NULL)
 }
 \arguments{
 \item{selected_signatures}{a character vector storing names of signatures}
 
 \item{model}{an ADAGE model to extract signatures from
 (default: the 300-node eADAGE model preloaded in the package).}
+
+\item{curated_pathways}{a named list with each element being a gene set, such
+as the output of the function fetch_geneset(). (default: NULL).}
 }
 \value{
 a data.frame storing genes in the input signatures. Each gene is
@@ -19,6 +23,6 @@ is in.
 }
 \description{
 Annotates genes in the input signatures with their symbols, descriptions,
-operons, and associated signatures.
+operons, associated signatures, and curated pathways if provided.
 }
 

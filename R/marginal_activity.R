@@ -80,6 +80,9 @@ calculate_marginal_activity <- function(input_data, selected_signatures,
 
     marginal_activities <- data.frame(rbind(sig1_activities, sig2_activities),
                                       check.names = FALSE)
+    # replace NA with 0
+    marginal_activities[is.na(marginal_activities)] <- 0
+
     return(marginal_activities)
   }, comb_index[1, ], comb_index[2, ], SIMPLIFY = FALSE)
 
@@ -112,8 +115,16 @@ calculate_marginal_activity <- function(input_data, selected_signatures,
 #' @param marginal_limma_result a data.frame that stores the limma result table
 #' returned by the build_limma() function. It's rownames is in the format of
 #' "signature1-signature2".
+#' @param signature_order a vector of signature names, the order of signatures
+#' in this vector will be used to order signatures in the plot. If NULL,
+#' signatures will be ordered alphabatically. (default: NULL)
+#' @param sig_cutoff a numeric value used as the significance cutoff.
+#' Significance values below the cutoff will be crossed out in the plot.
+#' (default: 0.05)
 #' @export
-plot_marginal_activation <- function(marginal_limma_result){
+plot_marginal_activation <- function(marginal_limma_result,
+                                     signature_order = NULL,
+                                     sig_cutoff = 0.05){
 
   # extract the names of the signature pair
   marginal_limma_result$sig1 <- sapply(rownames(marginal_limma_result),
@@ -123,13 +134,23 @@ plot_marginal_activation <- function(marginal_limma_result){
   marginal_limma_result$log10qvalue <- -log10(marginal_limma_result$adj.P.Val)
 
   # long to wide conversion
-  marginal_matrix <- reshape2::dcast(marginal_limma_result, sig1~sig2,
-                                     value.var = "log10qvalue")
-  marginal_matrix <- tibble::column_to_rownames(marginal_matrix, var = "sig1")
+  marginal_matrix_qvalue <- reshape2::dcast(marginal_limma_result, sig1~sig2,
+                                     value.var = "adj.P.Val")
+  marginal_matrix_qvalue <- tibble::column_to_rownames(marginal_matrix_qvalue,
+                                                       var = "sig1")
+  marginal_matrix_log10qvalue <- reshape2::dcast(marginal_limma_result, sig1~sig2,
+                                            value.var = "log10qvalue")
+  marginal_matrix_log10qvalue <- tibble::column_to_rownames(marginal_matrix_log10qvalue,
+                                                       var = "sig1")
+  if (!is.null(signature_order)) {
+    marginal_matrix_qvalue <- marginal_matrix_qvalue[signature_order, signature_order]
+    marginal_matrix_log10qvalue <- marginal_matrix_log10qvalue[signature_order, signature_order]
+  }
 
-  col <- colorRampPalette(c("white", "yellow","red"))
-  corrplot::corrplot(as.matrix(marginal_matrix), is.corr = FALSE, order = "FPC",
-                     col = col(100))
+  col <- colorRampPalette(c("white", "yellow", "red"))
+  corrplot::corrplot(as.matrix(marginal_matrix_log10qvalue), is.corr = FALSE,
+                     col = col(100), p.mat = as.matrix(marginal_matrix_qvalue),
+                     sig.level = sig_cutoff, pch.cex = 1)
 
 }
 
