@@ -131,7 +131,7 @@ active_sigs <- get_active_signatures(limma_result = limma_result,
 Signatures that are differentially active between wildtype and plcH mutant are:
 
 ```{r}
-print(paste(active_sigs, collapse = ","))
+active_sigs
 ```
 
 Check out each signature's activity changes and significance in the `limma` test.
@@ -159,24 +159,23 @@ signatures greatly overlap with others.
 represents the odds that two signatures share a specific number of genes.
 
 ```{r}
-plot_signature_overlap(selected_signatures = active_sigs,
+signature_similarity <- plot_signature_overlap(selected_signatures = active_sigs,
                                                model = model)
 ```
 
-We can see that the four signatures that are most strongly active in wildtype
+We can see that the four signatures (Node50pos, Node28neg, Node34pos, and
+Node41pos) that are most strongly active in wildtype
 share significant number of genes. Node49neg overlap with Node65pos.
 Node34neg and Node28pos that are active in plcH mutant also overlap.
 
-Next we calculate the marginal activities of these similar signatures. Marginal
+Next we calculate the marginal activities of active signatures. Marginal
 activity is defined as the activity of signature A after removing genes that
 are shared with signature B.
 
 ```{r}
-similar_sigs <- c("Node34neg", "Node28pos", "Node50pos", "Node28neg",
-                  "Node34pos", "Node41pos", "Node49neg", "Node65pos")
 marginal_activity <- calculate_marginal_activity(
   input_data = data_normed,
-  selected_signatures = similar_sigs, model = model)
+  selected_signatures = active_sigs, model = model)
 ```
 
 Again, we build a `limma` model to test whether these marginal activities
@@ -191,24 +190,24 @@ Let's visualize the marginal activties in a matrix heatmap.  The value in this
 matrix represents the -log10 transformed adjusted p value in
 the activation test when the effect of the column signature is removed from
 the row signature. Values in the diagonal of the heatmap are the activation
-significance of signatures themselves.
+significance of signatures themselves. 
 
 ```{r}
 plot_marginal_activation(marginal_limma_result = marginal_limma,
-                         signature_order = similar_sigs)
+                         signature_order = colnames(signature_similarity),
+                         sig_cutoff = 0.05)
 ```
-
-Among Node50pos, Node28neg, Node34pos, and Node41pos,
-Node50pos is the least unique signature, as it
-is no longer significant after removing any other signature. Node34pos is
-completely masked by Node28neg and Node41pos, as its significance drops
-dramatically after removing Node41pos or Node28neg. Therefore, we can use
-Node28neg and Node41pos to represent this signature cluster.
-Between Node34neg and Node28pos, we will choose Node28pos.
-Node49neg and Node65pos do not cover each other, so we will keep both.
+Node58neg, Node116pos, Node272pos are masked by Node257pos. Node68neg is masked
+by Node265neg. Node 34neg and Node28pos can mask each other. We keep Node34neg
+because it has higher significance. Node50pos, Node34pos, Node41pos, and
+Node49neg are masked by Node28neg.
 
 ```{r}
-active_sigs <- setdiff(active_sigs, c("Node34neg", "Node50pos", "Node34pos"))
+unique_active_sigs <- setdiff(active_sigs,
+                              c("Node58neg", "Node116pos", "Node272pos",
+                                "Node68neg", "Node28pos", "Node50pos",
+                                "Node34pos", "Node41pos", "Node49neg"))
+unique_active_sigs
 ```
 
 ## Active signature annotation
@@ -223,10 +222,20 @@ We associate active signatures to known KEGG pathways.
 
 ```{r}
 pathway_result <- annotate_signatures_with_genesets(
-  selected_signatures = active_sigs, model = model, genesets = KEGG)
+  selected_signatures = unique_active_sigs, model = model, genesets = KEGG)
 DT::datatable(pathway_result)
 ```
 
+In this case, there are also signatures uncharacterized by KEGG.
+```{r}
+uncharacterized_sigs <- setdiff(unique_active_sigs, pathway_result$signature)
+uncharacterized_sigs
+```
+
+Check the signature similarity of the uncharacterized signatures.
+```{r}
+plot_signature_overlap(selected_signatures = uncharacterized_sigs)
+```
 ## Gene-gene network
 We can check how genes in the active signatures cluster in the ADAGE gene-gene
 network.
@@ -247,7 +256,7 @@ gene_logFC <- data.frame(geneID = rownames(data_raw_limma),
 Visualize the ADAGE gene-gene network of the active signatures.
 
 ```{r}
-visualize_gene_network(selected_signatures = active_sigs,
+visualize_gene_network(selected_signatures = unique_active_sigs,
                        model = model, cor_cutoff = 0.5,
                        gene_color_value = gene_logFC,
                        curated_pathways = KEGG)

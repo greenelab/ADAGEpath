@@ -108,7 +108,7 @@ large_range_sigs <- activity_range[order(activity_range$activity_range,
 Signatures that show dramatic changes across samples are:
 
 ```{r}
-paste(large_range_sigs, collapse = ",")
+large_range_sigs
 ```
 
 View these signatures' activity changes in a heatmap.
@@ -150,7 +150,7 @@ We next check the gene overlap between these signatures.
 represents the odds that two signatures share a specific number of genes.
 
 ```{r}
-plot_signature_overlap(large_range_sigs)
+plot_signature_overlap(selected_signatures = large_range_sigs, model = model)
 ```
 
 Consistent with the KEGG annotation and the activity pattern, Node12neg,

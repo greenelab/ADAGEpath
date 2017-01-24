@@ -87,9 +87,11 @@ than a simple t test when sample size is small. A two-group limma analysis is
 provided in the function `build_limma()`. You can also build other limma models
 to test signatures' activities when the experimental design is more complex.
 
+Because there are a lot of signatures passing the significance cutoff, here we
+use bonferroni procedure instead of Benjamini–Hochberg procedure for multiple
+hypothesis correction.
+
 ```{r}
-# Because there are a lot of signatures passing the significance cutoff, we use
-# bonferroni procedure instead of Benjamini–Hochberg procedure.
 limma_result <- build_limma(data_activity, phenotypes = data_pheno,
                             use.bonferroni = TRUE)
 ```
@@ -108,7 +110,7 @@ active_sigs <- get_active_signatures(limma_result = limma_result,
 Signatures that are differentially active between anr mutant and wildtype are:
 
 ```{r}
-print(paste(active_sigs, collapse = ","))
+active_sigs
 ```
 
 Check out each signature's activity changes and significance in the `limma` test.
@@ -131,13 +133,14 @@ in wildtype.
 
 ## Signature overlap
 To reduce the number of signatures to look at, we can check whether these active
-signatures greatly overlap with others.
+signatures overlap with each other.
 
 `plot_signature_overlap` creates a heatmap of odds ratios. The odds ratio
 represents the odds that two signatures share a specific number of genes.
 
 ```{r}
-signature_similarity <- plot_signature_overlap(selected_signatures = active_sigs)
+signature_similarity <- plot_signature_overlap(selected_signatures = active_sigs,
+                                               model = model)
 ```
 
 Next we calculate the marginal activities of similar signatures. Marginal
@@ -166,27 +169,45 @@ significance of signatures themselves.
 
 ```{r}
 plot_marginal_activation(marginal_limma_result = marginal_limma,
-                         signature_order = colnames(signature_similarity))
+                         signature_order = colnames(signature_similarity),
+                         sig_cutoff = 0.05)
 ```
 
 Based on this plot, we can see that Node119pos, Node214neg, and Node299pos are
 completely masked by Node191pos, because after removing Node191pos from them,
 their significance drops dramatically. Node130pos and Node250neg are masked by
-Node31pos.
+Node31pos. Node285neg is masked by Node205neg.
 Node154pos is masked by Node57neg. Node63neg, Node39neg, Node228pos, Node158neg,
 Node140pos, Node269neg and Node31neg are masked by Node35pos. Node185neg and
 Node275pos are masked by Node67pos. Node278pos is masked by Node9pos.
 We can see that Node67pos, Node35pos, and Node233pos each has unique
-genes that make them still differentially active even after removing the effect
-of another signature.
+genes that make them still significant even after removing the effect
+of another signature. We can safely remove a signature being masked by another
+signature as long as we keep the second signature.
 
 ```{r}
-active_sigs <- setdiff(active_sigs,c("Node119pos", "Node214neg", "Node299pos",
+unique_active_sigs <- setdiff(active_sigs,c("Node119pos", "Node214neg", "Node299pos",
                                      "Node130pos","Node250neg", "Node154pos",
                                      "Node63neg", "Node39neg", "Node228pos",
                                      "Node158neg", "Node140pos", "Node269neg",
                                      "Node31neg", "Node185neg","Node275pos",
-                                     "Node278pos"))
+                                     "Node278pos", "Node285neg"))
+unique_active_sigs
+```
+
+Check out each signature's activity changes and significance after removing
+overlapping signatures.
+
+```{r}
+plot_volcano(limma_result, highlight_signatures = unique_active_sigs,
+             interactive = TRUE)
+```
+
+Look at how the activities of active signature vary across samples after removing
+overlapping signatures.
+
+```{r}
+plot_activity_heatmap(activity = data_activity, signatures = unique_active_sigs)
 ```
 
 ## Active signature annotation
@@ -201,12 +222,22 @@ We associate active signatures to known KEGG pathways.
 
 ```{r}
 pathway_result <- annotate_signatures_with_genesets(
-  selected_signatures = active_sigs, model = model, genesets = KEGG)
+  selected_signatures = unique_active_sigs, model = model, genesets = KEGG)
 DT::datatable(pathway_result)
 ```
 
-In this case, many signatures including Node35pos, Node233pos, Node269pos,
-Node67pos, Node38pos, Node107pos, Node191pos are still uncharacterized by KEGG.
+In this case, there are also signatures uncharacterized by KEGG.
+```{r}
+uncharacterized_sigs <- setdiff(unique_active_sigs, pathway_result$signature)
+uncharacterized_sigs
+```
+
+Check the signature similarity of the uncharacterized signatures.
+```{r}
+plot_signature_overlap(selected_signatures = uncharacterized_sigs)
+```
+They form two major groups. Group1 contains Node38pos, Node67pos, Node35pos, and
+Node233pos. Group2 contains Node191pos, Node269pos, and Node107pos.
 
 ## Gene-gene network
 We can check how genes in the active signatures cluster in the ADAGE gene-gene
@@ -226,7 +257,7 @@ gene_logFC <- data.frame(geneID = rownames(data_raw_limma),
 Visualize the ADAGE gene-gene network of the active signatures.
 
 ```{r}
-visualize_gene_network(selected_signatures = active_sigs,
+visualize_gene_network(selected_signatures = unique_active_sigs,
                        gene_color_value = gene_logFC,
                        model = model, cor_cutoff = 0.5,
                        curated_pathways = KEGG)
@@ -235,7 +266,7 @@ visualize_gene_network(selected_signatures = active_sigs,
 To review a signature, we can list all genes in it.
 
 ```{r}
-DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node35pos",
+DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node155neg",
                                            model = model,
                                            curated_pathways = KEGG))
 ```
@@ -243,20 +274,21 @@ DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node35pos",
 And visualize its genes with the gene-gene network.
 
 ```{r}
-visualize_gene_network(selected_signatures = "Node35pos",
+visualize_gene_network(selected_signatures = "Node155neg",
                        gene_color_value = gene_logFC,
                        model = model, cor_cutoff = 0.5,
                        curated_pathways = KEGG)
 ```
 
-We can also review a group of similar signatures.
+We can also review signatures in group.
 
 ```{r}
-sig_group <- c("Node35pos", "Node233pos", "Node67pos")
+sig_group <- c("Node35pos", "Node233pos", "Node67pos", "Node38pos")
 DT::datatable(annotate_genes_in_signatures(selected_signatures = sig_group,
                                            model = model,
                                            curated_pathways = KEGG))
 ```
+
 ```{r}
 visualize_gene_network(selected_signatures = sig_group,
                        gene_color_value = gene_logFC,
