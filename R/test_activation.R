@@ -9,8 +9,11 @@
 #' signatures).
 #' @param phenotypes a factor (or a charactor that can be converted into a
 #' factor) with two levels that describes the phenotype of each sample.
-#' The first factor level is used as the control group and the second level is
-#' used as the treatment group in the limma test.
+#' @param control_pheno a character to specify the control phenotype in the
+#' limma test. It must be one of the phenotypes level.
+#' The other phenotype would be the treatment group. If not
+#' specified, the first level of the pehnotypes factor will be used as the
+#' control phenotype. (default: NULL)
 #' @param use.bonferroni a logical value indicating whether to use the more
 #' conservative "bonferroni" method in the p value adjustment.
 #' This is recommended when there are too many significant features when
@@ -23,7 +26,8 @@
 #' level.
 #' @seealso \url{https://bioconductor.org/packages/release/bioc/html/limma.html}
 #' @export
-build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
+build_limma <- function(input_data, phenotypes, control_pheno = NULL,
+                        use.bonferroni = FALSE){
 
   if (!check_input(input_data)) {
     stop("The input_data should be a data.frame with first column storing
@@ -35,8 +39,13 @@ build_limma <- function(input_data, phenotypes, use.bonferroni = FALSE){
   # a factor with more than two levels or if it is a character
   phenotypes <- factor(as.character(phenotypes))
 
-  if (nlevels(phenotypes) > 2){
+  if (nlevels(phenotypes) != 2){
     stop("This function can only deal with two phenotype levels")
+  } else {
+    # set the control phenotype level when specified
+    if (!is.null(control_pheno)) {
+      phenotypes <- relevel(phenotypes, ref = control_pheno)
+    }
   }
 
   # preperation for limma analysis

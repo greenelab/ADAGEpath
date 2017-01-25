@@ -4,7 +4,8 @@
 \alias{build_limma}
 \title{Building a linear regression model for differential analysis}
 \usage{
-build_limma(input_data, phenotypes, use.bonferroni = FALSE)
+build_limma(input_data, phenotypes, control_pheno = NULL,
+  use.bonferroni = FALSE)
 }
 \arguments{
 \item{input_data}{a data.frame that stores either the signature activities or
@@ -12,9 +13,13 @@ gene expression values. The first column specifies feature names (genes or
 signatures).}
 
 \item{phenotypes}{a factor (or a charactor that can be converted into a
-factor) with two levels that describes the phenotype of each sample.
-The first factor level is used as the control group and the second level is
-used as the treatment group in the limma test.}
+factor) with two levels that describes the phenotype of each sample.}
+
+\item{control_pheno}{a character to specify the control phenotype in the
+limma test. It must be one of the phenotypes level.
+The other phenotype would be the treatment group. If not
+specified, the first level of the pehnotypes factor will be used as the
+control phenotype. (default: NULL)}
 
 \item{use.bonferroni}{a logical value indicating whether to use the more
 conservative "bonferroni" method in the p value adjustment.
