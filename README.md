@@ -141,11 +141,11 @@ https://github.com/hadley/devtools/issues/1401
 - `BiocInstaller` package not available
 
     You can install it via
-```r
-devtools::install_bioc("BiocInstaller")
-```
-or
-```r
-source("https://bioconductor.org/biocLite.R")
-biocLite("BiocInstaller")
-```
+    ```r
+    devtools::install_bioc("BiocInstaller")
+    ```
+    or
+    ```r
+    source("https://bioconductor.org/biocLite.R")
+    biocLite("BiocInstaller")
+    ```
