@@ -4,7 +4,7 @@
 #' selected signatures. In the network, each node represents a gene and two
 #' nodes are linked by an edge if the correlation of the two connected genes in
 #' the ADAGE model is higher than a certain cutoff. Edge width denotes the
-#' correlation strength and edge color indicates positive (magenta) or negative
+#' correlation strength and edge color indicates positive (purple) or negative
 #' (green) correlation. If a value associated with the expression of each gene in
 #' a dataset (such as fold change or correlation to phenotype) is provided, it
 #' will be used to color gene nodes in the network with red meaning high positive
@@ -175,7 +175,7 @@ visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
     # set network edge color to magenta if edge weight (correlation) is positive
     # and green if negative
     gene_network$edges$color <- ifelse(gene_network$edges$weight > 0,
-                                       "#d01c8b", "#4dac26")
+                                       "#c2a5cf", "#4dac26")
 
     # set the network edge width to be linear to edge weight
     min_weight <- min(abs(abs(gene_network$edges$weight)))
