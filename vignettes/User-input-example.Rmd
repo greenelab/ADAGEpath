@@ -87,12 +87,14 @@ than a simple t test when sample size is small. A two-group limma analysis is
 provided in the function `build_limma()`. You can also build other limma models
 to test signatures' activities when the experimental design is more complex.
 
+In the limma test, we will use "wt" as the control phenotype.
 Because there are a lot of signatures passing the significance cutoff, here we
-use bonferroni procedure instead of Benjamini–Hochberg procedure for multiple
-hypothesis correction.
+use the more strigent bonferroni procedure instead of Benjamini–Hochberg
+procedure for multiple hypothesis correction.
 
 ```{r}
 limma_result <- build_limma(data_activity, phenotypes = data_pheno,
+                            control_pheno = "wt",
                             use.bonferroni = TRUE)
 ```
 
@@ -158,7 +160,7 @@ are still strongly different between two conditions.
 
 ```{r}
 marginal_limma <- build_limma(input_data = marginal_activity,
-                              phenotypes = data_pheno)
+                              phenotypes = data_pheno, control_pheno = "wt")
 ```
 
 Let's visualize the marginal activities in a matrix heatmap.  The value in this
@@ -236,6 +238,7 @@ Check the signature similarity of the uncharacterized signatures.
 ```{r}
 plot_signature_overlap(selected_signatures = uncharacterized_sigs)
 ```
+
 They form two major groups. Group1 contains Node38pos, Node67pos, Node35pos, and
 Node233pos. Group2 contains Node191pos, Node269pos, and Node107pos.
 
@@ -248,7 +251,8 @@ gene-gene network to show as node color. Again, we use limma to test
 differential expression and get the logFC.
 
 ```{r}
-data_raw_limma <- build_limma(input_data = data_raw, phenotypes = data_pheno)
+data_raw_limma <- build_limma(input_data = data_raw, phenotypes = data_pheno,
+                              control_pheno = "wt")
 # build a gene:fold change table from limma result
 gene_logFC <- data.frame(geneID = rownames(data_raw_limma),
                          logFC = data_raw_limma$logFC)
@@ -283,7 +287,7 @@ visualize_gene_network(selected_signatures = "Node155neg",
 We can also review signatures in group.
 
 ```{r}
-sig_group <- c("Node35pos", "Node233pos", "Node67pos", "Node38pos")
+sig_group <- c("Node38pos", "Node67pos", "Node35pos", "233pos")
 DT::datatable(annotate_genes_in_signatures(selected_signatures = sig_group,
                                            model = model,
                                            curated_pathways = KEGG))
