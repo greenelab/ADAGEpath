@@ -257,7 +257,7 @@ pathway_result_sig <- dplyr::left_join(
     filter(adj.P.Val <= 0.05),
   pathway_result %>% select(-pvalue),
   by = c("signature" = "signature", "geneset" = "geneset"))
-pathway_result_sig <- pathway_result_sig %>% rename(
+pathway_result_sig <- pathway_result_sig %>% dplyr::rename(
   `activity difference` = logFC, `gene set enrichment (adj.P.val)` = qvalue)
 pathway_result_sig <- pathway_result_sig[order(pathway_result_sig$adj.P.Val), ]
 knitr::kable(pathway_result_sig, digits = 4, row.names = FALSE, align = "c")
