@@ -4,17 +4,17 @@
 \alias{fetch_geneset}
 \title{Gene set fetch}
 \usage{
-fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
+fetch_geneset(type = "KEGG", max_size = Inf, min_size = 0)
 }
 \arguments{
 \item{type}{character, type of the gene sets, either "GO" or "KEGG"
 (default: "KEGG").}
 
 \item{max_size}{int, maximum gene set size to be considered as a meaningful
-gene set (default: 100).}
+gene set (default: Inf).}
 
 \item{min_size}{int, minimum gene set size to be considered as a meaningful
-gene set (default: 5).}
+gene set (default: 0).}
 }
 \value{
 a named list with each element being a gene set
