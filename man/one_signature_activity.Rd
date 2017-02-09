@@ -5,16 +5,19 @@
 \title{One signature activity}
 \usage{
 one_signature_activity(weight_matrix, express_matrix, node, side,
-  HW_cutoff = 2.5)
+  gene_set = NULL, HW_cutoff = 2.5)
 }
 \arguments{
 \item{weight_matrix}{a data.matrix storing the weight matrix in an ADAGE model.}
 
 \item{express_matrix}{a data.matrix storing gene expression values in a dataset}
 
-\item{node}{a int ranging from 1 to number of columns in weight_matrix}
+\item{node}{an int ranging from 1 to number of columns in weight_matrix}
 
 \item{side}{character, "pos" or "neg"}
+
+\item{gene_set}{a character vector storing gene IDs, must match
+the gene IDs used in the model. (default: NULL)}
 
 \item{HW_cutoff}{number of standard deviations from mean in a node's weight
 distribution to be considered as high-weight (default to 2.5).}
@@ -23,6 +26,8 @@ distribution to be considered as high-weight (default to 2.5).}
 a vector storing activities of one signature across samples
 }
 \description{
-Calculates activities for a specific signature in an ADAGE model.
+Calculates activities for a specific signature in an ADAGE model. If gene_set
+is provided, it will only calculate the acitivity of a signature using
+genes in the gene_set.
 }
 

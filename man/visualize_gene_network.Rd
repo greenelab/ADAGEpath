@@ -35,7 +35,7 @@ Builds and visualizes an ADAGE-derived gene-gene network of genes in the
 selected signatures. In the network, each node represents a gene and two
 nodes are linked by an edge if the correlation of the two connected genes in
 the ADAGE model is higher than a certain cutoff. Edge width denotes the
-correlation strength and edge color indicates positive (magenta) or negative
+correlation strength and edge color indicates positive (purple) or negative
 (green) correlation. If a value associated with the expression of each gene in
 a dataset (such as fold change or correlation to phenotype) is provided, it
 will be used to color gene nodes in the network with red meaning high positive
