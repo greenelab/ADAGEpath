@@ -263,6 +263,13 @@ pathway_result_sig <- pathway_result_sig[order(pathway_result_sig$adj.P.Val), ]
 knitr::kable(pathway_result_sig, digits = 4, row.names = FALSE, align = "c")
 ```
 
+The following pathways are associated with active signatures but are not
+active in this dataset themselves.
+
+```{r}
+setdiff(pathway_result$geneset, pathway_result_sig$geneset)
+```
+
 We also performed a GSEA analysis on this dataset and found that GSEA and
 ADAGEpath agree on many pathways. Here we list pathways enriched in GSEA
 but not associated with ADAGE signatures in the top 10 layers of pareto fronts.
