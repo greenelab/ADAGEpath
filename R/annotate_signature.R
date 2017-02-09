@@ -6,12 +6,12 @@
 #' @param type character, type of the gene sets, either "GO" or "KEGG"
 #' (default: "KEGG").
 #' @param max_size int, maximum gene set size to be considered as a meaningful
-#' gene set (default: 100).
+#' gene set (default: Inf).
 #' @param min_size int, minimum gene set size to be considered as a meaningful
-#' gene set (default: 5).
+#' gene set (default: 0).
 #' @return a named list with each element being a gene set
 #' @export
-fetch_geneset <- function(type = "KEGG", max_size = 100, min_size = 5){
+fetch_geneset <- function(type = "KEGG", max_size = Inf, min_size = 0){
 
   # make sure type is one of "GO" or "KEGG"
   if (!type %in% c("GO", "KEGG")) {
