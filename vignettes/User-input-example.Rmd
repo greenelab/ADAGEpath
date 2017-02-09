@@ -23,7 +23,9 @@ Load in required libraries.
 
 ```{r}
 library("ADAGEpath")
+library("dplyr")
 library("DT")
+library("knitr")
 ```
 
 Before any analysis, we need to specify the ADAGE model and the data compendium
@@ -173,6 +175,7 @@ significance of signatures themselves.
 plot_marginal_activation(marginal_limma_result = marginal_limma,
                          signature_order = colnames(signature_similarity),
                          sig_cutoff = 0.05)
+
 ```
 
 Based on this plot, we can see that Node119pos, Node214neg, and Node299pos are
@@ -188,12 +191,8 @@ of another signature. We can safely remove a signature being masked by another
 signature as long as we keep the second signature.
 
 ```{r}
-unique_active_sigs <- setdiff(active_sigs,c("Node119pos", "Node214neg", "Node299pos",
-                                     "Node130pos","Node250neg", "Node154pos",
-                                     "Node63neg", "Node39neg", "Node228pos",
-                                     "Node158neg", "Node140pos", "Node269neg",
-                                     "Node31neg", "Node185neg","Node275pos",
-                                     "Node278pos", "Node285neg"))
+unique_active_sigs <- remove_redundant_signatures(marginal_limma,
+                                                  sig_cutoff = 0.05)
 unique_active_sigs
 ```
 
@@ -217,18 +216,95 @@ We download *Pseudomonas aeruginosa* KEGG pathway terms from the
 [TRIBE](http://tribe.greenelab.com/#/home) web server.
 
 ```{r}
-KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
+KEGG <- fetch_geneset(type = "KEGG")
+# we only consider KEGG pathways with more than 5 genes and less than 100 genes
+# as meaningful pathways
+KEGG_subset <- KEGG[lengths(KEGG) >= 5 & lengths(KEGG) <= 100]
 ```
 
 We associate active signatures to known KEGG pathways.
 
 ```{r}
 pathway_result <- annotate_signatures_with_genesets(
-  selected_signatures = unique_active_sigs, model = model, genesets = KEGG)
-DT::datatable(pathway_result)
+  selected_signatures = unique_active_sigs, model = model,
+  genesets = KEGG_subset)
 ```
 
-In this case, there are also signatures uncharacterized by KEGG.
+Look at the activity of associated pathways inside active signatures. This help
+differentiate active vs. non-active pathways assoicated with active signatures.
+
+```{r}
+pathway_activity <- signature_geneset_activity(
+  signature_geneset_df = pathway_result[, c("signature", "geneset")],
+  gene_set_list = KEGG_subset, model = model, input_data = data_normed)
+plot_activity_heatmap(pathway_activity)
+```
+
+We can run a limma test on pathway activities and only keep pathways that truly
+active in this dataset.
+
+```{r}
+pathway_limma_result <- build_limma(pathway_activity, phenotypes = data_pheno,
+                                    control_pheno = "wt", use.bonferroni = TRUE)
+pathway_limma_result$signature <- sapply(rownames(pathway_limma_result),
+                                         function(x) unlist(strsplit(x, "\\|"))[[1]])
+pathway_limma_result$geneset <- sapply(rownames(pathway_limma_result),
+                                       function(x) unlist(strsplit(x, "\\|"))[[2]])
+
+# combine limma result with pathway result and only keep truly active pathways
+pathway_result_sig <- dplyr::left_join(
+  pathway_limma_result %>% select(signature, geneset, logFC, adj.P.Val) %>%
+    filter(adj.P.Val <= 0.05),
+  pathway_result %>% select(-pvalue),
+  by = c("signature" = "signature", "geneset" = "geneset"))
+pathway_result_sig <- pathway_result_sig %>% rename(
+  `activity difference` = logFC, `gene set enrichment (adj.P.val)` = qvalue)
+pathway_result_sig <- pathway_result_sig[order(pathway_result_sig$adj.P.Val), ]
+knitr::kable(pathway_result_sig, digits = 4, row.names = FALSE, align = "c")
+```
+
+We also performed a GSEA analysis on this dataset and found that GSEA and
+ADAGEpath agree on many pathways. Here we list pathways enriched in GSEA
+but not associated with ADAGE signatures in the top 10 layers of pareto fronts.
+We check whether they are assoicated with
+any ADAGE signatures and how differentially active the signatures are if
+associated.
+
+```{r}
+# pathways enriched in GSEA but not associated with ADAGE signatures
+# in the top 10 layers of pareto fronts
+GSEA_only <- c( "KEGG-Module-M00178", "KEGG-Pathway-pae03010",
+                "KEGG-Pathway-pae03070", "KEGG-Module-M00331",
+                "KEGG-Module-M00332", "KEGG-Module-M00023",
+                "KEGG-Pathway-pae00280", "KEGG-Pathway-pae00970")
+# get the names of all signatures
+all_sigs <- c(paste0(colnames(model)[-1], "pos"),
+              paste0(colnames(model)[-1], "neg"))
+# peform pathway association for all signatures
+all_enrichment <- annotate_signatures_with_genesets(selected_signatures = all_sigs,
+                                                    model = model, genesets = KEGG_subset)
+# for each pathway, get its associated signatures and record the one that is most
+# significantly differentially active
+associated_sigs <- sapply(GSEA_only, function(x){
+  sigs <- all_enrichment$signature[grepl(x, all_enrichment$geneset)]
+  if (identical(sigs, character(0))) {
+    NA
+  } else {
+    sigs[which.min(limma_result[sigs, "adj.P.Val"])]
+  }
+})
+# see how these signatures perform in the limma test
+plot_volcano(limma_result, highlight_signatures = associated_sigs,
+             interactive = TRUE)
+```
+
+These pathways enriched in the GSEA are not associated with any signatures:
+
+```{r}
+GSEA_only[is.na(associated_sigs)]
+```
+
+There are also signatures uncharacterized by KEGG.
 ```{r}
 uncharacterized_sigs <- setdiff(unique_active_sigs, pathway_result$signature)
 uncharacterized_sigs
@@ -287,7 +363,7 @@ visualize_gene_network(selected_signatures = "Node155neg",
 We can also review signatures in group.
 
 ```{r}
-sig_group <- c("Node38pos", "Node67pos", "Node35pos", "233pos")
+sig_group <- c("Node38pos", "Node67pos", "Node35pos", "Node233pos")
 DT::datatable(annotate_genes_in_signatures(selected_signatures = sig_group,
                                            model = model,
                                            curated_pathways = KEGG))

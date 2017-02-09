@@ -203,10 +203,8 @@ because it has higher significance. Node50pos, Node34pos, Node41pos, and
 Node49neg are masked by Node28neg.
 
 ```{r}
-unique_active_sigs <- setdiff(active_sigs,
-                              c("Node58neg", "Node116pos", "Node272pos",
-                                "Node68neg", "Node28pos", "Node50pos",
-                                "Node34pos", "Node41pos", "Node49neg"))
+unique_active_sigs <- remove_redundant_signatures(marginal_limma,
+                                                  sig_cutoff = 0.05)
 unique_active_sigs
 ```
 
@@ -215,14 +213,17 @@ We download *Pseudomonas aeruginosa* KEGG pathway terms from the
 [TRIBE](http://tribe.greenelab.com/#/home) web server.
 
 ```{r}
-KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
+KEGG <- fetch_geneset(type = "KEGG")
+# we only consider KEGG pathways with more than 5 genes and less than 100 genes
+# as meaningful pathways
+KEGG_subset <- KEGG[lengths(KEGG) >= 5 & lengths(KEGG) <= 100]
 ```
 
 We associate active signatures to known KEGG pathways.
 
 ```{r}
 pathway_result <- annotate_signatures_with_genesets(
-  selected_signatures = unique_active_sigs, model = model, genesets = KEGG)
+  selected_signatures = unique_active_sigs, model = model, genesets = KEGG_subset)
 DT::datatable(pathway_result)
 ```
 

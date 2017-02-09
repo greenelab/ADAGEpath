@@ -131,9 +131,12 @@ We can associate these signatures to known KEGG pathways to better understand
 them.
 
 ```{r}
-KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
+KEGG <- fetch_geneset(type = "KEGG")
+# we only consider KEGG pathways with more than 5 genes and less than 100 genes
+# as meaningful pathways
+KEGG_subset <- KEGG[lengths(KEGG) >= 5 & lengths(KEGG) <= 100]
 pathway_result <- annotate_signatures_with_genesets(
-  selected_signatures = large_range_sigs, model = model, genesets = KEGG)
+  selected_signatures = large_range_sigs, model = model, genesets = KEGG_subset)
 DT::datatable(pathway_result)
 ```
 
