@@ -4,16 +4,14 @@
 \alias{visualize_gene_network}
 \title{Gene-gene network visualization}
 \usage{
-visualize_gene_network(selected_signatures, model = eADAGEmodel,
-  cor_cutoff = 0.5, gene_color_value = NULL, curated_pathways = NULL,
-  random_seed = 123)
+visualize_gene_network(selected_signatures, model, cor_cutoff = 0.5,
+  gene_color_value = NULL, curated_pathways = NULL, random_seed = 123)
 }
 \arguments{
 \item{selected_signatures}{a vector storing names of signatures. Genes in
 them will be included in the gene-gene network.}
 
-\item{model}{an ADAGE model to build gene-gene network from
-(default: the 300-node eADAGE model preloaded in the package).}
+\item{model}{an ADAGE model to build gene-gene network from}
 
 \item{cor_cutoff}{numeric, the correlation cutoff to decide whether an edge
 between two genes exists in the network (default: 0.5).}

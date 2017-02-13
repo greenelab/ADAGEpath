@@ -4,14 +4,13 @@
 \alias{calculate_activity}
 \title{Signature activity calculation}
 \usage{
-calculate_activity(input_data, model = eADAGEmodel, HW_cutoff = 2.5)
+calculate_activity(input_data, model, HW_cutoff = 2.5)
 }
 \arguments{
 \item{input_data}{a data.frame with gene IDs in the first column and
 expression values from the second column.}
 
-\item{model}{the ADAGE model to be used for calculating signature activity
-(default: the 300-node eADAGE model preloaded in the package).}
+\item{model}{the ADAGE model to be used for calculating signature activity}
 
 \item{HW_cutoff}{number of standard deviations away from mean in a node's
 weight distribution to be considered as high-weight (default to 2.5).

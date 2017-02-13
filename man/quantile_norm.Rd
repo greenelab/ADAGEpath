@@ -4,7 +4,7 @@
 \alias{quantile_norm}
 \title{Quantile normalization}
 \usage{
-quantile_norm(input_data, use_ref = FALSE, ref_data = PAcompendium)
+quantile_norm(input_data, use_ref = FALSE, ref_data)
 }
 \arguments{
 \item{input_data}{a data.frame with gene IDs in the first column and
@@ -15,8 +15,7 @@ be done based on the reference data (default: FALSE).}
 
 \item{ref_data}{a data.frame storing gene expression values to be used
 as a reference dataset for quantile normalization. The first columns of
-input_data and ref_data that specify gene IDs should exactly be the same.
-(default: the P.a. gene expression compendium).}
+input_data and ref_data that specify gene IDs should exactly be the same.}
 }
 \value{
 the input_data.frame after quantile normalization.

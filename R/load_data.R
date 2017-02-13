@@ -25,15 +25,11 @@
 #' the processed input_data is considered a microarray dataset  and will be
 #' quantile normalized to be comparable to the compendium.
 #' @param model the ADAGE model used to analyze the input_data
-#' (default: the 300-node eADAGE model of P.a. pre-loaded within the package).
 #' @param compendium the gene expression compendium of an organism
-#' (default: the P.a. expression compendium pre-loaded within the package).
 #' @param quantile_ref a vector storing the reference quantile distribution of
 #' the input compendium at the microarray probe level.
 #' Since the input microarray data needs to be normalized to the processed
 #' compendium, the compendium and the quantile_ref must match each other.
-#' (default: the quantile distribution of probes used in
-#' normalizing the P.a. expression compendium pre-loaded within the package).
 #' @param download_folder file path to save files downloaded from ArrayExpress
 #' when input is an ArrayExpress accession number.
 #' @param norm01 a logical value indicating whether the output should be
@@ -41,10 +37,8 @@
 #' @return a data.frame containing the processed gene expression values ready
 #' for ADAGE analysis.
 #' @export
-load_dataset <- function(input, isProcessed, isRNAseq,
-                         model = eADAGEmodel, compendium = PAcompendium,
-                         quantile_ref = probedistribution,
-                         download_folder = "./",
+load_dataset <- function(input, isProcessed, isRNAseq, model, compendium,
+                         quantile_ref, download_folder = "./",
                          norm01 = FALSE){
 
   if (!check_input(model)) {
@@ -166,12 +160,9 @@ load_dataset <- function(input, isProcessed, isRNAseq,
 #' @param use_ref a logical value indicating whether the probe normalization
 #' should be done using a reference quantile distribution (default: TRUE).
 #' @param quantile_ref a vector storing the reference quantile distribution
-#' (default: the quantile distribution of probes used in normalizing the P.a.
-#' expression compendium pre-loaded within the package)
 #' @return a data.frame containing normalized gene expression values with geneID
 #' in the first column and then each CEL file in one column.
-process_celfiles <- function(cel_folder, use_ref = TRUE,
-                             quantile_ref = probedistribution){
+process_celfiles <- function(cel_folder, use_ref = TRUE, quantile_ref){
 
   # read in all CEL files in the folder
   celfiles <- affy::list.celfiles(cel_folder)
@@ -233,11 +224,11 @@ process_celfiles <- function(cel_folder, use_ref = TRUE,
 #'
 #' @param input_ID character, the input gene ID.
 #' @param ref_IDs a vector storing reference gene IDs that do not need
-#' conversion (default: gene IDs used in the pre-loaded P.a. ADAGE model).
+#' conversion
 #' @return the corresponding PAO1 locus tag ("PAXXXX") for the input gene or NA
 #' if the input gene is not recognized.
 #' @export
-to_LocusTag <- function(input_ID, ref_IDs = eADAGEmodel$geneID) {
+to_LocusTag <- function(input_ID, ref_IDs) {
 
   if (input_ID %in% ref_IDs) {
 
@@ -314,10 +305,9 @@ to_symbol <- function(input_ID){
 #' @param input_data a data.frame containing geneIDs in the first column and each
 #' sample's gene expression values from the second column.
 #' @param ref_IDs a vector storing the reference geneIDs in the right order
-#' (default: ordered PAO1 locus tags used in the ADAGE model).
 #' @return A data.frame containing the input_data's expression values after
 #' converting gene IDs, sorting gene orders, and filling in missing genes.
-match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
+match_IDs <- function(input_data, ref_IDs){
 
   if (!check_input(input_data)) {
     stop("The input data should be a data.frame with the first column as a
@@ -327,7 +317,8 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 
   # convert the gene IDs used in the input_data to PAO1 locus tags
   converted_geneIDs <- sapply(as.data.frame(input_data)[, 1],
-                              function(x) to_LocusTag(x))
+                              function(x) to_LocusTag(input_ID = x,
+                                                      ref_IDs = ref_IDs))
 
   # create a match index between input IDs and reference IDs
   match_index <- match(ref_IDs, converted_geneIDs)
@@ -365,11 +356,10 @@ match_IDs <- function(input_data, ref_IDs = eADAGEmodel$geneID){
 #' @param ref_data a data.frame storing gene expression values to be used
 #' as a reference dataset for calculating nearest neighbors. Should have more
 #' samples than the input_data. The first columns of input_data and ref_data that
-#' specify gene IDs should exactly be the same. (default: the P.a. gene
-#' expression compendium).
+#' specify gene IDs should exactly be the same.
 #' @return the input_data data.frame with missing values being filled
 #' @seealso \code{\link[impute]{impute.knn}}
-impute_miss_values <- function(input_data, ref_data = PAcompendium){
+impute_miss_values <- function(input_data, ref_data){
 
   if (!check_input(input_data)) {
     stop("The input data should be a data.frame with the first column as a
@@ -417,12 +407,11 @@ impute_miss_values <- function(input_data, ref_data = PAcompendium){
 #' @param ref_data a data.frame storing gene expression values to be used
 #' as a reference dataset for quantile normalization. The first columns of
 #' input_data and ref_data that specify gene IDs should exactly be the same.
-#' (default: the P.a. gene expression compendium).
 #' @return the input_data.frame after quantile normalization.
 #' @seealso \code{\link[preprocessCore]{normalize.quantiles}},
 #' \code{\link[preprocessCore]{normalize.quantiles.use.target}},
 #' \code{\link[preprocessCore]{normalize.quantiles.determine.target}}
-quantile_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium){
+quantile_norm <- function(input_data, use_ref = FALSE, ref_data){
 
   if (!check_input(input_data)) {
     stop("The input data should be a data.frame with the first column as a
@@ -476,11 +465,11 @@ quantile_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium){
 #' expression values from the second column.
 #' @param ref_data a data.frame storing gene expression values of a
 #' compendium built from microarray data. It is used as the reference data in
-#' TDM (default: the P.a. gene expression compendium).
+#' TDM.
 #' @return a data.frame storing TDM normalized gene expression values from the
 #' input_data.
 #' @seealso \url{https://github.com/greenelab/TDM}
-TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
+TDM_RNAseq <- function(input_data, ref_data){
 
   if (!check_input(input_data)) {
     stop("The input data should be a data.frame with the first column as a
@@ -538,13 +527,12 @@ TDM_RNAseq <- function(input_data, ref_data = PAcompendium){
 #' @param use_ref a logical value indicating whether the normalization should
 #' be done based on the reference data (default: FALSE).
 #' @param ref_data a data.frame storing gene expression values to be used
-#' as a reference dataset for zero-one normalization (default: the P.a. gene
-#' expression compendium). The first columns in input_data and ref_data that
-#' specify gene IDs should be exactly the same.
+#' as a reference dataset for zero-one normalization. The first columns in
+#' input_data and ref_data that specify gene IDs should be exactly the same.
 #' @return a data.frame storing zero-one normalized gene expression values from
 #' the input_data.
 #' @export
-zeroone_norm <- function(input_data, use_ref = FALSE, ref_data = PAcompendium) {
+zeroone_norm <- function(input_data, use_ref = FALSE, ref_data) {
 
   if (!check_input(input_data)) {
     stop("The input data should be a data.frame with the first column as a

@@ -80,7 +80,6 @@ fetch_geneset <- function(type = "KEGG", max_size = Inf, min_size = 0){
 #'
 #' @param selected_signatures a character vector storing names of signatures
 #' @param model an ADAGE model to extract signatures from
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param genesets a named list of gene sets returned by the
 #' function fetch_geneset(), each element in the list is a character vector
 #' storing genes (PAO1 locus tag) in a gene set.
@@ -90,7 +89,7 @@ fetch_geneset <- function(type = "KEGG", max_size = Inf, min_size = 0){
 #' input signatures.
 #' @export
 annotate_signatures_with_genesets <- function(selected_signatures,
-                                              model = eADAGEmodel, genesets,
+                                              model, genesets,
                                               significance_cutoff = 0.05){
   if (!check_input(model)) {
     stop("The model should be a data.frame with the first column as a character

@@ -4,7 +4,7 @@
 \alias{zeroone_norm}
 \title{Zero-one normalization}
 \usage{
-zeroone_norm(input_data, use_ref = FALSE, ref_data = PAcompendium)
+zeroone_norm(input_data, use_ref = FALSE, ref_data)
 }
 \arguments{
 \item{input_data}{a data.frame with gene IDs in the first column and
@@ -14,9 +14,8 @@ expression values from the second column.}
 be done based on the reference data (default: FALSE).}
 
 \item{ref_data}{a data.frame storing gene expression values to be used
-as a reference dataset for zero-one normalization (default: the P.a. gene
-expression compendium). The first columns in input_data and ref_data that
-specify gene IDs should be exactly the same.}
+as a reference dataset for zero-one normalization. The first columns in
+input_data and ref_data that specify gene IDs should be exactly the same.}
 }
 \value{
 a data.frame storing zero-one normalized gene expression values from

@@ -8,7 +8,6 @@
 #' expression values from the second column.
 #' @param selected_signatures a vector storing names of selected signatures
 #' @param model  an ADAGE model to extract signatures from
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @return a data.frame storing marginal activities for the input samples.
 #' It's rownames is set as "signature1-signature2",
 #' indicating a marginal activity for signature1 after
@@ -16,7 +15,7 @@
 #' then it's the activity of signature1 itself.
 #' @export
 calculate_marginal_activity <- function(input_data, selected_signatures,
-                                        model = eADAGEmodel) {
+                                        model) {
 
   if (!check_input(input_data)){
     stop("The input data should be a data.frame with the first column as a

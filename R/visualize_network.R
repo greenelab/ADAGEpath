@@ -16,7 +16,6 @@
 #' @param selected_signatures a vector storing names of signatures. Genes in
 #' them will be included in the gene-gene network.
 #' @param model an ADAGE model to build gene-gene network from
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param cor_cutoff numeric, the correlation cutoff to decide whether an edge
 #' between two genes exists in the network (default: 0.5).
 #' @param gene_color_value a data.frame with two columns, one is geneID,
@@ -30,7 +29,7 @@
 #' be the same if the same random_seed is provided (default: 123).
 #' @importFrom magrittr "%>%"
 #' @export
-visualize_gene_network <- function(selected_signatures, model = eADAGEmodel,
+visualize_gene_network <- function(selected_signatures, model,
                                    cor_cutoff = 0.5, gene_color_value = NULL,
                                    curated_pathways = NULL, random_seed = 123) {
 

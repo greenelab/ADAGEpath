@@ -4,7 +4,7 @@
 \alias{impute_miss_values}
 \title{Missing values imputation}
 \usage{
-impute_miss_values(input_data, ref_data = PAcompendium)
+impute_miss_values(input_data, ref_data)
 }
 \arguments{
 \item{input_data}{a data.frame with gene IDs in the first column and
@@ -13,8 +13,7 @@ expression values from the second column.}
 \item{ref_data}{a data.frame storing gene expression values to be used
 as a reference dataset for calculating nearest neighbors. Should have more
 samples than the input_data. The first columns of input_data and ref_data that
-specify gene IDs should exactly be the same. (default: the P.a. gene
-expression compendium).}
+specify gene IDs should exactly be the same.}
 }
 \value{
 the input_data data.frame with missing values being filled

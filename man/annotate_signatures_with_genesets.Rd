@@ -4,14 +4,13 @@
 \alias{annotate_signatures_with_genesets}
 \title{Signatures annotation with gene sets}
 \usage{
-annotate_signatures_with_genesets(selected_signatures, model = eADAGEmodel,
-  genesets, significance_cutoff = 0.05)
+annotate_signatures_with_genesets(selected_signatures, model, genesets,
+  significance_cutoff = 0.05)
 }
 \arguments{
 \item{selected_signatures}{a character vector storing names of signatures}
 
-\item{model}{an ADAGE model to extract signatures from
-(default: the 300-node eADAGE model preloaded in the package).}
+\item{model}{an ADAGE model to extract signatures from}
 
 \item{genesets}{a named list of gene sets returned by the
 function fetch_geneset(), each element in the list is a character vector

@@ -4,14 +4,13 @@
 \alias{plot_signature_overlap}
 \title{Signature overlap plot}
 \usage{
-plot_signature_overlap(selected_signatures, model = eADAGEmodel)
+plot_signature_overlap(selected_signatures, model)
 }
 \arguments{
 \item{selected_signatures}{a vector storing names of signatures to include
 in the plot}
 
-\item{model}{an ADAGE model to extract signatures from
-(default: the 300-node eADAGE model preloaded in the package).}
+\item{model}{an ADAGE model to extract signatures from}
 }
 \description{
 Plots the overlap significance between all pairs of signatures using a heatmap.

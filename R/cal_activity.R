@@ -6,7 +6,6 @@
 #' @param input_data a data.frame with gene IDs in the first column and
 #' expression values from the second column.
 #' @param model the ADAGE model to be used for calculating signature activity
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param HW_cutoff number of standard deviations away from mean in a node's
 #' weight distribution to be considered as high-weight (default to 2.5).
 #' Signature activities are calculated only using HW genes.
@@ -14,8 +13,7 @@
 #' the rest columns storing signature activities for every sample in the
 #' input_data.
 #' @export
-calculate_activity <- function(input_data, model = eADAGEmodel,
-                               HW_cutoff = 2.5){
+calculate_activity <- function(input_data, model, HW_cutoff = 2.5){
 
   if (!check_input(input_data)){
     stop("The input data should be a data.frame with the first column as a

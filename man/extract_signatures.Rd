@@ -4,12 +4,10 @@
 \alias{extract_signatures}
 \title{Signature extraction}
 \usage{
-extract_signatures(model = eADAGEmodel, HW_cutoff = 2.5,
-  use_symbol = FALSE)
+extract_signatures(model, HW_cutoff = 2.5, use_symbol = FALSE)
 }
 \arguments{
-\item{model}{the ADAGE model to be used for extracting signatures
-(default: the 300-node eADAGE model preloaded in the package).}
+\item{model}{the ADAGE model to be used for extracting signatures}
 
 \item{HW_cutoff}{number of standard deviations from mean in a node's weight
 distribution to be considered as high-weight (default to 2.5). Only

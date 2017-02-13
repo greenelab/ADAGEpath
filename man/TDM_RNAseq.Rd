@@ -4,7 +4,7 @@
 \alias{TDM_RNAseq}
 \title{RNAseq data normalization with TDM}
 \usage{
-TDM_RNAseq(input_data, ref_data = PAcompendium)
+TDM_RNAseq(input_data, ref_data)
 }
 \arguments{
 \item{input_data}{a data.frame with gene IDs in the first column and
@@ -12,7 +12,7 @@ expression values from the second column.}
 
 \item{ref_data}{a data.frame storing gene expression values of a
 compendium built from microarray data. It is used as the reference data in
-TDM (default: the P.a. gene expression compendium).}
+TDM.}
 }
 \value{
 a data.frame storing TDM normalized gene expression values from the

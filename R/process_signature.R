@@ -3,7 +3,6 @@
 #' Extracts all gene signatures from an ADAGE model.
 #'
 #' @param model the ADAGE model to be used for extracting signatures
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param HW_cutoff number of standard deviations from mean in a node's weight
 #' distribution to be considered as high-weight (default to 2.5). Only
 #' high-weight genes are included in signatures.
@@ -11,8 +10,7 @@
 #' as gene identifiers (default: FALSE).
 #' @return a named list with each element being a gene signature
 #' @export
-extract_signatures <- function(model = eADAGEmodel, HW_cutoff = 2.5,
-                               use_symbol = FALSE){
+extract_signatures <- function(model, HW_cutoff = 2.5, use_symbol = FALSE){
 
   if (!check_input(model)) {
     stop("The model should be a data.frame with the first column as a character
@@ -113,10 +111,9 @@ enrich_test <- function(set1, set2, set_all){
 #' @param selected_signatures a vector storing names of signatures selected
 #' to be tested.
 #' @param model an ADAGE model to extract signatures from
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @return a named list storing odds ratios in all signature overlap
 #' tests.
-test_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
+test_signature_overlap <- function(selected_signatures, model){
 
   if (!check_input(model)) {
     stop("The model should be a data.frame with the first column as a character
@@ -203,9 +200,8 @@ build_signature_overlap_matrix <- function(selected_signatures, odds_ratios){
 #' @param selected_signatures a vector storing names of signatures to include
 #' in the plot
 #' @param model an ADAGE model to extract signatures from
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @export
-plot_signature_overlap <- function(selected_signatures, model = eADAGEmodel){
+plot_signature_overlap <- function(selected_signatures, model){
 
   if (!check_input(model)) {
     stop("The model should be a data.frame with the first column as a character

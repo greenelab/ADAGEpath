@@ -4,8 +4,7 @@
 \alias{process_celfiles}
 \title{Processing CEL files}
 \usage{
-process_celfiles(cel_folder, use_ref = TRUE,
-  quantile_ref = probedistribution)
+process_celfiles(cel_folder, use_ref = TRUE, quantile_ref)
 }
 \arguments{
 \item{cel_folder}{file path to the folder storing CEL files.}
@@ -13,9 +12,7 @@ process_celfiles(cel_folder, use_ref = TRUE,
 \item{use_ref}{a logical value indicating whether the probe normalization
 should be done using a reference quantile distribution (default: TRUE).}
 
-\item{quantile_ref}{a vector storing the reference quantile distribution
-(default: the quantile distribution of probes used in normalizing the P.a.
-expression compendium pre-loaded within the package)}
+\item{quantile_ref}{a vector storing the reference quantile distribution}
 }
 \value{
 a data.frame containing normalized gene expression values with geneID

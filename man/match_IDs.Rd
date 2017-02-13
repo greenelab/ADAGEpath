@@ -4,14 +4,13 @@
 \alias{match_IDs}
 \title{Matching Gene IDs}
 \usage{
-match_IDs(input_data, ref_IDs = eADAGEmodel$geneID)
+match_IDs(input_data, ref_IDs)
 }
 \arguments{
 \item{input_data}{a data.frame containing geneIDs in the first column and each
 sample's gene expression values from the second column.}
 
-\item{ref_IDs}{a vector storing the reference geneIDs in the right order
-(default: ordered PAO1 locus tags used in the ADAGE model).}
+\item{ref_IDs}{a vector storing the reference geneIDs in the right order}
 }
 \value{
 A data.frame containing the input_data's expression values after

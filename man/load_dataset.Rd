@@ -4,8 +4,7 @@
 \alias{load_dataset}
 \title{Loading and processing input data}
 \usage{
-load_dataset(input, isProcessed, isRNAseq, model = eADAGEmodel,
-  compendium = PAcompendium, quantile_ref = probedistribution,
+load_dataset(input, isProcessed, isRNAseq, model, compendium, quantile_ref,
   download_folder = "./", norm01 = FALSE)
 }
 \arguments{
@@ -21,18 +20,14 @@ a comparable range with the microarray-based compendium using TDM. If FALSE,
 the processed input_data is considered a microarray dataset  and will be
 quantile normalized to be comparable to the compendium.}
 
-\item{model}{the ADAGE model used to analyze the input_data
-(default: the 300-node eADAGE model of P.a. pre-loaded within the package).}
+\item{model}{the ADAGE model used to analyze the input_data}
 
-\item{compendium}{the gene expression compendium of an organism
-(default: the P.a. expression compendium pre-loaded within the package).}
+\item{compendium}{the gene expression compendium of an organism}
 
 \item{quantile_ref}{a vector storing the reference quantile distribution of
 the input compendium at the microarray probe level.
 Since the input microarray data needs to be normalized to the processed
-compendium, the compendium and the quantile_ref must match each other.
-(default: the quantile distribution of probes used in
-normalizing the P.a. expression compendium pre-loaded within the package).}
+compendium, the compendium and the quantile_ref must match each other.}
 
 \item{download_folder}{file path to save files downloaded from ArrayExpress
 when input is an ArrayExpress accession number.}
