@@ -16,8 +16,8 @@ element being a vector of gene IDs.}
 
 \item{model}{an ADAGE model to extract signatures from}
 
-\item{significance_cutoff}{numeric, FDR significance cutoff used to filter
-the result (default: 0.05).}
+\item{significance_cutoff}{numeric, FDR significance cutoff used to determine
+signature-geneset association (default: 0.05).}
 
 \item{signature_limma_result}{a data.frame that stores the result table
 returned by limma. It includes logFC, adj.P.Val, and other statistics for

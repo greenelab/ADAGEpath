@@ -85,7 +85,7 @@ fetch_geneset <- function(type = "KEGG", max_size = Inf, min_size = 0){
 #' function fetch_geneset(), each element in the list is a character vector
 #' storing genes (PAO1 locus tag) in a gene set.
 #' @param significance_cutoff numeric, FDR significance cutoff used to filter
-#' the result (default: 0.05).
+#' gene sets (default: 0.05).
 #' @return a data.frame storing significantly enriched gene sets for the
 #' input signatures.
 #' @export
@@ -140,8 +140,8 @@ annotate_signatures_with_genesets <- function(selected_signatures,
 #' @param gene_set_list a named list storing all possible gene sets with each
 #' element being a vector of gene IDs.
 #' @param model an ADAGE model to extract signatures from
-#' @param significance_cutoff numeric, FDR significance cutoff used to filter
-#' the result (default: 0.05).
+#' @param significance_cutoff numeric, FDR significance cutoff used to determine
+#' signature-geneset association (default: 0.05).
 #' @param signature_limma_result a data.frame that stores the result table
 #' returned by limma. It includes logFC, adj.P.Val, and other statistics for
 #' each signature.
