@@ -128,6 +128,61 @@ annotate_signatures_with_genesets <- function(selected_signatures,
 }
 
 
+#' Associated signatures retrieval
+#'
+#' Returns the significantly associated signatures for the input genesets. If
+#' signature_limma_result is provided, it will only return the significantly
+#' associated signatures that achieves the lowest adjusted p-value in the
+#' signature_limma_result.
+#'
+#' @param input_genesets a character vector storing gene set names, must be
+#' found in the provided gene set list
+#' @param gene_set_list a named list storing all possible gene sets with each
+#' element being a vector of gene IDs.
+#' @param model an ADAGE model to extract signatures from
+#' @param significance_cutoff numeric, FDR significance cutoff used to filter
+#' the result (default: 0.05).
+#' @param signature_limma_result a data.frame that stores the result table
+#' returned by limma. It includes logFC, adj.P.Val, and other statistics for
+#' each signature.
+#' @return a list storing associated signatures for each input gene set
+#' @export
+find_associated_signatures <- function(input_genesets, gene_set_list,
+                                       model, significance_cutoff = 0.05,
+                                       signature_limma_result = NULL){
+
+  if(!all(input_genesets %in% names(gene_set_list))) {
+    stop("The input gene sets cannot be found in the gene set list.")
+  }
+
+  # get the names of all signatures
+  all_sigs <- c(paste0(colnames(model)[-1], "pos"),
+                paste0(colnames(model)[-1], "neg"))
+
+  # peform pathway association for all signatures
+  all_enrichment <- annotate_signatures_with_genesets(
+    selected_signatures = all_sigs, model = model, genesets = gene_set_list,
+    significance_cutoff = significance_cutoff)
+
+  # for each pathway, get its associated signatures
+  associated_sigs <- lapply(input_genesets, function(x){
+    sigs <- all_enrichment$signature[grepl(x, all_enrichment$geneset)]
+    if (identical(sigs, character(0))) {
+      # return NA is find no signature
+      NA
+    } else {
+      if (is.null(signature_limma_result)) {
+        sigs
+      } else {
+        # only record the one that is most significantly differentially active
+        sigs[which.min(signature_limma_result[sigs, "adj.P.Val"])]
+      }
+    }
+  })
+
+  return(associated_sigs)
+}
+
 #' Annotating genes in signatures
 #'
 #' Annotates genes in the input signatures with their symbols, descriptions,
