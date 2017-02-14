@@ -10,6 +10,6 @@
 #' @name ADAGEpath
 #' @importFrom utils combn download.file unzip
 #' @importFrom grDevices colorRampPalette rgb
-#' @importFrom stats cor fisher.test model.matrix p.adjust sd
+#' @importFrom stats cor fisher.test model.matrix p.adjust sd relevel
 #' @importFrom graphics abline plot points text
 NULL

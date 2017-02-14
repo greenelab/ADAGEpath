@@ -189,15 +189,13 @@ find_associated_signatures <- function(input_genesets, gene_set_list,
 #'
 #' @param selected_signatures a character vector storing names of signatures
 #' @param model an ADAGE model to extract signatures from
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param curated_pathways a named list with each element being a gene set, such
 #' as the output of the function fetch_geneset(). (default: NULL).
 #' @return a data.frame storing genes in the input signatures. Each gene is
 #' annotated by gene symbol, gene description, its operon, and signatures it
 #' is in.
 #' @export
-annotate_genes_in_signatures <- function(selected_signatures,
-                                         model = eADAGEmodel,
+annotate_genes_in_signatures <- function(selected_signatures, model,
                                          curated_pathways = NULL){
 
   if (!check_input(model)) {

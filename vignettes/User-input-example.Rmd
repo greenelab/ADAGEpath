@@ -301,7 +301,7 @@ uncharacterized_sigs
 Check the signature similarity of the uncharacterized signatures.
 
 ```{r}
-plot_signature_overlap(selected_signatures = uncharacterized_sigs)
+plot_signature_overlap(selected_signatures = uncharacterized_sigs, model = model)
 ```
 
 They form two major groups. Group1 contains Node38pos, Node67pos, Node35pos, and
