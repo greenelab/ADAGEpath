@@ -134,7 +134,7 @@ Signatures that are differentially active between wildtype and plcH mutant are:
 active_sigs
 ```
 
-Check out each signature's activity changes and significance in the `limma` test.
+Plot each signature's activity changes and significance in the `limma` test.
 
 ```{r}
 plot_volcano(limma_result = limma_result, highlight_signatures = active_sigs,
@@ -151,7 +151,7 @@ Based on the volcano plot and the activity heatmap, we can see that Node34pos,
 Node28neg, Node41pos, Node50pos, Node69pos, Node49neg, and Node65pos are active
 in wildtype, while the rest signatures become more active in plcH mutant.
 
-## Signature overlap
+## Overlapping signature removal
 To reduce the number of signatures to look at, we can check whether these active
 signatures greatly overlap with others.
 
@@ -190,7 +190,8 @@ Let's visualize the marginal activties in a matrix heatmap.  The value in this
 matrix represents the -log10 transformed adjusted p value in
 the activation test when the effect of the column signature is removed from
 the row signature. Values in the diagonal of the heatmap are the activation
-significance of signatures themselves. 
+significance of signatures themselves. Activation significance below the cutoff
+is marked by a cross sign.
 
 ```{r}
 plot_marginal_activation(marginal_limma_result = marginal_limma,
@@ -203,44 +204,70 @@ because it has higher significance. Node50pos, Node34pos, Node41pos, and
 Node49neg are masked by Node28neg.
 
 ```{r}
-unique_active_sigs <- setdiff(active_sigs,
-                              c("Node58neg", "Node116pos", "Node272pos",
-                                "Node68neg", "Node28pos", "Node50pos",
-                                "Node34pos", "Node41pos", "Node49neg"))
+unique_active_sigs <- remove_redundant_signatures(marginal_limma,
+                                                  sig_cutoff = 0.05)
 unique_active_sigs
 ```
 
-## Active signature annotation
+## Active signature interpretation
 We download *Pseudomonas aeruginosa* KEGG pathway terms from the
 [TRIBE](http://tribe.greenelab.com/#/home) web server.
 
 ```{r}
-KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
+KEGG <- fetch_geneset(type = "KEGG")
+# we only consider KEGG pathways with more than 5 genes and less than 100 genes
+# as meaningful pathways
+KEGG_subset <- KEGG[lengths(KEGG) >= 5 & lengths(KEGG) <= 100]
 ```
 
 We associate active signatures to known KEGG pathways.
 
 ```{r}
-pathway_result <- annotate_signatures_with_genesets(
-  selected_signatures = unique_active_sigs, model = model, genesets = KEGG)
-DT::datatable(pathway_result)
+pathway_association <- annotate_signatures_with_genesets(
+  selected_signatures = unique_active_sigs, model = model, genesets = KEGG_subset)
 ```
 
-In this case, there are also signatures uncharacterized by KEGG.
+Calculate the activity of associated pathways inside active signatures. This help
+differentiate active vs. non-active pathways assoicated with active signatures.
+
 ```{r}
-uncharacterized_sigs <- setdiff(unique_active_sigs, pathway_result$signature)
+pathway_activity <- signature_geneset_activity(
+  signature_geneset_df = pathway_association[, c("signature", "geneset")],
+  gene_set_list = KEGG_subset, model = model, input_data = data_normed)
+plot_activity_heatmap(pathway_activity)
+```
+
+We run a limma test on pathway activities and find pathways that are truly
+active in this dataset.
+
+```{r}
+pathway_limma <- build_limma(pathway_activity[, c(1, indices + 1)],
+                             phenotypes = data_pheno[indices])
+# combine pathway association and pathway activation test results
+combined_result <- combine_geneset_outputs(
+  signature_geneset_association = pathway_association,
+  geneset_limma_result = pathway_limma)
+knitr::kable(combined_result, digits = 4, row.names = FALSE, align = "c")
+```
+
+There are also signatures uncharacterized by KEGG.
+
+```{r}
+uncharacterized_sigs <- setdiff(unique_active_sigs, pathway_association$signature)
 uncharacterized_sigs
 ```
 
 Check the signature similarity of the uncharacterized signatures.
+
 ```{r}
-plot_signature_overlap(selected_signatures = uncharacterized_sigs)
+plot_signature_overlap(selected_signatures = uncharacterized_sigs, model = model)
 ```
+
 ## Gene-gene network
-We can check how genes in the active signatures cluster in the ADAGE gene-gene
+We check how genes in the active signatures cluster in the ADAGE gene-gene
 network.
 
-We can calculate an expression fold change for each gene and pass it to the
+We calculate an expression fold change for each gene and pass it to the
 gene-gene network to show as node color. Again, we use `limma` to test
 differential expression and get the logFC.
 

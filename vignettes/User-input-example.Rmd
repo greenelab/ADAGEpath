@@ -24,6 +24,7 @@ Load in required libraries.
 ```{r}
 library("ADAGEpath")
 library("DT")
+library("knitr")
 ```
 
 Before any analysis, we need to specify the ADAGE model and the data compendium
@@ -87,19 +88,21 @@ than a simple t test when sample size is small. A two-group limma analysis is
 provided in the function `build_limma()`. You can also build other limma models
 to test signatures' activities when the experimental design is more complex.
 
+In the limma test, we will use "wt" as the control phenotype.
 Because there are a lot of signatures passing the significance cutoff, here we
-use bonferroni procedure instead of Benjamini–Hochberg procedure for multiple
-hypothesis correction.
+use the more stringent Bonferroni procedure instead of the Benjamini–Hochberg
+procedure for multiple hypothesis correction.
 
 ```{r}
 limma_result <- build_limma(data_activity, phenotypes = data_pheno,
+                            control_pheno = "wt",
                             use.bonferroni = TRUE)
 ```
 
 To take both absolute activity difference and significance into account, we
 use pareto fronts to pick the most differentially active signatures. We extract
 differentially active signatures in the first 10 layers of pareto
-fronts. Modify N_fronts to get more or fewer signatures.
+fronts. Modify `N_fronts` to get more or fewer signatures.
 
 ```{r}
 active_sigs <- get_active_signatures(limma_result = limma_result,
@@ -113,7 +116,7 @@ Signatures that are differentially active between anr mutant and wildtype are:
 active_sigs
 ```
 
-Check out each signature's activity changes and significance in the `limma` test.
+Plot each signature's activity change and significance in the `limma` test.
 
 ```{r}
 plot_volcano(limma_result, highlight_signatures = active_sigs,
@@ -131,7 +134,7 @@ active signature in anr mutant, followed by Node233pos, Node140pos.
 On the other side, Node38neg, Node31pos, Node269pos, Node205neg are most active
 in wildtype.
 
-## Signature overlap
+## Overlapping signature removal
 To reduce the number of signatures to look at, we can check whether these active
 signatures overlap with each other.
 
@@ -144,8 +147,8 @@ signature_similarity <- plot_signature_overlap(selected_signatures = active_sigs
 ```
 
 Next we calculate the marginal activities of similar signatures. Marginal
-activity is defined as the activity of signature A after removing genes that
-share with signature B.
+activity is defined as the activity of signature A after removing genes that it
+shares with signature B.
 
 ```{r}
 marginal_activity <- calculate_marginal_activity(input_data = data_normed,
@@ -158,24 +161,26 @@ are still strongly different between two conditions.
 
 ```{r}
 marginal_limma <- build_limma(input_data = marginal_activity,
-                              phenotypes = data_pheno)
+                              phenotypes = data_pheno, control_pheno = "wt")
 ```
 
 Let's visualize the marginal activities in a matrix heatmap.  The value in this
 matrix represents the -log10 transformed adjusted p value in
 the activation test when the effect of the column signature is removed from
 the row signature. Values in the diagonal of the heatmap are the activation
-significance of signatures themselves.
+significance of signatures themselves. Activation significance below the cutoff
+is marked by a cross sign.
 
 ```{r}
 plot_marginal_activation(marginal_limma_result = marginal_limma,
                          signature_order = colnames(signature_similarity),
                          sig_cutoff = 0.05)
+
 ```
 
 Based on this plot, we can see that Node119pos, Node214neg, and Node299pos are
 completely masked by Node191pos, because after removing Node191pos from them,
-their significance drops dramatically. Node130pos and Node250neg are masked by
+they become non-significant. Node130pos and Node250neg are masked by
 Node31pos. Node285neg is masked by Node205neg.
 Node154pos is masked by Node57neg. Node63neg, Node39neg, Node228pos, Node158neg,
 Node140pos, Node269neg and Node31neg are masked by Node35pos. Node185neg and
@@ -186,16 +191,12 @@ of another signature. We can safely remove a signature being masked by another
 signature as long as we keep the second signature.
 
 ```{r}
-unique_active_sigs <- setdiff(active_sigs,c("Node119pos", "Node214neg", "Node299pos",
-                                     "Node130pos","Node250neg", "Node154pos",
-                                     "Node63neg", "Node39neg", "Node228pos",
-                                     "Node158neg", "Node140pos", "Node269neg",
-                                     "Node31neg", "Node185neg","Node275pos",
-                                     "Node278pos", "Node285neg"))
+unique_active_sigs <- remove_redundant_signatures(marginal_limma,
+                                                  sig_cutoff = 0.05)
 unique_active_sigs
 ```
 
-Check out each signature's activity changes and significance after removing
+Check out each signature's activity change and significance after removing
 overlapping signatures.
 
 ```{r}
@@ -210,45 +211,113 @@ overlapping signatures.
 plot_activity_heatmap(activity = data_activity, signatures = unique_active_sigs)
 ```
 
-## Active signature annotation
+## Active signature interpretation
 We download *Pseudomonas aeruginosa* KEGG pathway terms from the
-[TRIBE](http://tribe.greenelab.com/#/home) web server.
+[TRIBE](http://tribe.greenelab.com/#/home) webserver.
 
 ```{r}
-KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
+KEGG <- fetch_geneset(type = "KEGG")
+# we only consider KEGG pathways with more than 5 genes and less than 100 genes
+# as meaningful pathways
+KEGG_subset <- KEGG[lengths(KEGG) >= 5 & lengths(KEGG) <= 100]
 ```
 
 We associate active signatures to known KEGG pathways.
 
 ```{r}
-pathway_result <- annotate_signatures_with_genesets(
-  selected_signatures = unique_active_sigs, model = model, genesets = KEGG)
-DT::datatable(pathway_result)
+pathway_association <- annotate_signatures_with_genesets(
+  selected_signatures = unique_active_sigs, model = model,
+  genesets = KEGG_subset)
 ```
 
-In this case, there are also signatures uncharacterized by KEGG.
+Calculate the activity of associated pathways inside active signatures. This help
+differentiate active vs. non-active pathways assoicated with active signatures.
+
 ```{r}
-uncharacterized_sigs <- setdiff(unique_active_sigs, pathway_result$signature)
+pathway_activity <- signature_geneset_activity(
+  signature_geneset_df = pathway_association[, c("signature", "geneset")],
+  gene_set_list = KEGG_subset, model = model, input_data = data_normed)
+plot_activity_heatmap(pathway_activity)
+```
+
+We run a limma test on pathway activities and find pathways that are truly
+active in this dataset.
+
+```{r}
+pathway_limma <- build_limma(pathway_activity, phenotypes = data_pheno,
+                             control_pheno = "wt", use.bonferroni = TRUE)
+# combine pathway association and pathway activation test results
+combined_result <- combine_geneset_outputs(
+  signature_geneset_association = pathway_association,
+  geneset_limma_result = pathway_limma)
+knitr::kable(combined_result, digits = 4, row.names = FALSE, align = "c")
+```
+
+We also performed a GSEA analysis on this dataset and found that GSEA and
+ADAGEpath agree on many pathways. Here we list pathways significantly enriched
+in GSEA but not associated with chosen active signatures.
+We check whether they are assoicated with
+any ADAGE signatures and how differentially active the associated signatures 
+are.
+
+```{r}
+# pathways enriched in GSEA but not associated with ADAGE signatures
+# in the top 10 layers of pareto fronts
+GSEA_only <- c( "KEGG-Module-M00178: Ribosome, bacteria",
+                "KEGG-Pathway-pae03010: Ribosome - Pseudomonas aeruginosa PAO1",
+                "KEGG-Pathway-pae03070: Bacterial secretion system - Pseudomonas aeruginosa PAO1",
+                "KEGG-Module-M00331: Type II general secretion pathway",
+                "KEGG-Module-M00332: Type III secretion system",
+                "KEGG-Module-M00023: Tryptophan biosynthesis, chorismate => tryptophan",
+                "KEGG-Pathway-pae00280: Valine, leucine and isoleucine degradation - Pseudomonas aeruginosa PAO1",
+                "KEGG-Pathway-pae00970: Aminoacyl-tRNA biosynthesis - Pseudomonas aeruginosa PAO1")
+
+# this step will take a while because it checks association between all signatures
+# and all pathways
+associated_sigs <- find_associated_signatures(input_genesets = GSEA_only,
+                                              model = model,
+                                              gene_set_list = KEGG_subset,
+                                              significance_cutoff = 0.05,
+                                              signature_limma_result = limma_result)
+associated_sigs <- unlist(associated_sigs)
+# see how these signatures perform in the limma test
+plot_volcano(limma_result, highlight_signatures = associated_sigs,
+             interactive = TRUE)
+```
+
+These pathways enriched in the GSEA are not associated with any signatures:
+
+```{r}
+GSEA_only[is.na(associated_sigs)]
+```
+
+There are also signatures uncharacterized by KEGG.
+
+```{r}
+uncharacterized_sigs <- setdiff(unique_active_sigs, pathway_association$signature)
 uncharacterized_sigs
 ```
 
 Check the signature similarity of the uncharacterized signatures.
+
 ```{r}
-plot_signature_overlap(selected_signatures = uncharacterized_sigs)
+plot_signature_overlap(selected_signatures = uncharacterized_sigs, model = model)
 ```
+
 They form two major groups. Group1 contains Node38pos, Node67pos, Node35pos, and
 Node233pos. Group2 contains Node191pos, Node269pos, and Node107pos.
 
 ## Gene-gene network
-We can check how genes in the active signatures cluster in the ADAGE gene-gene
+We check how genes in the active signatures cluster in the ADAGE gene-gene
 network.
 
-We can calculate a expression fold change for each gene and pass it to the
+We calculate an expression fold change for each gene and pass it to the
 gene-gene network to show as node color. Again, we use limma to test
 differential expression and get the logFC.
 
 ```{r}
-data_raw_limma <- build_limma(input_data = data_raw, phenotypes = data_pheno)
+data_raw_limma <- build_limma(input_data = data_raw, phenotypes = data_pheno,
+                              control_pheno = "wt")
 # build a gene:fold change table from limma result
 gene_logFC <- data.frame(geneID = rownames(data_raw_limma),
                          logFC = data_raw_limma$logFC)
@@ -283,7 +352,7 @@ visualize_gene_network(selected_signatures = "Node155neg",
 We can also review signatures in group.
 
 ```{r}
-sig_group <- c("Node35pos", "Node233pos", "Node67pos", "Node38pos")
+sig_group <- c("Node38pos", "Node67pos", "Node35pos", "Node233pos")
 DT::datatable(annotate_genes_in_signatures(selected_signatures = sig_group,
                                            model = model,
                                            curated_pathways = KEGG))

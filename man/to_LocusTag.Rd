@@ -4,13 +4,13 @@
 \alias{to_LocusTag}
 \title{Converting gene ID to locus tag}
 \usage{
-to_LocusTag(input_ID, ref_IDs = eADAGEmodel$geneID)
+to_LocusTag(input_ID, ref_IDs)
 }
 \arguments{
 \item{input_ID}{character, the input gene ID.}
 
 \item{ref_IDs}{a vector storing reference gene IDs that do not need
-conversion (default: gene IDs used in the pre-loaded P.a. ADAGE model).}
+conversion}
 }
 \value{
 the corresponding PAO1 locus tag ("PAXXXX") for the input gene or NA

@@ -4,8 +4,7 @@
 \alias{calculate_marginal_activity}
 \title{Marginal activity calculation}
 \usage{
-calculate_marginal_activity(input_data, selected_signatures,
-  model = eADAGEmodel)
+calculate_marginal_activity(input_data, selected_signatures, model)
 }
 \arguments{
 \item{input_data}{a data.frame with gene IDs in the first column and
@@ -13,12 +12,11 @@ expression values from the second column.}
 
 \item{selected_signatures}{a vector storing names of selected signatures}
 
-\item{model}{an ADAGE model to extract signatures from
-(default: the 300-node eADAGE model preloaded in the package).}
+\item{model}{an ADAGE model to extract signatures from}
 }
 \value{
 a data.frame storing marginal activities for the input samples.
-It's rownames is set as "signature1-signature2",
+Its rownames is set as "signature1-signature2",
 indicating a marginal activity for signature1 after
 removing the effect of signature2. If rowname is "signature1-signature1",
 then it's the activity of signature1 itself.

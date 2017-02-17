@@ -2,16 +2,6 @@
 
 ADAGEpath provides necessary functions to perform ADAGE-based signature analysis.
 
-You can install the latest development version from github with
-``` r
-install.packages("devtools")
-devtools::install_github("greenelab/ADAGEpath")
-```
-If you want to build the vignettes, run
-``` r
-devtools::install_github("greenelab/ADAGEpath", build_vignettes = TRUE)
-```
-
 ### ADAGE introduction
 ADAGE (or eADAGE) models are neural networks trained in an unsupervise manner on
 large publically available gene expression compendia. ADAGE aims at building
@@ -121,3 +111,41 @@ largest activity ranges across samples. The second part builds a limma model to
 detect signatures with differential temporal patterns between treatment
 and control.
 
+
+### Installation
+
+You can install the latest development version from github with
+``` r
+install.packages("devtools")
+devtools::install_github("greenelab/ADAGEpath")
+```
+If you want to build the vignettes, run
+``` r
+devtools::install_github("greenelab/ADAGEpath", build_vignettes = TRUE)
+```
+
+#### Potential problems during installation:
+
+- make: gfortran-4.8: No such file or directory.
+
+    `ADAGEpath` depends on the Bioconductor package
+`impute` that requires gfortrain-4.8. Install `gfortrain-4.8` to solve this problem.
+You can follow instructions here to install `gfortran-4.8` on Mac
+https://stackoverflow.com/questions/23916219/os-x-package-installation-depends-on-gfortran-4-8
+
+- Error validating server certificate for 'https://hedgehog.fhcrc.org:443'
+
+    Please follow this thread to accept the certificate
+https://github.com/hadley/devtools/issues/1401
+
+- `BiocInstaller` package not available
+
+    You can install it via
+    ```r
+    devtools::install_bioc("BiocInstaller")
+    ```
+    or
+    ```r
+    source("https://bioconductor.org/biocLite.R")
+    biocLite("BiocInstaller")
+    ```

@@ -6,7 +6,6 @@
 #' @param input_data a data.frame with gene IDs in the first column and
 #' expression values from the second column.
 #' @param model the ADAGE model to be used for calculating signature activity
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param HW_cutoff number of standard deviations away from mean in a node's
 #' weight distribution to be considered as high-weight (default to 2.5).
 #' Signature activities are calculated only using HW genes.
@@ -14,8 +13,7 @@
 #' the rest columns storing signature activities for every sample in the
 #' input_data.
 #' @export
-calculate_activity <- function(input_data, model = eADAGEmodel,
-                               HW_cutoff = 2.5) {
+calculate_activity <- function(input_data, model, HW_cutoff = 2.5){
 
   if (!check_input(input_data)){
     stop("The input data should be a data.frame with the first column as a
@@ -35,16 +33,17 @@ calculate_activity <- function(input_data, model = eADAGEmodel,
   }
 
   weight_matrix <- as.matrix(model[, -1])
+  rownames(weight_matrix) <- model[[1]]
   model_size <- ncol(weight_matrix)
-  value_only <- as.matrix(input_data[, -1])
+  express_matrix <- as.matrix(input_data[, -1])
 
   HWactivity_perGene_pos <- sapply(1:model_size, function(x)
     one_signature_activity(weight_matrix = weight_matrix,
-                           express_matrix = value_only,
+                           express_matrix = express_matrix,
                            node = x, side = "pos", HW_cutoff = HW_cutoff))
   HWactivity_perGene_neg <- sapply(1:model_size, function(x)
     one_signature_activity(weight_matrix = weight_matrix,
-                           express_matrix = value_only,
+                           express_matrix = express_matrix,
                            node = x, side = "neg", HW_cutoff = HW_cutoff))
 
   # combine positive and negative sides
@@ -57,7 +56,7 @@ calculate_activity <- function(input_data, model = eADAGEmodel,
   # omit positive and negative signs of activities
   HWactivity_perGene <- abs(HWactivity_perGene)
 
-  colnames(HWactivity_perGene) <- colnames(value_only)
+  colnames(HWactivity_perGene) <- colnames(express_matrix)
 
   # add the signature name column in the front
   HWactivity_perGene <- data.frame(
@@ -71,17 +70,22 @@ calculate_activity <- function(input_data, model = eADAGEmodel,
 
 #' One signature activity
 #'
-#' Calculates activities for a specific signature in an ADAGE model.
+#' Calculates activities for a specific signature in an ADAGE model. If gene_set
+#' is provided, it will only calculate the acitivity of a signature using
+#' genes in the gene_set.
 #'
 #' @param weight_matrix a data.matrix storing the weight matrix in an ADAGE model.
 #' @param express_matrix a data.matrix storing gene expression values in a dataset
-#' @param node a int ranging from 1 to number of columns in weight_matrix
+#' @param node an int ranging from 1 to number of columns in weight_matrix
 #' @param side character, "pos" or "neg"
+#' @param gene_set a character vector storing gene IDs, must match
+#' the gene IDs used in the model. (default: NULL)
 #' @param HW_cutoff number of standard deviations from mean in a node's weight
 #' distribution to be considered as high-weight (default to 2.5).
 #' @return a vector storing activities of one signature across samples
+#' @export
 one_signature_activity <- function(weight_matrix, express_matrix, node, side,
-                                   HW_cutoff = 2.5){
+                                   gene_set = NULL, HW_cutoff = 2.5){
 
   if (node > ncol(weight_matrix)){
     stop("Node too large, no such node in the provided weight matrix!")
@@ -97,10 +101,22 @@ one_signature_activity <- function(weight_matrix, express_matrix, node, side,
     HWG_index <- weight_matrix[, node] <= neg_cutoff
   }
 
-  node_activity <- t(weight_matrix[HWG_index, node]) %*%
-    express_matrix[HWG_index, ]
-  if (any(HWG_index) > 0) {
-    node_activity <- node_activity / sum(HWG_index)
+  if (is.null(gene_set)) {
+    GS_index <- rep(TRUE, nrow(weight_matrix))
+  } else {
+    # only include genes in the gene set
+    GS_index <- rep(FALSE, nrow(weight_matrix))
+    GS_index[match(gene_set, rownames(weight_matrix))] <- TRUE
+  }
+
+  combined_index <- HWG_index & GS_index
+
+  node_activity <- t(weight_matrix[combined_index, node]) %*%
+    express_matrix[combined_index, ]
+
+  # only divide by number of genes when it is higher than zero
+  if (any(combined_index) > 0) {
+    node_activity <- node_activity / sum(combined_index)
   }
 
   return(node_activity)
@@ -169,6 +185,6 @@ plot_activity_heatmap <- function(activity, signatures = NULL,
 
   # plot activity heatmap
   suppressWarnings(gplots::heatmap.2(activity_scaled, Rowv = TRUE, Colv = FALSE,
-                    trace = "none", margins = c(10, 10), cexRow = 1, cexCol = 1,
+                    trace = "none", margins = c(10, 20), cexRow = 1, cexCol = 1,
                     col = activity.color, breaks = color.range))
 }

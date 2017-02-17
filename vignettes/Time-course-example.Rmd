@@ -113,7 +113,7 @@ large_range_sigs
 
 View these signatures' activity changes in a heatmap.
 
-```{r}
+```{r, fig.width=10}
 plot_activity_heatmap(activity = data_activity, signatures = large_range_sigs)
 ```
 
@@ -131,10 +131,13 @@ We can associate these signatures to known KEGG pathways to better understand
 them.
 
 ```{r}
-KEGG <- fetch_geneset(type = "KEGG", max_size = 100, min_size = 5)
-pathway_result <- annotate_signatures_with_genesets(
-  selected_signatures = large_range_sigs, model = model, genesets = KEGG)
-DT::datatable(pathway_result)
+KEGG <- fetch_geneset(type = "KEGG")
+# we only consider KEGG pathways with more than 5 genes and less than 100 genes
+# as meaningful pathways
+KEGG_subset <- KEGG[lengths(KEGG) >= 5 & lengths(KEGG) <= 100]
+pathway_association <- annotate_signatures_with_genesets(
+  selected_signatures = large_range_sigs, model = model, genesets = KEGG_subset)
+knitr::kable(pathway_association, digits = 4, row.names = FALSE, align = "c")
 ```
 
 From the KEGG annotation, we can see that Node100pos, Node12neg, and Node69pos
@@ -142,6 +145,21 @@ are associated with sulfate-related metabolism; Node50pos, Node34pos, and
 Node28neg are associated with nitrogen related metabolism; Node31pos and
 Node33neg are associated with Type VI secretion system. Other signatures
 are uncharacterized by KEGG.
+
+We calculate the activity of associated pathways inside active signatures.
+This help differentiate active vs. non-active pathways assoicated with active
+signatures.
+
+```{r, fig.width=10}
+pathway_activity <- signature_geneset_activity(
+  signature_geneset_df = pathway_association[, c("signature", "geneset")],
+  gene_set_list = KEGG_subset, model = model, input_data = data_normed)
+plot_activity_heatmap(pathway_activity)
+```
+
+From the heatmap, we can see that the pathway Cytochrome c oxidase has the
+strongest activity changes, while Type VI secretion system does not have an
+obvious temporal pattern.
 
 ## Signature overlap
 We next check the gene overlap between these signatures.
@@ -170,7 +188,7 @@ marginal_activity <- calculate_marginal_activity(input_data = data_normed,
 
 View these signatures' marginal activity changes in a heatmap.
 
-```{r}
+```{r, fig.width=10}
 plot_activity_heatmap(activity = marginal_activity)
 ```
 
@@ -244,7 +262,7 @@ paste(different_sigs, collapse = ",")
 
 View these signatures' activity changes in a heatmap.
 
-```{r}
+```{r, fig.width=10}
 plot_activity_heatmap(activity = data_activity, signatures = different_sigs)
 ```
 

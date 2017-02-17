@@ -4,14 +4,13 @@
 \alias{annotate_genes_in_signatures}
 \title{Annotating genes in signatures}
 \usage{
-annotate_genes_in_signatures(selected_signatures, model = eADAGEmodel,
+annotate_genes_in_signatures(selected_signatures, model,
   curated_pathways = NULL)
 }
 \arguments{
 \item{selected_signatures}{a character vector storing names of signatures}
 
-\item{model}{an ADAGE model to extract signatures from
-(default: the 300-node eADAGE model preloaded in the package).}
+\item{model}{an ADAGE model to extract signatures from}
 
 \item{curated_pathways}{a named list with each element being a gene set, such
 as the output of the function fetch_geneset(). (default: NULL).}

@@ -6,12 +6,12 @@
 #' @param type character, type of the gene sets, either "GO" or "KEGG"
 #' (default: "KEGG").
 #' @param max_size int, maximum gene set size to be considered as a meaningful
-#' gene set (default: 100).
+#' gene set (default: Inf).
 #' @param min_size int, minimum gene set size to be considered as a meaningful
-#' gene set (default: 5).
+#' gene set (default: 0).
 #' @return a named list with each element being a gene set
 #' @export
-fetch_geneset <- function(type = "KEGG", max_size = 100, min_size = 5){
+fetch_geneset <- function(type = "KEGG", max_size = Inf, min_size = 0){
 
   # make sure type is one of "GO" or "KEGG"
   if (!type %in% c("GO", "KEGG")) {
@@ -80,17 +80,16 @@ fetch_geneset <- function(type = "KEGG", max_size = 100, min_size = 5){
 #'
 #' @param selected_signatures a character vector storing names of signatures
 #' @param model an ADAGE model to extract signatures from
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param genesets a named list of gene sets returned by the
 #' function fetch_geneset(), each element in the list is a character vector
 #' storing genes (PAO1 locus tag) in a gene set.
 #' @param significance_cutoff numeric, FDR significance cutoff used to filter
-#' the result (default: 0.05).
+#' gene sets (default: 0.05).
 #' @return a data.frame storing significantly enriched gene sets for the
 #' input signatures.
 #' @export
 annotate_signatures_with_genesets <- function(selected_signatures,
-                                              model = eADAGEmodel, genesets,
+                                              model, genesets,
                                               significance_cutoff = 0.05){
   if (!check_input(model)) {
     stop("The model should be a data.frame with the first column as a character
@@ -128,6 +127,61 @@ annotate_signatures_with_genesets <- function(selected_signatures,
 }
 
 
+#' Associated signatures retrieval
+#'
+#' Returns the significantly associated signatures for the input genesets. If
+#' signature_limma_result is provided, it will only return the significantly
+#' associated signatures that achieves the lowest adjusted p-value in the
+#' signature_limma_result.
+#'
+#' @param input_genesets a character vector storing gene set names, must be
+#' found in the provided gene set list
+#' @param gene_set_list a named list storing all possible gene sets with each
+#' element being a vector of gene IDs.
+#' @param model an ADAGE model to extract signatures from
+#' @param significance_cutoff numeric, FDR significance cutoff used to determine
+#' signature-geneset association (default: 0.05).
+#' @param signature_limma_result a data.frame that stores the result table
+#' returned by limma. It includes logFC, adj.P.Val, and other statistics for
+#' each signature.
+#' @return a list storing associated signatures for each input gene set
+#' @export
+find_associated_signatures <- function(input_genesets, gene_set_list,
+                                       model, significance_cutoff = 0.05,
+                                       signature_limma_result = NULL){
+
+  if(!all(input_genesets %in% names(gene_set_list))) {
+    stop("The input gene sets cannot be found in the gene set list.")
+  }
+
+  # get the names of all signatures
+  all_sigs <- c(paste0(colnames(model)[-1], "pos"),
+                paste0(colnames(model)[-1], "neg"))
+
+  # peform pathway association for all signatures
+  all_enrichment <- annotate_signatures_with_genesets(
+    selected_signatures = all_sigs, model = model, genesets = gene_set_list,
+    significance_cutoff = significance_cutoff)
+
+  # for each pathway, get its associated signatures
+  associated_sigs <- lapply(input_genesets, function(x){
+    sigs <- all_enrichment$signature[grepl(x, all_enrichment$geneset)]
+    if (identical(sigs, character(0))) {
+      # return NA is find no signature
+      NA
+    } else {
+      if (is.null(signature_limma_result)) {
+        sigs
+      } else {
+        # only record the one that is most significantly differentially active
+        sigs[which.min(signature_limma_result[sigs, "adj.P.Val"])]
+      }
+    }
+  })
+
+  return(associated_sigs)
+}
+
 #' Annotating genes in signatures
 #'
 #' Annotates genes in the input signatures with their symbols, descriptions,
@@ -135,15 +189,13 @@ annotate_signatures_with_genesets <- function(selected_signatures,
 #'
 #' @param selected_signatures a character vector storing names of signatures
 #' @param model an ADAGE model to extract signatures from
-#' (default: the 300-node eADAGE model preloaded in the package).
 #' @param curated_pathways a named list with each element being a gene set, such
 #' as the output of the function fetch_geneset(). (default: NULL).
 #' @return a data.frame storing genes in the input signatures. Each gene is
 #' annotated by gene symbol, gene description, its operon, and signatures it
 #' is in.
 #' @export
-annotate_genes_in_signatures <- function(selected_signatures,
-                                         model = eADAGEmodel,
+annotate_genes_in_signatures <- function(selected_signatures, model,
                                          curated_pathways = NULL){
 
   if (!check_input(model)) {
