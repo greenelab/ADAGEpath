@@ -9,7 +9,7 @@
 #' @param selected_signatures a vector storing names of selected signatures
 #' @param model  an ADAGE model to extract signatures from
 #' @return a data.frame storing marginal activities for the input samples.
-#' It's rownames is set as "signature1-signature2",
+#' Its rownames is set as "signature1-signature2",
 #' indicating a marginal activity for signature1 after
 #' removing the effect of signature2. If rowname is "signature1-signature1",
 #' then it's the activity of signature1 itself.

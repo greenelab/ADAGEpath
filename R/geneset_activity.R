@@ -94,10 +94,13 @@ combine_geneset_outputs <- function(signature_geneset_association,
     rownames(geneset_limma_result), function(x) unlist(strsplit(x, "\\|"))[[2]])
 
   # combine limma result with geneset association result
-  combined_result <- dplyr::left_join(
-    geneset_limma_result %>% dplyr::select(signature, geneset, logFC, adj.P.Val),
-    signature_geneset_association %>% dplyr::select(-pvalue),
-    by = c("signature" = "signature", "geneset" = "geneset"))
+  geneset_limma_result <- geneset_limma_result %>%
+    dplyr::select(signature, geneset, logFC, adj.P.Val)
+  signature_geneset_association <- signature_geneset_association %>%
+    dplyr::select(-pvalue)
+  combined_result <- dplyr::left_join(geneset_limma_result,
+                                      signature_geneset_association,
+                                      by = c("signature", "geneset"))
   combined_result <- combined_result %>% dplyr::rename(
     `activity difference` = logFC, `gene set enrichment (adj.P.val)` = qvalue)
   combined_result <- combined_result[order(combined_result$adj.P.Val), ]
