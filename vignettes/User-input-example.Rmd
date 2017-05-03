@@ -213,7 +213,9 @@ plot_activity_heatmap(activity = data_activity, signatures = unique_active_sigs)
 
 ## Active signature interpretation
 We download *Pseudomonas aeruginosa* KEGG pathway terms from the
-[TRIBE](http://tribe.greenelab.com/#/home) webserver.
+[TRIBE](http://tribe.greenelab.com/#/home) webserver. TRIBE also provides Gene
+Ontology terms. If you want to evaluate signatures with GO terms, simply
+replace "KEGG" with "GO" in the following steps.
 
 ```{r}
 KEGG <- fetch_geneset(type = "KEGG")
