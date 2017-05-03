@@ -3,18 +3,18 @@
 ADAGEpath provides necessary functions to perform ADAGE-based signature analysis.
 
 ### ADAGE introduction
-ADAGE (or eADAGE) models are neural networks trained in an unsupervise manner on
-large publically available gene expression compendia. ADAGE aims at building
+ADAGE (or eADAGE) models are neural networks trained in an unsupervised manner on
+large publicly available gene expression compendia. ADAGE aims at building
 essential features that can reconstruct a compendium. We derived gene expression
 signatures from ADAGE neural network nodes and found that these signatures
 resemble human-annotated biological pathways and cover many existing pathways
 [1,2]. In addition to signatures that match known pathways, ADAGE also extracts
 signatures that may group genes in novel data-driven ways.
 
-Please refer to the following papers if you want to learn more about ADAGE:  
+Please refer to the following papers if you want to learn more about ADAGE:
 1. [ADAGE-Based Integration of Publicly Available Pseudomonas aeruginosa Gene
 Expression Data with Denoising Autoencoders Illuminates Microbe-Host
-Interactions](https://doi.org/10.1128/mSystems.00025-15)  
+Interactions](https://doi.org/10.1128/mSystems.00025-15)
 2. [Unsupervised extraction of functional gene expression signatures in the
 bacterial pathogen Pseudomonas aeruginosa with eADAGE](
 https://doi.org/10.1101/078659)
@@ -31,7 +31,7 @@ information.
 Signatures are gene sets derived from an ADAGE model. They are formed because
 their genes are expressed coordinately in some samples in the compendium.
 An ADAGE signature analysis aims to identify signatures in which the expression
-of constiuent genes are altered by an experimental treatment. Such signatures
+of constituent genes are altered by an experimental treatment. Such signatures
 may represent biological processes that are perturbed by the treatment. ADAGE
 signature analysis usually includes the following steps:
 
@@ -51,7 +51,7 @@ with the function `calculate_activity()`.
 ####Active signature detection
 We next identify signatures whose activities strongly vary with treatments,
 such as signatures whose activities are significantly different in conditions
-of interest. We recommend using 
+of interest. We recommend using
 [limma](https://bioconductor.org/packages/release/bioc/html/limma.html)
 to test differential activation, particularly when sample size is small.
 To facilitate the most frequent two-group comparison,
@@ -59,8 +59,8 @@ we wrapped a two-group limma test into the function `build_limma()`. You can
 visualize the limma two-group test results using `plot_volcano()` and get
 active signatures from the limma test result using `get_active_signatures()`.
 We also provide examples of analyzing time-course experiments or factorial-design
-experiments using limma in the vignettes.  
-You can also use other statistical tests to identify active signatures.  
+experiments using limma in the vignettes.
+You can also use other statistical tests to identify active signatures.
 `plot_activity_heatmap()` generates a heatmap showing how signature activity
 changes across samples.
 
