@@ -1,10 +1,10 @@
 #' Gene set fetch
 #'
 #' Fetches gene sets from the Tribe webserver
-#' (url{https://tribe.greenelab.com}). It can retrieve GO, KEGG or user-created
+#' (url{https://tribe.greenelab.com}). It can retrieve GO, KEGG, or user-created
 #' public gene sets for Pseudomonas aeruginosa.
 #'
-#' @param type character, type of the gene sets, can be "GO", "KEGG" or "User"
+#' @param type character, type of the gene sets, can be "GO", "KEGG", or "User"
 #' (default: "KEGG").
 #' @param username character, creator's TRIBE username (default: NULL)
 #' @param max_size int, maximum gene set size to be considered as a meaningful
@@ -16,7 +16,7 @@
 fetch_geneset <- function(type = "KEGG", username = NULL, max_size = Inf,
                           min_size = 0){
 
-  # make sure type is one of "GO" or "KEGG"
+  # make sure type is one of "GO", "KEGG", or "User"
   if (!type %in% c("GO", "KEGG", "User")) {
     stop("type can only be GO or KEGG or User.")
   }

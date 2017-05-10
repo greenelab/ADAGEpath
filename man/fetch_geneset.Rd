@@ -4,11 +4,14 @@
 \alias{fetch_geneset}
 \title{Gene set fetch}
 \usage{
-fetch_geneset(type = "KEGG", max_size = Inf, min_size = 0)
+fetch_geneset(type = "KEGG", username = NULL, max_size = Inf,
+  min_size = 0)
 }
 \arguments{
-\item{type}{character, type of the gene sets, either "GO" or "KEGG"
+\item{type}{character, type of the gene sets, can be "GO", "KEGG", or "User"
 (default: "KEGG").}
+
+\item{username}{character, creator's TRIBE username (default: NULL)}
 
 \item{max_size}{int, maximum gene set size to be considered as a meaningful
 gene set (default: Inf).}
@@ -20,7 +23,8 @@ gene set (default: 0).}
 a named list with each element being a gene set
 }
 \description{
-Fetches GO or KEGG gene sets from the Tribe webserver
-(url{tribe.greenelab.com}).
+Fetches gene sets from the Tribe webserver
+(url{https://tribe.greenelab.com}). It can retrieve GO, KEGG, or user-created
+public gene sets for Pseudomonas aeruginosa.
 }
 
