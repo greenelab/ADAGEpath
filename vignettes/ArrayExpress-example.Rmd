@@ -210,6 +210,7 @@ unique_active_sigs
 ```
 
 ## Active signature interpretation
+### Associated pathways
 We download *Pseudomonas aeruginosa* KEGG pathway terms from the
 [TRIBE](http://tribe.greenelab.com/#/home) web server.
 
@@ -263,7 +264,7 @@ Check the signature similarity of the uncharacterized signatures.
 plot_signature_overlap(selected_signatures = uncharacterized_sigs, model = model)
 ```
 
-## Gene-gene network
+### Gene-gene network
 We check how genes in the active signatures cluster in the ADAGE gene-gene
 network.
 
@@ -289,6 +290,7 @@ visualize_gene_network(selected_signatures = unique_active_sigs,
                        curated_pathways = KEGG)
 ```
 
+### Genes in signatures
 To review a signature, we can list all genes in it.
 
 ```{r}
@@ -299,15 +301,6 @@ gene_annotation <- annotate_genes_in_signatures(selected_signatures = "Node28neg
 gene_annotation <- dplyr::right_join(gene_logFC, gene_annotation,
                                      by = c("geneID" = "LocusTag"))
 DT::datatable(gene_annotation)
-```
-
-And visualize its genes with the gene-gene network.
-
-```{r}
-visualize_gene_network(selected_signatures = "Node28neg",
-                       model = model, cor_cutoff = 0.5,
-                       gene_color_value = gene_logFC,
-                       curated_pathways = KEGG)
 ```
 
 We can also review a group of similar signatures. Simply replace one signature

@@ -212,10 +212,12 @@ plot_activity_heatmap(activity = data_activity, signatures = unique_active_sigs)
 ```
 
 ## Active signature interpretation
+### Associated pathways
 We download *Pseudomonas aeruginosa* KEGG pathway terms from the
 [TRIBE](http://tribe.greenelab.com/#/home) webserver. TRIBE also provides Gene
 Ontology terms. If you want to evaluate signatures with GO terms, simply
-replace "KEGG" with "GO" in the following steps.
+replace "KEGG" with "GO" in the following steps. You can also retrieve public
+genesets created by a user on TRIBE.
 
 ```{r}
 KEGG <- fetch_geneset(type = "KEGG")
@@ -235,7 +237,7 @@ pathway_association <- annotate_signatures_with_genesets(
 Calculate the activity of associated pathways inside active signatures. This help
 differentiate active vs. non-active pathways assoicated with active signatures.
 
-```{r}
+```{r, fig.width=10, fig.height=10}
 pathway_activity <- signature_geneset_activity(
   signature_geneset_df = pathway_association[, c("signature", "geneset")],
   gene_set_list = KEGG_subset, model = model, input_data = data_normed)
@@ -255,44 +257,6 @@ combined_result <- combine_geneset_outputs(
 knitr::kable(combined_result, digits = 4, row.names = FALSE, align = "c")
 ```
 
-We also performed a GSEA analysis on this dataset and found that GSEA and
-ADAGEpath agree on many pathways. Here we list pathways significantly enriched
-in GSEA but not associated with chosen active signatures.
-We check whether they are assoicated with
-any ADAGE signatures and how differentially active the associated signatures 
-are.
-
-```{r}
-# pathways enriched in GSEA but not associated with ADAGE signatures
-# in the top 10 layers of pareto fronts
-GSEA_only <- c( "KEGG-Module-M00178: Ribosome, bacteria",
-                "KEGG-Pathway-pae03010: Ribosome - Pseudomonas aeruginosa PAO1",
-                "KEGG-Pathway-pae03070: Bacterial secretion system - Pseudomonas aeruginosa PAO1",
-                "KEGG-Module-M00331: Type II general secretion pathway",
-                "KEGG-Module-M00332: Type III secretion system",
-                "KEGG-Module-M00023: Tryptophan biosynthesis, chorismate => tryptophan",
-                "KEGG-Pathway-pae00280: Valine, leucine and isoleucine degradation - Pseudomonas aeruginosa PAO1",
-                "KEGG-Pathway-pae00970: Aminoacyl-tRNA biosynthesis - Pseudomonas aeruginosa PAO1")
-
-# this step will take a while because it checks association between all signatures
-# and all pathways
-associated_sigs <- find_associated_signatures(input_genesets = GSEA_only,
-                                              model = model,
-                                              gene_set_list = KEGG_subset,
-                                              significance_cutoff = 0.05,
-                                              signature_limma_result = limma_result)
-associated_sigs <- unlist(associated_sigs)
-# see how these signatures perform in the limma test
-plot_volcano(limma_result, highlight_signatures = associated_sigs,
-             interactive = TRUE)
-```
-
-These pathways enriched in the GSEA are not associated with any signatures:
-
-```{r}
-GSEA_only[is.na(associated_sigs)]
-```
-
 There are also signatures uncharacterized by KEGG.
 
 ```{r}
@@ -306,10 +270,24 @@ Check the signature similarity of the uncharacterized signatures.
 plot_signature_overlap(selected_signatures = uncharacterized_sigs, model = model)
 ```
 
-They form two major groups. Group1 contains Node38pos, Node67pos, Node35pos, and
-Node233pos. Group2 contains Node191pos, Node269pos, and Node107pos.
+### Genes in signatures
+To review a signature, we can list all genes in it.
 
-## Gene-gene network
+```{r}
+DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node35neg",
+                                           model = model,
+                                           curated_pathways = KEGG))
+```
+
+We can also review a group of signatures
+
+```{r}
+DT::datatable(annotate_genes_in_signatures(selected_signatures = uncharacterized_sigs,
+                                           model = model,
+                                           curated_pathways = KEGG))
+```
+
+### Gene-gene network
 We check how genes in the active signatures cluster in the ADAGE gene-gene
 network.
 
@@ -329,39 +307,6 @@ Visualize the ADAGE gene-gene network of the active signatures.
 
 ```{r}
 visualize_gene_network(selected_signatures = unique_active_sigs,
-                       gene_color_value = gene_logFC,
-                       model = model, cor_cutoff = 0.5,
-                       curated_pathways = KEGG)
-```
-
-To review a signature, we can list all genes in it.
-
-```{r}
-DT::datatable(annotate_genes_in_signatures(selected_signatures = "Node155neg",
-                                           model = model,
-                                           curated_pathways = KEGG))
-```
-
-And visualize its genes with the gene-gene network.
-
-```{r}
-visualize_gene_network(selected_signatures = "Node155neg",
-                       gene_color_value = gene_logFC,
-                       model = model, cor_cutoff = 0.5,
-                       curated_pathways = KEGG)
-```
-
-We can also review signatures in group.
-
-```{r}
-sig_group <- c("Node38pos", "Node67pos", "Node35pos", "Node233pos")
-DT::datatable(annotate_genes_in_signatures(selected_signatures = sig_group,
-                                           model = model,
-                                           curated_pathways = KEGG))
-```
-
-```{r}
-visualize_gene_network(selected_signatures = sig_group,
                        gene_color_value = gene_logFC,
                        model = model, cor_cutoff = 0.5,
                        curated_pathways = KEGG)
