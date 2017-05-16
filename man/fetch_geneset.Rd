@@ -4,14 +4,19 @@
 \alias{fetch_geneset}
 \title{Gene set fetch}
 \usage{
-fetch_geneset(type = "KEGG", username = NULL, max_size = Inf,
-  min_size = 0)
+fetch_geneset(type = "KEGG", username = NULL, access_date = NULL,
+  max_size = Inf, min_size = 0)
 }
 \arguments{
 \item{type}{character, type of the gene sets, can be "GO", "KEGG", or "User"
 (default: "KEGG").}
 
 \item{username}{character, creator's TRIBE username (default: NULL)}
+
+\item{access_date}{character, in the format of month-day-year (12-31-16).
+When specified, only the version of a term edited right before the access
+date is retrieved. In default, a term's most up-to-date version is retrieved.
+(default: NULL)}
 
 \item{max_size}{int, maximum gene set size to be considered as a meaningful
 gene set (default: Inf).}
