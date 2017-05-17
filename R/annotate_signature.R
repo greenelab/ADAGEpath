@@ -7,7 +7,9 @@
 #' @param type character, type of the gene sets, can be "GO", "KEGG", or "User"
 #' (default: "KEGG").
 #' @param username character, creator's TRIBE username (default: NULL)
-#' @param access_date character, in the format of month-day-year (12-31-16).
+#' @param access_date character, in the format of month-day-year,
+#' the month and day should have two digits and the year should only contain the
+#' last two digits (e.g. 12-31-16).
 #' When specified, only the version of a term edited right before the access
 #' date is retrieved. In default, a term's most up-to-date version is retrieved.
 #' (default: NULL)
@@ -22,7 +24,7 @@ fetch_geneset <- function(type = "KEGG", username = NULL, access_date = NULL,
 
   # make sure type is one of "GO", "KEGG", or "User"
   if (!type %in% c("GO", "KEGG", "User")) {
-    stop("type can only be GO or KEGG or User.")
+    stop("type can only be GO, KEGG, or User.")
   }
 
   # username cannot be NULL if type is User
@@ -50,7 +52,8 @@ fetch_geneset <- function(type = "KEGG", username = NULL, access_date = NULL,
         tribe_req <- httr::GET("https://tribe.greenelab.com/api/v1/geneset/",
                                query = list(creator__username = username,
                                             show_tip = "true",
-                                            organism = "9",  # P.a. is number 9
+                                            organism__scientific_name =
+                                              "Pseudomonas aeruginosa",
                                             xrdb = "Symbol",
                                             limit = request_limit,
                                             offset = request_offset,
@@ -60,7 +63,8 @@ fetch_geneset <- function(type = "KEGG", username = NULL, access_date = NULL,
         tribe_req <- httr::GET("https://tribe.greenelab.com/api/v1/geneset/",
                                query = list(title__startswith = type,
                                             show_tip = "true",
-                                            organism = "9",  # P.a. is number 9
+                                            organism__scientific_name =
+                                              "Pseudomonas aeruginosa",
                                             xrdb = "Symbol",
                                             limit = request_limit,
                                             offset = request_offset,
@@ -98,7 +102,8 @@ fetch_geneset <- function(type = "KEGG", username = NULL, access_date = NULL,
         tribe_req <- httr::GET("https://tribe.greenelab.com/api/v1/geneset/",
                                query = list(creator__username = username,
                                             show_versions = "true",
-                                            organism = "9",  # P.a. is number 9
+                                            organism__scientific_name =
+                                              "Pseudomonas aeruginosa",
                                             xrdb = "Symbol",
                                             limit = request_limit,
                                             offset = request_offset,
@@ -110,7 +115,8 @@ fetch_geneset <- function(type = "KEGG", username = NULL, access_date = NULL,
         tribe_req <- httr::GET("https://tribe.greenelab.com/api/v1/geneset/",
                                query = list(title__startswith = type,
                                             show_versions = "true",
-                                            organism = "9",  # P.a. is number 9
+                                            organism__scientific_name =
+                                              "Pseudomonas aeruginosa",
                                             xrdb = "Symbol",
                                             limit = request_limit,
                                             offset = request_offset,

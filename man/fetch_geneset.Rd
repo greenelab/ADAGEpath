@@ -13,7 +13,9 @@ fetch_geneset(type = "KEGG", username = NULL, access_date = NULL,
 
 \item{username}{character, creator's TRIBE username (default: NULL)}
 
-\item{access_date}{character, in the format of month-day-year (12-31-16).
+\item{access_date}{character, in the format of month-day-year,
+the month and day should have two digits and the year should only contain the
+last two digits (e.g. 12-31-16).
 When specified, only the version of a term edited right before the access
 date is retrieved. In default, a term's most up-to-date version is retrieved.
 (default: NULL)}
