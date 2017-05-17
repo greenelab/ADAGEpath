@@ -1,61 +1,159 @@
 #' Gene set fetch
 #'
-#' Fetches GO or KEGG gene sets from the Tribe webserver
-#' (url{tribe.greenelab.com}).
+#' Fetches gene sets from the Tribe webserver
+#' (url{https://tribe.greenelab.com}). It can retrieve GO, KEGG, or user-created
+#' public gene sets for Pseudomonas aeruginosa.
 #'
-#' @param type character, type of the gene sets, either "GO" or "KEGG"
+#' @param type character, type of the gene sets, can be "GO", "KEGG", or "User"
 #' (default: "KEGG").
+#' @param username character, creator's TRIBE username (default: NULL)
+#' @param access_date character, in the format of month-day-year,
+#' the month and day should have two digits and the year should only contain the
+#' last two digits (e.g. 12-31-16).
+#' When specified, only the version of a term edited right before the access
+#' date is retrieved. In default, a term's most up-to-date version is retrieved.
+#' (default: NULL)
 #' @param max_size int, maximum gene set size to be considered as a meaningful
 #' gene set (default: Inf).
 #' @param min_size int, minimum gene set size to be considered as a meaningful
 #' gene set (default: 0).
 #' @return a named list with each element being a gene set
 #' @export
-fetch_geneset <- function(type = "KEGG", max_size = Inf, min_size = 0){
+fetch_geneset <- function(type = "KEGG", username = NULL, access_date = NULL,
+                          max_size = Inf, min_size = 0){
 
-  # make sure type is one of "GO" or "KEGG"
-  if (!type %in% c("GO", "KEGG")) {
-    stop("type can only be either GO or KEGG.")
+  # make sure type is one of "GO", "KEGG", or "User"
+  if (!type %in% c("GO", "KEGG", "User")) {
+    stop("type can only be GO, KEGG, or User.")
+  }
+
+  # username cannot be NULL if type is User
+  if (type == "User" & is.null(username)) {
+    stop("Please provide the TRIBE username.")
   }
 
   # to prevent overloading the TRIBE webserver, we limit the download size
-  # to 2000 gene sets at one time and make multiple downloads through changing
+  # to 200 gene sets at one time and make multiple downloads through changing
   # the offset until all gene sets have been downloaded.
-  request_limit <- 2000
+  request_limit <- 200
   request_time <- 1
   gene_sets_df_list <- list()
+
   while (TRUE) {
     # set request offset to the number of request limits that have already
     # been reached
     request_offset <- (request_time - 1) * request_limit
 
-    tribe_req <- httr::GET("http://tribe.greenelab.com/api/v1/geneset/",
-                           query = list(title__startswith = type,
-                                        show_tip = "true",
-                                        organism = "9",  # P.a. is number 9
-                                        xrdb = "Symbol",
-                                        limit = request_limit,
-                                        offset = request_offset,
-                                        format = "json"))
+    if (is.null(access_date)) {
+      # if access_date is NULL, use the tip version
 
-    tribe_content <- suppressWarnings(httr::content(tribe_req, as = "text"))
-    gene_sets <- jsonlite::fromJSON(tribe_content)
-    gene_sets_df <- dplyr::data_frame(title = gene_sets$objects$title,
-                                      count = gene_sets$objects$tip_item_count,
-                                      genes = gene_sets$objects$tip$genes)
-    gene_sets_df_list[[request_time]] <- gene_sets_df
+      if (type == "User") {
+        # filter gene set by creator's username
+        tribe_req <- httr::GET("https://tribe.greenelab.com/api/v1/geneset/",
+                               query = list(creator__username = username,
+                                            show_tip = "true",
+                                            organism__scientific_name =
+                                              "Pseudomonas aeruginosa",
+                                            xrdb = "Symbol",
+                                            limit = request_limit,
+                                            offset = request_offset,
+                                            format = "json"))
+      } else {
+        # filter gene set by title
+        tribe_req <- httr::GET("https://tribe.greenelab.com/api/v1/geneset/",
+                               query = list(title__startswith = type,
+                                            show_tip = "true",
+                                            organism__scientific_name =
+                                              "Pseudomonas aeruginosa",
+                                            xrdb = "Symbol",
+                                            limit = request_limit,
+                                            offset = request_offset,
+                                            format = "json"))
+      }
 
-    # the actual number of returned gene sets
-    returned_size <- nrow(gene_sets_df)
-    # If the return_size reaches the request limit, it indicates that we haven't
-    # downloaded all gene sets yet. We will make a new request repeatly until
-    # the number of returned gene sets is smaller than the request limit.
-    if (returned_size < request_limit) {
-      break
+      tribe_content <- suppressMessages(httr::content(tribe_req, as = "text"))
+      gene_sets <- jsonlite::fromJSON(tribe_content)
+
+      if (gene_sets$meta$total_count > 0) {
+        gene_sets_df <- dplyr::data_frame(title = gene_sets$objects$title,
+                                          genes = gene_sets$objects$tip$genes,
+                                          count = gene_sets$objects$tip_item_count)
+        gene_sets_df_list[[request_time]] <- gene_sets_df
+
+        # the actual number of returned gene sets
+        returned_size <- nrow(gene_sets_df)
+        # If the return_size reaches the request limit, it indicates that we haven't
+        # downloaded all gene sets yet. We will make a new request repeatly until
+        # the number of returned gene sets is smaller than the request limit.
+        if (returned_size < request_limit) {
+          break
+        } else {
+          request_time <- request_time + 1
+        }
+      } else {
+        break
+      }
     } else {
-      request_time <- request_time + 1
+      # if access_date is provided, retrieve the gene set version
+      # created right before the access_date
+
+      if (type == "User") {
+        # filter gene set by creator's username
+        tribe_req <- httr::GET("https://tribe.greenelab.com/api/v1/geneset/",
+                               query = list(creator__username = username,
+                                            show_versions = "true",
+                                            organism__scientific_name =
+                                              "Pseudomonas aeruginosa",
+                                            xrdb = "Symbol",
+                                            limit = request_limit,
+                                            offset = request_offset,
+                                            modified_before = access_date,
+                                            format = "json"))
+
+      } else {
+        # filter gene set by title
+        tribe_req <- httr::GET("https://tribe.greenelab.com/api/v1/geneset/",
+                               query = list(title__startswith = type,
+                                            show_versions = "true",
+                                            organism__scientific_name =
+                                              "Pseudomonas aeruginosa",
+                                            xrdb = "Symbol",
+                                            limit = request_limit,
+                                            offset = request_offset,
+                                            modified_before = access_date,
+                                            format = "json"))
+      }
+
+      tribe_content <- suppressMessages(httr::content(tribe_req, as = "text"))
+      gene_sets <- jsonlite::fromJSON(tribe_content)
+
+      if (gene_sets$meta$total_count > 0) {
+        gene_sets_df <- dplyr::data_frame(title = gene_sets$objects$title,
+                                          genes = sapply(gene_sets$objects$versions,
+                                                         function(x) unlist(x[1, "genes"])))
+        gene_sets_df$count <- sapply(gene_sets_df$genes, function(x) length(x))
+        gene_sets_df_list[[request_time]] <- gene_sets_df
+
+        # the actual number of returned gene sets
+        returned_size <- nrow(gene_sets_df)
+        # If the return_size reaches the request limit, it indicates that we haven't
+        # downloaded all gene sets yet. We will make a new request repeatly until
+        # the number of returned gene sets is smaller than the request limit.
+        if (returned_size < request_limit) {
+          break
+        } else {
+          request_time <- request_time + 1
+        }
+      } else {
+        break
+      }
     }
   }
+
+  if (length(gene_sets_df_list) == 0) {
+    stop("Failed to retrieve any gene set. Please check the input parameters.")
+  }
+
   # combine gene sets downloaded in all requests
   gene_sets_df <- dplyr::bind_rows(gene_sets_df_list)
 
