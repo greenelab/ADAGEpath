@@ -225,7 +225,7 @@ plot_volcano <- function(limma_result, highlight_signatures = NULL,
       # build a new column to indicate whether a signature belongs to the
       # highlighted signatures. Used to assign colors in the volcano plot.
       test_result$highlight <- ifelse(
-        test_result$signature %in% highlight_signatures, "active", "other")
+        test_result$signature %in% highlight_signatures, "highlighted", "other")
       pal <- c("red", "grey")
 
       # extract results of the highlighted signatures and only annotate them
