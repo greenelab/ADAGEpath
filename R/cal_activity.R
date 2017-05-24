@@ -136,9 +136,12 @@ one_signature_activity <- function(weight_matrix, express_matrix, node, side,
 #' range to the maximum activity range of the input activity. If FALSE, heatmap
 #' color range is determined by the activity ranges of the selected signatures.
 #' (default: TRUE)
+#' @param is_pathway logical, indicates whether the input activity stores
+#' pathway activity. If TRUE, figure margin is set to a larger value to better
+#' display pathway names, which are much longer than signature names.
 #' @export
 plot_activity_heatmap <- function(activity, signatures = NULL,
-                                  fix_color_range = TRUE){
+                                  fix_color_range = TRUE, is_pathway = FALSE){
 
   if (!check_input(activity)){
     stop("The input activity should be a data.frame with the first column as
@@ -183,8 +186,16 @@ plot_activity_heatmap <- function(activity, signatures = NULL,
     color.range <- seq(0, max(activity_scaled), length = 256)
   }
 
+  # set figure margin
+  if (is_pathway) {
+    rowname_margin = 40
+  } else {
+    rowname_margin = 20
+  }
+
   # plot activity heatmap
   suppressWarnings(gplots::heatmap.2(activity_scaled, Rowv = TRUE, Colv = FALSE,
-                    trace = "none", margins = c(10, 20), cexRow = 1, cexCol = 1,
-                    col = activity.color, breaks = color.range))
+                                     trace = "none", margins = c(10, rowname_margin),
+                                     cexRow = 1, cexCol = 1,
+                                     col = activity.color, breaks = color.range))
 }
