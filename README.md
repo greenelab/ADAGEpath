@@ -35,7 +35,7 @@ of constituent genes are altered by an experimental treatment. Such signatures
 may represent biological processes that are perturbed by the treatment. ADAGE
 signature analysis usually includes the following steps:
 
-####Data loading
+#### Data loading
 ADAGEpath currently supports raw microarray data in CEL format and processed
 microarray or RNAseq data. Use function `load_dataset()` to load your own
 dataset or datasets publicly available in ArrayExpress.
@@ -44,11 +44,11 @@ Since ADAGE only accepts expression values in the (0,1) range, we linearly
 transform expression values to be between 0 and 1 using the function
 `zeroone_norm()`.
 
-####Signature activity calculation
+#### Signature activity calculation
 We next calculate each signature's activity for each sample in the dataset
 with the function `calculate_activity()`.
 
-####Active signature detection
+#### Active signature detection
 We next identify signatures whose activities strongly vary with treatments,
 such as signatures whose activities are significantly different in conditions
 of interest. We recommend using
@@ -64,7 +64,7 @@ You can also use other statistical tests to identify active signatures.
 `plot_activity_heatmap()` generates a heatmap showing how signature activity
 changes across samples.
 
-####Signature overlap examination
+#### Signature overlap examination
 To be robust to noise, ADAGE models would sometimes construct signatures that
 have overlapping genes. We can check whether the active signatures identified above
 overlap with others using `plot_signature_overlap()`. If there is a group of
@@ -77,7 +77,7 @@ of another signature has been removed using `plot_marginal_activation()`. Exampl
 of signature overlap examination are in vignettes **ArrayExpress-example** and
 **Time-course-example**.
 
-####Signature interpretation and visualization
+#### Signature interpretation and visualization
 Finally, to get a detailed view of a signature or a group of signatures,
 we can retrieve their constituent genes using `annotate_genes_in_signatures()`
 and visualize these genes through a
@@ -122,6 +122,11 @@ devtools::install_github("greenelab/ADAGEpath")
 If you want to build the vignettes, run
 ``` r
 devtools::install_github("greenelab/ADAGEpath", build_vignettes = TRUE)
+```
+You can also install it via BioInstaller
+``` r
+library(BiocInstaller)
+biocLite("greenelab/ADAGEpath")
 ```
 
 #### Potential problems during installation:
