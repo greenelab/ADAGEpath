@@ -126,6 +126,13 @@ devtools::install_github("greenelab/ADAGEpath", build_vignettes = TRUE)
 You can also install it via BioInstaller
 ``` r
 library(BiocInstaller)
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("greenelab/ADAGEpath")
+```
+For earlier verisons of R ( < 3.5), instead use
+``` r
+library(BiocInstaller)
 biocLite("greenelab/ADAGEpath")
 ```
 
